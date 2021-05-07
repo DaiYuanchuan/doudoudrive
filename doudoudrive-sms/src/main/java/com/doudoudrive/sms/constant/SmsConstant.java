@@ -80,11 +80,6 @@ public interface SmsConstant {
     }
 
     /**
-     * sms短信发送时请求成功的标志
-     */
-    String OK = "OK";
-
-    /**
      * 腾讯云短信配置信息
      */
     interface TencentCloudSmsConfig {

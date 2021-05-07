@@ -95,6 +95,10 @@ public class AliYunSmsManagerImpl implements SmsManager {
      */
     private static final String REQUEST_URL = "https://%s/?Signature=%s%s";
 
+    /**
+     * 阿里云sms短信发送时请求成功的标志
+     */
+    private static final String OK = "OK";
 
     /**
      * 阿里大鱼的短信发送
@@ -133,7 +137,7 @@ public class AliYunSmsManagerImpl implements SmsManager {
                 .execute()) {
             // 获取阿里大鱼短信发送响应数据
             AliYunSmsResponseDTO aliYunSmsResponse = JSON.parseObject(execute.body(), AliYunSmsResponseDTO.class);
-            if (SmsConstant.OK.equals(aliYunSmsResponse.getCode())) {
+            if (OK.equals(aliYunSmsResponse.getCode())) {
                 smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.status);
             } else {
                 smsSendRecord.setSmsErrorReason(execute.body());

@@ -115,19 +115,11 @@ public class SmsController {
         // 构建消息发送记录
         SmsSendRecord sendRecord = SmsSendRecord.builder()
                 .smsRecipient(requestDTO.getSmsRecipient())
+                .smsDataId(SmsConstant.TencentCloudSmsTemplate.VERIFICATION_CODE)
                 .username(requestDTO.getUsername())
                 .smsType(ConstantConfig.SmsTypeEnum.SMS.type)
                 .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.status)
                 .build();
-
-        // 根据应用类型配置消息发送记录
-        if (SmsConstant.AppType.A_LI_YUN.equals(smsConfig.getAppType())) {
-            sendRecord.setSmsDataId(SmsConstant.AliYunSmsTemplate.VERIFICATION_CODE);
-        }
-
-        if (SmsConstant.AppType.TENCENT_CLOUD.equals(smsConfig.getAppType())) {
-            sendRecord.setSmsDataId(SmsConstant.TencentCloudSmsTemplate.VERIFICATION_CODE);
-        }
 
         // 生成6位数随机安全码
         String securityCode = RandomUtil.randomNumbers(NumberConstant.INTEGER_SIX);
