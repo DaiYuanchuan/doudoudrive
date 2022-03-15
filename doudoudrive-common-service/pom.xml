@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 继承父类 -->
+    <parent>
+        <artifactId>doudoudrive</artifactId>
+        <groupId>com.doudoudrive</groupId>
+        <version>0.0.1</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>doudoudrive-common-service</artifactId>
+    <packaging>jar</packaging>
+
+    <!-- 项目说明 -->
+    <name>${project.artifactId}</name>
+    <description>兜兜网盘系统-公共的DB服务层</description>
+    <url>https://www.doudoudrive.com/</url>
+    <!-- 项目说明 -->
+
+    <!-- 附带属性 -->
+    <properties>
+        <!-- 文件拷贝时的编码 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- 编译时的编码 -->
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+        <!-- 打包跳过单元测试 -->
+        <skipTests>true</skipTests>
+    </properties>
+
+    <!-- 项目依赖 -->
+    <dependencies>
+
+        <!-- mysql驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- mysql驱动 -->
+
+        <!-- MyBatis -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- MyBatis -->
+
+        <!-- 公共模块依赖 -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>doudoudrive-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
+    <!-- 项目依赖 -->
+
+</project>

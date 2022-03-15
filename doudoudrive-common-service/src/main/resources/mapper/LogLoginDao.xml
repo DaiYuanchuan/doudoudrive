@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.LogLoginDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.LogLogin" id="logLoginResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="ip" column="ip"/>
+        <result property="location" column="location"/>
+        <result property="browser" column="browser"/>
+        <result property="browserVersion" column="browser_version"/>
+        <result property="browserEngine" column="browser_engine"/>
+        <result property="browserEngineVersion" column="browser_engine_version"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="mobile" column="is_mobile"/>
+        <result property="os" column="os"/>
+        <result property="platform" column="platform"/>
+        <result property="username" column="username"/>
+        <result property="success" column="is_success"/>
+        <result property="password" column="is_password"/>
+        <result property="msg" column="msg"/>
+        <result property="sessionId" column="session_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="logLogin">
+        `auto_id` ,`business_id`,INET_NTOA(`ip`) as ip,`location`,`browser`,`browser_version`,`browser_engine`,
+        `browser_engine_version`,`user_agent`,`is_mobile`,`os`,`platform`,`username`,`is_success`,`is_password`,`msg`,
+        `session_id`,`create_time`,`update_time`
+    </sql>
+
+    <!-- 搜索的参数块 -->
+    <sql id="searchCondition">
+        <if test="null != logLogin">
+            <if test="null != logLogin.autoId and 0 != logLogin.autoId">
+                `auto_id` = #{logLogin.autoId} AND
+            </if>
+            <if test="null != logLogin.businessId and '' != logLogin.businessId">
+                `business_id` = #{logLogin.businessId} AND
+            </if>
+            <if test="null != logLogin.ip and '' != logLogin.ip">
+                `ip` = INET_ATON(#{logLogin.ip}) AND
+            </if>
+            <if test="null != logLogin.location and '' != logLogin.location">
+                LOCATE(#{logLogin.location}, `location`)>0 AND
+            </if>
+            <if test="null != logLogin.browser and '' != logLogin.browser">
+                LOCATE(#{logLogin.browser}, `browser`)>0 AND
+            </if>
+            <if test="null != logLogin.browserVersion and '' != logLogin.browserVersion">
+                LOCATE(#{logLogin.browserVersion}, `browser_version`)>0 AND
+            </if>
+            <if test="null != logLogin.browserEngine and '' != logLogin.browserEngine">
+                LOCATE(#{logLogin.browserEngine}, `browser_engine`)>0 AND
+            </if>
+            <if test="null != logLogin.browserEngineVersion and '' != logLogin.browserEngineVersion">
+                LOCATE(#{logLogin.browserEngineVersion}, `browser_engine_version`)>0 AND
+            </if>
+            <if test="null != logLogin.userAgent and '' != logLogin.userAgent">
+                LOCATE(#{logLogin.userAgent}, `user_agent`)>0 AND
+            </if>
+            <if test="null != logLogin.mobile">
+                `is_mobile` = #{logLogin.mobile} AND
+            </if>
+            <if test="null != logLogin.os and '' != logLogin.os">
+                LOCATE(#{logLogin.os}, `os`)>0 AND
+            </if>
+            <if test="null != logLogin.platform and '' != logLogin.platform">
+                LOCATE(#{logLogin.platform}, `platform`)>0 AND
+            </if>
+            <if test="null != logLogin.username and '' != logLogin.username">
+                LOCATE(#{logLogin.username}, `username`)>0 AND
+            </if>
+            <if test="null != logLogin.success">
+                `is_success` = #{logLogin.success} AND
+            </if>
+            <if test="null != logLogin.password">
+                `is_password` = #{logLogin.password} AND
+            </if>
+            <if test="null != logLogin.msg and '' != logLogin.msg">
+                LOCATE(#{logLogin.msg}, `msg`)>0 AND
+            </if>
+            <if test="null != logLogin.sessionId and '' != logLogin.sessionId">
+                LOCATE(#{logLogin.sessionId}, `session_id`)>0 AND
+            </if>
+        </if>
+        <if test="null != startTime and null != endTime">
+            STR_TO_DATE(`create_time`,'%Y-%m-%d') &lt;= STR_TO_DATE(#{startTime},'%Y-%m-%d') and
+            STR_TO_DATE(`create_time`,'%Y-%m-%d') >= STR_TO_DATE(#{endTime},'%Y-%m-%d') and
+        </if>
+    </sql>
+
+
+    <!-- 新增登录日志 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.LogLogin" flushCache="true"
+            useGeneratedKeys="true" keyProperty="autoId">
+        INSERT INTO
+        `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}` (
+        <trim suffixOverrides=",">
+            <if test="null != businessId and '' != businessId">`business_id`,</if>
+            <if test="null != ip and '' != ip">`ip`,</if>
+            <if test="null != location and '' != location">`location`,</if>
+            <if test="null != browser and '' != browser">`browser`,</if>
+            <if test="null != browserVersion and '' != browserVersion">`browser_version`,</if>
+            <if test="null != browserEngine and '' != browserEngine">`browser_engine`,</if>
+            <if test="null != browserEngineVersion and '' != browserEngineVersion">`browser_engine_version`,</if>
+            <if test="null != userAgent and '' != userAgent">`user_agent`,</if>
+            <if test="null != mobile">`is_mobile`,</if>
+            <if test="null != os and '' != os">`os`,</if>
+            <if test="null != platform and '' != platform">`platform`,</if>
+            <if test="null != username and '' != username">`username`,</if>
+            <if test="null != success">`is_success`,</if>
+            <if test="null != password">`is_password`,</if>
+            <if test="null != msg and '' != msg">`msg`,</if>
+            <if test="null != sessionId and '' != sessionId">`session_id`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != businessId and '' != businessId">#{businessId},</if>
+            <if test="null != ip and '' != ip">INET_ATON(#{ip}),</if>
+            <if test="null != location and '' != location">#{location},</if>
+            <if test="null != browser and '' != browser">#{browser},</if>
+            <if test="null != browserVersion and '' != browserVersion">#{browserVersion},</if>
+            <if test="null != browserEngine and '' != browserEngine">#{browserEngine},</if>
+            <if test="null != browserEngineVersion and '' != browserEngineVersion">#{browserEngineVersion},</if>
+            <if test="null != userAgent and '' != userAgent">#{userAgent},</if>
+            <if test="null != mobile">#{mobile},</if>
+            <if test="null != os and '' != os">#{os},</if>
+            <if test="null != platform and '' != platform">#{platform},</if>
+            <if test="null != username and '' != username">#{username},</if>
+            <if test="null != success">#{success},</if>
+            <if test="null != password">#{password},</if>
+            <if test="null != msg and '' != msg">#{msg},</if>
+            <if test="null != sessionId and '' != sessionId">#{sessionId},</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 批量新增登录日志 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}` (
+        `business_id`,`ip`,`location`,`browser`,`browser_version`,`browser_engine`,`browser_engine_version`,
+        `user_agent`,`is_mobile`,`os`,`platform`,`username`,`is_success`,`is_password`,`msg`,`session_id`
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+             #{item.businessId},INET_ATON(#{item.ip}),#{item.location},#{item.browser},#{item.browserVersion},#{item.browserEngine},#{item.browserEngineVersion},
+             #{item.userAgent},#{item.mobile},#{item.os},#{item.platform},#{item.username},#{item.success},#{item.password},#{item.msg},#{item.sessionId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据业务id(businessId)删除登录日志 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)批量删除登录日志 -->
+    <delete id="deleteBatch" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改登录日志 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.LogLogin" flushCache="true">
+        UPDATE `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != ip and '' != ip">`ip` = INET_ATON(#{ip}),</if>
+            <if test="null != location and '' != location">`location` = #{location},</if>
+            <if test="null != browser and '' != browser">`browser` = #{browser},</if>
+            <if test="null != browserVersion and '' != browserVersion">`browser_version` = #{browserVersion},</if>
+            <if test="null != browserEngine and '' != browserEngine">`browser_engine` = #{browserEngine},</if>
+            <if test="null != browserEngineVersion and '' != browserEngineVersion">`browser_engine_version` =
+                #{browserEngineVersion},
+            </if>
+            <if test="null != userAgent and '' != userAgent">`user_agent` = #{userAgent},</if>
+            <if test="null != mobile">`is_mobile` = #{mobile},</if>
+            <if test="null != os and '' != os">`os` = #{os},</if>
+            <if test="null != platform and '' != platform">`platform` = #{platform},</if>
+            <if test="null != username and '' != username">`username` = #{username},</if>
+            <if test="null != success">`is_success` = #{success},</if>
+            <if test="null != password">`is_password` = #{password},</if>
+            <if test="null != msg and '' != msg">`msg` = #{msg},</if>
+            <if test="null != sessionId and '' != sessionId">`session_id` = #{sessionId},</if>
+        </trim>
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)批量修改登录日志 -->
+    <update id="updateBatch" parameterType="java.util.List" flushCache="true">
+        UPDATE `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="`ip` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.ip and '' != item.ip">
+                        WHEN `business_id` = #{item.businessId} THEN INET_ATON(#{item.ip})
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`location` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.location and '' != item.location">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.location}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`browser` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.browser and '' != item.browser">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.browser}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`browser_version` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.browserVersion and '' != item.browserVersion">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.browserVersion}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`browser_engine` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.browserEngine and '' != item.browserEngine">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.browserEngine}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`browser_engine_version` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.browserEngineVersion and '' != item.browserEngineVersion">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.browserEngineVersion}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`user_agent` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.userAgent and '' != item.userAgent">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.userAgent}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`is_mobile` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.mobile">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.mobile}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`os` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.os and '' != item.os">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.os}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`platform` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.platform and '' != item.platform">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.platform}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`username` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.username and '' != item.username">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.username}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`is_success` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.success">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.success}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`is_password` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.password">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.password}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`msg` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.msg and '' != item.msg">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.msg}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`session_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.sessionId and '' != item.sessionId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.sessionId}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+                #{item.businessId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找登录日志 -->
+    <select id="getLogLogin" resultType="com.doudoudrive.common.model.pojo.LogLogin" resultMap="logLoginResultMap">
+        SELECT
+        <include refid="logLogin"/>
+        FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+    <!-- 根据Model中某个成员变量名称(非数据表中column的名称)查找(value需符合unique约束) -->
+    <select id="getLogLoginToModel" resultType="com.doudoudrive.common.model.pojo.LogLogin"
+            resultMap="logLoginResultMap">
+        SELECT
+        <include refid="logLogin"/>
+        FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <where>
+            `${modelName}` = #{value};
+        </where>
+    </select>
+
+    <!-- 根据业务id(businessId)批量查找登录日志 -->
+    <select id="listLogLogin" resultType="com.doudoudrive.common.model.pojo.LogLogin" resultMap="logLoginResultMap">
+        SELECT
+        <include refid="logLogin"/>
+        FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <!-- 指定条件查找登录日志 -->
+    <select id="listLogLoginToKey" resultType="com.doudoudrive.common.model.pojo.LogLogin"
+            resultMap="logLoginResultMap">
+        SELECT
+        <include refid="logLogin"/>
+        FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+        ${limit};
+    </select>
+
+    <!-- 返回搜索的总数 -->
+    <select id="countSearch" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+    </select>
+
+</mapper>

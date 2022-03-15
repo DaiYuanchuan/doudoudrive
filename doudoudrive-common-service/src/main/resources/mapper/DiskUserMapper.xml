@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.DiskUserDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.DiskUser" id="diskUserResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userAvatar" column="user_avatar"/>
+        <result property="userEmail" column="user_email"/>
+        <result property="userTel" column="user_tel"/>
+        <result property="userPwd" column="user_pwd"/>
+        <result property="userSalt" column="user_salt"/>
+        <result property="available" column="is_available"/>
+        <result property="userReason" column="user_reason"/>
+        <result property="userBanTime" column="user_ban_time"/>
+        <result property="userUnlockTime" column="user_unlock_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="diskUser">
+        `auto_id`
+        ,`business_id`,`user_name`,`user_avatar`,`user_email`,`user_tel`,`user_pwd`,`user_salt`,
+        `is_available`,`user_reason`,`user_ban_time`,`user_unlock_time`,`create_time`,`update_time`
+    </sql>
+
+    <!-- 新增用户模块 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.DiskUser" flushCache="true"
+            useGeneratedKeys="true" keyProperty="autoId">
+        INSERT INTO
+        `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}` (
+        <trim suffixOverrides=",">
+            <if test="null != businessId and '' != businessId">`business_id`,</if>
+            <if test="null != userName and '' != userName">`user_name`,</if>
+            <if test="null != userAvatar and '' != userAvatar">`user_avatar`,</if>
+            <if test="null != userEmail and '' != userEmail">`user_email`,</if>
+            <if test="null != userTel and '' != userTel">`user_tel`,</if>
+            <if test="null != userPwd and '' != userPwd">`user_pwd`,</if>
+            <if test="null != userSalt and '' != userSalt">`user_salt`,</if>
+            <if test="null != available">`is_available`,</if>
+            <if test="null != userReason and '' != userReason">`user_reason`,</if>
+            <if test="null != userBanTime and 0 != userBanTime">`user_ban_time`,</if>
+            <if test="null != userUnlockTime">`user_unlock_time`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != businessId and '' != businessId">#{businessId},</if>
+            <if test="null != userName and '' != userName">#{userName},</if>
+            <if test="null != userAvatar and '' != userAvatar">#{userAvatar},</if>
+            <if test="null != userEmail and '' != userEmail">#{userEmail},</if>
+            <if test="null != userTel and '' != userTel">#{userTel},</if>
+            <if test="null != userPwd and '' != userPwd">#{userPwd},</if>
+            <if test="null != userSalt and '' != userSalt">#{userSalt},</if>
+            <if test="null != available">#{available},</if>
+            <if test="null != userReason and '' != userReason">#{userReason},</if>
+            <if test="null != userBanTime and 0 != userBanTime">#{userBanTime},</if>
+            <if test="null != userUnlockTime">#{userUnlockTime},</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 根据业务id(businessId)删除用户模块 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改用户模块 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.DiskUser" flushCache="true">
+        UPDATE `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != userName and '' != userName">`user_name` = #{userName},</if>
+            <if test="null != userAvatar and '' != userAvatar">`user_avatar` = #{userAvatar},</if>
+            <if test="null != userEmail and '' != userEmail">`user_email` = #{userEmail},</if>
+            <if test="null != userTel and '' != userTel">`user_tel` = #{userTel},</if>
+            <if test="null != userPwd and '' != userPwd">`user_pwd` = #{userPwd},</if>
+            <if test="null != userSalt and '' != userSalt">`user_salt` = #{userSalt},</if>
+            <if test="null != available">`is_available` = #{available},</if>
+            <if test="null != userReason and '' != userReason">`user_reason` = #{userReason},</if>
+            <if test="null != userBanTime and 0 != userBanTime">`user_ban_time` = #{userBanTime},</if>
+            <if test="null != userUnlockTime">`user_unlock_time` = #{userUnlockTime},</if>
+        </trim>
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找用户模块 -->
+    <select id="getDiskUser" resultType="com.doudoudrive.common.model.pojo.DiskUser" resultMap="diskUserResultMap">
+        SELECT
+        <include refid="diskUser"/>
+        FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+</mapper>

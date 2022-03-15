@@ -1,0 +1,41 @@
+spring:
+  cloud:
+    nacos:
+      # 服务注册与发现配置
+      discovery:
+        namespace: b14fae0c-ee4f-4394-a6d7-02e28b44d7b1
+        server-addr: 110.42.182.227:8801
+      config:
+        # 对应的是nacos config 中的 Data ID
+        prefix: doudou-server
+        # 命名空间 dev、test、prod 等，用来做环境隔离
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        # 配置组，用来做项目隔离
+        group: DOUDOU_DEV_GROUP
+        file-extension: yml
+        # nacos 配置中心地址
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        # 刷新
+        refresh-enabled: true
+        enabled: true
+
+# RocketMQ 相关配置
+rocketmq:
+  # 指定 nameServer
+  name-server: 110.42.182.227:9876
+  # Producer 生产者
+  producer:
+    # 指定发送者组名
+    group: DOUDOU_MQ_PRODUCER_GROUP
+    # 发送消息超时时间，单位：毫秒，默认为 3000
+    send-message-timeout: 10000
+    # 消息压缩阀值，当消息体的大小超过该阀值后，进行消息压缩。默认为 4 * 1024B
+    compress-message-body-threshold: 4096
+    # 消息体的最大允许大小。。默认为 4 * 1024 * 1024B
+    max-message-size: 104857600
+    # 同步发送消息时，失败重试次数。默认为 2 次。
+    retry-times-when-send-failed: 2
+    # 异步发送消息时，失败重试次数。默认为 2 次。
+    retry-times-when-send-async-failed: 2
+    # 发送消息给 Broker 时，如果发送失败，是否重试另外一台 Broker 。默认为 false
+    retry-next-server: true

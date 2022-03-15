@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.doudoudrive</groupId>
+    <artifactId>doudoudrive</artifactId>
+    <packaging>pom</packaging>
+    <!-- 主版本号.次版本号.修订号 -->
+    <!-- 1）主版本号：产品方向改变，或者大规模 API 不兼容，或者架构不兼容升级。 -->
+    <!-- 2）次版本号：保持相对兼容性，增加主要功能特性，影响范围极小的 API 不兼容修改。 -->
+    <!-- 3）修订号：保持完全兼容性，修复 BUG、新增次要功能特性等。-->
+    <version>0.0.1</version>
+
+    <!-- 子项目 -->
+    <modules>
+        <module>doudoudrive-common</module>
+        <module>doudoudrive-userinfo</module>
+        <module>doudoudrive-log</module>
+        <module>doudoudrive-common-service</module>
+        <module>doudoudrive-gateway</module>
+    </modules>
+
+    <!-- 项目说明 -->
+    <name>${project.artifactId}</name>
+    <description>兜兜网络科技工作室-兜兜网盘系统</description>
+    <url>https://www.doudoudrive.com/</url>
+    <!-- 项目说明 -->
+
+    <!-- 发布者信息 -->
+    <developers>
+        <!-- 项目开发者的信息 -->
+        <developer>
+            <!-- SCM里项目开发者的唯一标识符 -->
+            <name>Dan</name>
+            <!-- 开发者邮箱 -->
+            <email>novel-web@novelweb.cn</email>
+            <!-- 项目开发者所属组织 -->
+            <organization>兜兜网络</organization>
+            <!-- 项目开发者所属组织的URL -->
+            <organizationUrl>https://www.doudoudrive.com/</organizationUrl>
+            <!-- 项目开发者的主页的URL -->
+            <url>https://blog.novelweb.cn/</url>
+        </developer>
+    </developers>
+    <!-- 发布者信息 -->
+
+    <!-- 附带属性 -->
+    <properties>
+        <!-- 文件拷贝时的编码 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- 编译时的编码 -->
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+        <!-- 打包跳过单元测试 -->
+        <skipTests>true</skipTests>
+        <!-- spring cloud 版本号 -->
+        <spring-cloud.version>2021.0.1</spring-cloud.version>
+        <spring-cloud-alibaba.version>2021.1</spring-cloud-alibaba.version>
+        <!-- lombok 版本号 -->
+        <lombok.version>1.18.22</lombok.version>
+        <!-- mapstruct 版本号 -->
+        <mapstruct.version>1.5.0.Beta2</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <!-- hutool工具包 版本号 -->
+        <hutool.version>5.7.22</hutool.version>
+        <!-- fastjson 版本号 -->
+        <fastjson.version>1.2.79</fastjson.version>
+    </properties>
+    <!-- 附带属性 -->
+
+    <!-- spring maven 远程仓库 start -->
+    <repositories>
+        <repository>
+            <id>springsource-milestone</id>
+            <url>https://repository.springsource.com/maven/bundles/milestone</url>
+        </repository>
+        <repository>
+            <id>spring-milestone</id>
+            <url>https://repo.spring.io/libs-release</url>
+        </repository>
+        <repository>
+            <id>atlassian-m2-repository</id>
+            <url>https://m2proxy.atlassian.com/repository/public</url>
+        </repository>
+    </repositories>
+    <!-- spring maven 远程仓库 end -->
+
+    <!-- 设置spring boot的依赖版本 start -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.3</version>
+    </parent>
+    <!-- 设置spring boot的依赖版本 end -->
+
+    <!-- 项目公共依赖 -->
+    <dependencies>
+
+        <!-- spring boot 依赖包 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <!-- 优先加载bootstrap.yml -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+        <!-- spring web启动器 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <!-- 移除Tomcat依赖 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- 引入undertow -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
+        </dependency>
+        <!-- spring boot yml文件元数据映射配置 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+            <version>2.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <!-- spring boot 依赖包 -->
+
+        <!-- 工具包系列 -->
+        <!-- cn:hutool系列 -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-extra</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-http</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+        <!-- fastjson -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
+        <!-- apache的commons系列包 系列通用公共组件包 -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.13</version>
+        </dependency>
+        <!-- 工具包系列 -->
+
+        <!-- lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- lombok -->
+
+    </dependencies>
+    <!-- 项目公共依赖 -->
+
+    <!-- 子项目的依赖 -->
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- junit 单元测试 -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>5.8.2</version>
+            </dependency>
+
+            <!-- mysql驱动 -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <scope>runtime</scope>
+                <version>8.0.28</version>
+            </dependency>
+            <!-- mysql驱动 -->
+
+            <!-- MyBatis -->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>2.2.2</version>
+            </dependency>
+            <!-- MyBatis -->
+
+            <!-- 分布式依赖包 -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-openfeign</artifactId>
+                <version>3.1.1</version>
+            </dependency>
+            <!-- spring cloud + spring-cloud-alibaba -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+                <!-- 移除其中对于nacos的依赖部分 -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.alibaba.cloud</groupId>
+                        <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.alibaba.cloud</groupId>
+                        <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <!-- 添加对nacos服务的依赖 -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                <version>2.2.1.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                <version>2.2.1.RELEASE</version>
+            </dependency>
+            <!-- 添加rocketmq依赖 -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>2.2.1</version>
+            </dependency>
+            <!-- 分布式依赖包 -->
+
+            <!-- mapstruct start -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <!-- mapstruct end -->
+
+            <!-- ip2region(一款用于获取ip地址地理位置的插件) start -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>1.7.2</version>
+            </dependency>
+            <!-- ip2region end -->
+
+        </dependencies>
+    </dependencyManagement>
+    <!-- 子项目的依赖 -->
+
+    <!-- 构建相关配置 -->
+    <build>
+        <!-- 包名配置，maven 打包 命令 (mvn clean package) -->
+        <finalName>${project.artifactId}</finalName>
+        <!-- maven资源读取配置 -->
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**.*</include>
+                    <!-- i18n能读取到 -->
+                    <include>**/*.*</include>
+                    <include>**/*/*.*</include>
+                </includes>
+            </resource>
+            <!-- 允许访问工程resources下资源内容 -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <!-- 公共插件配置 -->
+        <plugins>
+            <!-- 一键更新子模块的版本号 -->
+            <!-- 设置版本号:mvn versions:set -DgenerateBackupPoms=false -DnewVersion=1.x.x -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.9.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>xls</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>xlsx</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>db</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>
+        </plugins>
+        <!-- 子项目可依赖插件配置 -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.0</version>
+                    <configuration>
+                        <!-- 源代码使用的jdk版本 -->
+                        <source>${java.version}</source>
+                        <!-- 需要生成的目标class文件的编译版本 -->
+                        <target>${java.version}</target>
+                        <!-- 字符集编码，防止中文乱码 -->
+                        <encoding>UTF-8</encoding>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>2.6.3</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

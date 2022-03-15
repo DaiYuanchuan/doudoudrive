@@ -1,0 +1,18 @@
+server:
+  port: 8000
+  servlet:
+    context-path: /
+  undertow:
+    accesslog:
+      # Undertow 日志存放目录
+      dir: logs/userinfo
+
+# rocketmq相关配置
+rocketmq:
+  producer:
+    group: USER_PRODUCER
+
+spring:
+  application:
+    # 配置服务名称
+    name: userInfoServer
