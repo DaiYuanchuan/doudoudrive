@@ -1,5 +1,7 @@
 package com.doudoudrive.commonservice.annotation;
 
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
+
 import java.lang.annotation.*;
 
 /**
@@ -19,6 +21,6 @@ public @interface DataSource {
      *
      * @return 要切换的数据源标识
      */
-    String value();
+    DataSourceEnum value() default DataSourceEnum.DEFAULT;
 
 }

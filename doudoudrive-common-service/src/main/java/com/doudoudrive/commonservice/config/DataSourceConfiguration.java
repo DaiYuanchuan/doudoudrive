@@ -1,6 +1,7 @@
 package com.doudoudrive.commonservice.config;
 
 import com.doudoudrive.common.model.dto.model.DynamicDataSourceProperties;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.google.common.collect.Maps;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
@@ -78,7 +79,7 @@ public class DataSourceConfiguration implements Closeable {
 
         DynamicRoutingDataSource dynamicRoutingDataSource = new DynamicRoutingDataSource();
         // 将第一个数据源作为默认数据源
-        dynamicRoutingDataSource.setDefaultTargetDataSource(getDefaultTargetDataSource());
+        dynamicRoutingDataSource.setDefaultTargetDataSource(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource));
         // 其余数据源作为指定的数据源
         dynamicRoutingDataSource.setTargetDataSources(targetDataSources);
         dynamicRoutingDataSource.afterPropertiesSet();
@@ -99,7 +100,7 @@ public class DataSourceConfiguration implements Closeable {
         Map<String, SqlSessionFactory> targetSqlSessionFactories = Maps.newLinkedHashMapWithExpectedSize(hikariDataSourceMap.size());
         hikariDataSourceMap.forEach((key, value) -> targetSqlSessionFactories.put(key, createSqlSessionFactory(value)));
 
-        MySqlSessionTemplate sqlSessionTemplate = new MySqlSessionTemplate(createSqlSessionFactory(getDefaultTargetDataSource()));
+        MySqlSessionTemplate sqlSessionTemplate = new MySqlSessionTemplate(createSqlSessionFactory(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource)));
         sqlSessionTemplate.setTargetSqlSessionFactories(targetSqlSessionFactories);
         return sqlSessionTemplate;
     }
@@ -119,7 +120,7 @@ public class DataSourceConfiguration implements Closeable {
      */
     @Override
     public void close() {
-        log.warn("prepare to shut down all data sources");
+        log.warn("prepare to shutdown all data sources");
         // 循环关闭所有的数据源
         HIKARI_DATA_SOURCE.forEach((key, value) -> value.close());
     }
@@ -159,6 +160,12 @@ public class DataSourceConfiguration implements Closeable {
         List<DynamicDataSourceProperties> dynamicDataSourcePropertiesList = getDynamicDataSourceProperties();
         if (CollectionUtils.isEmpty(dynamicDataSourcePropertiesList)) {
             throw new IllegalArgumentException("No data source configuration entry found ! ! !");
+        }
+
+        // 查看默认数据源配置是否存在
+        if (HIKARI_DATA_SOURCE.get(DataSourceEnum.DEFAULT.dataSource) == null) {
+            // 初始化默认数据源
+            HIKARI_DATA_SOURCE.put(DataSourceEnum.DEFAULT.dataSource, getDefaultTargetDataSource());
         }
 
         // 构建 HikariDataSource 数据源配置

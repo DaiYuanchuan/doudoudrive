@@ -2,6 +2,7 @@ package com.doudoudrive.commonservice.dao;
 
 import com.doudoudrive.common.model.pojo.LogLogin;
 import com.doudoudrive.commonservice.annotation.DataSource;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * @author Dan
  **/
 @Repository
-@DataSource("log")
+@DataSource(DataSourceEnum.LOG)
 public interface LogLoginDao {
 
     /**
