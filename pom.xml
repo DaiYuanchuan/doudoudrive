@@ -60,7 +60,7 @@
         <skipTests>true</skipTests>
         <!-- spring cloud 版本号 -->
         <spring-cloud.version>2021.0.1</spring-cloud.version>
-        <spring-cloud-alibaba.version>2021.1</spring-cloud-alibaba.version>
+        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
         <!-- lombok 版本号 -->
         <lombok.version>1.18.22</lombok.version>
         <!-- mapstruct 版本号 -->
@@ -70,6 +70,8 @@
         <hutool.version>5.7.22</hutool.version>
         <!-- fastjson 版本号 -->
         <fastjson.version>1.2.79</fastjson.version>
+        <!-- es搜索 版本号 -->
+        <elasticsearch.version>7.17.1</elasticsearch.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -295,6 +297,19 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-spring-boot-starter</artifactId>
                 <version>2.2.1</version>
+            </dependency>
+            <!-- elasticsearch -->
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-elasticsearch</artifactId>
+                <version>4.4.0-M3</version>
+                <scope>compile</scope>
+            </dependency>
+            <!-- 4.x 版本的spring-data-elasticsearch需要携带2.7.0版本的spring-data-commons -->
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-commons</artifactId>
+                <version>2.7.0-SNAPSHOT</version>
             </dependency>
             <!-- 分布式依赖包 -->
 
