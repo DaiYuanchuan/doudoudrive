@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -90,8 +89,6 @@ public class RocketmqMessageListenerContainer implements InitializingBean, Dispo
                     Map<String, RocketmqConsumerListener> listenerMap = listenerFactory.getAllListeners();
                     pushConsumerMap.forEach((topic, consumer) -> {
                         RocketmqConsumerListener listener = listenerMap.get(topic);
-                        // 设置消费的位置，一个新的订阅组第一次启动从队列的最前位置开始消费，后续再启动接着上次消费的进度开始消费
-                        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
                         if (listener.getConsumerConfig().isOrderlyMessage()) {
                             consumer.registerMessageListener(new MessageListenerOrderlyImpl(listener));
                         } else {

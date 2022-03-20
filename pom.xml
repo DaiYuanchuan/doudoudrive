@@ -20,6 +20,7 @@
         <module>doudoudrive-log</module>
         <module>doudoudrive-common-service</module>
         <module>doudoudrive-gateway</module>
+        <module>doudoudrive-search</module>
     </modules>
 
     <!-- 项目说明 -->
