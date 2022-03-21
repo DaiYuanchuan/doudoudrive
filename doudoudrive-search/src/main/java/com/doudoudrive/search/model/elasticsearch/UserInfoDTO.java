@@ -1,5 +1,6 @@
 package com.doudoudrive.search.model.elasticsearch;
 
+import com.doudoudrive.search.constant.SearchConstantConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +26,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-@Document(indexName = "userinfo")
+@Document(indexName = SearchConstantConfig.IndexName.USERINFO)
 public class UserInfoDTO implements Serializable {
 
     @Serial
