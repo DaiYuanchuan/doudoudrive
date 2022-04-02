@@ -39,7 +39,14 @@ public enum StatusCodeEnum {
     USER_ALREADY_EXIST(651, "当前用户名称已存在"),
     ACCOUNT_NO_EXIST(652, "用户名与密码不匹配"),
     ACCOUNT_FORBIDDEN(653, "该账号已被限制登录"),
-    TOO_MANY_FAILURES(654, "当前登录失败次数过多");
+    TOO_MANY_FAILURES(654, "当前登录失败次数过多"),
+    USER_EMAIL_ALREADY_EXIST(655, "用户邮箱已存在"),
+    USER_TEL_ALREADY_EXIST(656, "用户手机号码已存在"),
+
+    /**
+     * 接口类:8xx
+     */
+    INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常");
 
     public final Integer statusCode;
     public final String message;

@@ -31,7 +31,7 @@ CREATE TABLE `cloud-user`.`disk_user`  (
  INDEX `idx_user_tel`(`user_tel`) USING BTREE COMMENT '用户绑定的手机号'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户模块' ROW_FORMAT = DYNAMIC;
 
--- 用户表依据 user_id 平均分 10 个表
+-- 用户表依据 user_id 平均分 20 个表
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_01` LIKE `cloud-user`.`disk_user`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_02` LIKE `cloud-user`.`disk_user`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_03` LIKE `cloud-user`.`disk_user`;
@@ -42,6 +42,16 @@ CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_07` LIKE `cloud-user`.`disk_u
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_08` LIKE `cloud-user`.`disk_user`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_09` LIKE `cloud-user`.`disk_user`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_10` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_11` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_12` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_13` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_14` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_15` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_16` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_17` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_18` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_19` LIKE `cloud-user`.`disk_user`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_20` LIKE `cloud-user`.`disk_user`;
 
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-user`.`disk_user`;

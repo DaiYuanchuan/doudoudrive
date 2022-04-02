@@ -1,5 +1,6 @@
 package com.doudoudrive.search.manager;
 
+import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponseDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
 
 /**
@@ -48,5 +49,15 @@ public interface UserInfoSearchManager {
      * @return 用户实体信息ES数据模型
      */
     UserInfoDTO userLoginInfoSearch(String username);
+
+    /**
+     * 查询用户关键信息是否存在
+     *
+     * @param username  用户名
+     * @param userEmail 用户邮箱
+     * @param userTel   用户手机号
+     * @return 查询用户关键信息是否存在的响应数据模型
+     */
+    UserInfoKeyExistsSearchResponseDTO userInfoKeyExistsSearch(String username, String userEmail, String userTel);
 
 }

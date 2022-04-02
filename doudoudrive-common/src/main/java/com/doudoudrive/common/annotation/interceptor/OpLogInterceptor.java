@@ -91,7 +91,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         // 打印请求类、方法、参数等信息
         String className = formatClassName(joinPoint.getTarget().getClass().getName());
         String requestParameter = (opLog != null && opLog.isSaveRequestData()) ? getRequestParameter(joinPoint) : CharSequenceUtil.EMPTY;
-        log.debug("开始调用--> {}.{} 参数:{}", className, joinPoint.getSignature().getName(), requestParameter);
+        log.info("开始调用--> {}.{} 参数:{}", className, joinPoint.getSignature().getName(), requestParameter);
     }
 
     /**
@@ -135,7 +135,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         // 获得注解信息
         OpLog opLog = getAnnotation(joinPoint);
         if (opLog == null) {
-            log.debug("Failed to get the annotation information correctly...");
+            log.info("Failed to get the annotation information correctly...");
             return;
         }
 
@@ -207,7 +207,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         } catch (Exception e) {
             responseParameter = CharSequenceUtil.EMPTY;
         }
-        log.debug("结束调用<-- {}.{} 返回值:{}", opLogInfo.getClassName(), opLogInfo.getMethodName(), responseParameter);
+        log.info("结束调用<-- {}.{} 返回值:{}", opLogInfo.getClassName(), opLogInfo.getMethodName(), responseParameter);
         ThreadUtil.execAsync(() -> {
             try {
                 // 异步回调所有实现了回调接口的类

@@ -10,6 +10,7 @@ import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.search.manager.UserInfoSearchManager;
 import com.doudoudrive.search.model.convert.UserInfoModelConvert;
+import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponseDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -95,11 +96,16 @@ public class UserInfoSearchController {
     }
 
     @SneakyThrows
-    @OpLog(title = "用户名查询", businessType = "ES用户信息查询服务")
+    @OpLog(title = "登录用户名查询", businessType = "ES用户信息查询服务")
     @GetMapping(value = "/username-search", produces = "application/json;charset=UTF-8")
     public Result<UsernameSearchResponseDTO> usernameSearch(String username, HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");
+
+        // 参数校验
+        if (StringUtils.isBlank(username)) {
+            return Result.build(StatusCodeEnum.PARAM_INVALID);
+        }
 
         // 用户登录信息搜索
         UserInfoDTO userInfoDTO = userInfoSearchManager.userLoginInfoSearch(username);
@@ -107,5 +113,26 @@ public class UserInfoSearchController {
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
         }
         return Result.ok(userInfoModelConvert.usernameSearchResponseConvert(userInfoDTO));
+    }
+
+    @SneakyThrows
+    @OpLog(title = "用户关键信息查询", businessType = "ES用户信息查询服务")
+    @GetMapping(value = "/necessary-search", produces = "application/json;charset=UTF-8")
+    public Result<String> userInfoKeyExistsSearch(String username, String userEmail, String userTel,
+                                                  HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("application/json;charset=UTF-8");
+
+        // 参数校验
+        if (StringUtils.isAllBlank(username, userEmail, userTel)) {
+            return Result.build(StatusCodeEnum.PARAM_INVALID);
+        }
+
+        // 执行搜索
+        UserInfoKeyExistsSearchResponseDTO searchResponseDTO = userInfoSearchManager.userInfoKeyExistsSearch(username, userEmail, userTel);
+        if (searchResponseDTO.getExists()) {
+            return Result.build(searchResponseDTO.getDescribe());
+        }
+        return Result.ok();
     }
 }

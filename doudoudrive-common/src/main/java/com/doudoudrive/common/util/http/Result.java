@@ -117,6 +117,10 @@ public class Result<T> implements Serializable {
         return new Result<>(statusCodeEnum);
     }
 
+    public static <T> Result<T> build(Integer code, String message) {
+        return new Result<>(code, message);
+    }
+
     public Integer getCode() {
         return code;
     }

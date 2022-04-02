@@ -1,12 +1,17 @@
 package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.search.constant.SearchConstantConfig;
 import com.doudoudrive.search.manager.UserInfoSearchManager;
+import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponseDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
+import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -95,5 +100,62 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
                         .should(QueryBuilders.termQuery("userTel", username)))
                 .build(), UserInfoDTO.class);
         return search.isEmpty() ? null : search.getSearchHits().get(0).getContent();
+    }
+
+    /**
+     * 查询用户关键信息是否存在
+     *
+     * @param username  用户名
+     * @param userEmail 用户邮箱
+     * @param userTel   用户手机号
+     * @return 查询用户关键信息是否存在的响应数据模型
+     */
+    @Override
+    public UserInfoKeyExistsSearchResponseDTO userInfoKeyExistsSearch(String username, String userEmail, String userTel) {
+        // 查询信息构建
+        BoolQueryBuilder builder = QueryBuilders.boolQuery();
+
+        if (StringUtils.isNotBlank(username)) {
+            builder.should(QueryBuilders.termQuery("userName", username));
+        }
+
+        if (StringUtils.isNotBlank(userEmail)) {
+            builder.should(QueryBuilders.termQuery("userEmail", userEmail));
+        }
+
+        if (StringUtils.isNotBlank(userTel)) {
+            builder.should(QueryBuilders.termQuery("userTel", userTel));
+        }
+
+        // 执行搜素
+        SearchHits<UserInfoDTO> search = restTemplate.search(new NativeSearchQueryBuilder()
+                .withQuery(builder)
+                .build(), UserInfoDTO.class);
+
+        // 构建响应数据模型
+        UserInfoKeyExistsSearchResponseDTO responseDTO = UserInfoKeyExistsSearchResponseDTO.builder()
+                .exists(Boolean.TRUE)
+                .searchHits(search)
+                .build();
+
+        // 搜素结果不存在
+        if (search.isEmpty()) {
+            responseDTO.setExists(Boolean.FALSE);
+            return responseDTO;
+        }
+
+        // 判断搜索结果
+        for (SearchHit<UserInfoDTO> userInfo : search.getSearchHits()) {
+            if (StringUtils.isNotBlank(username) && username.equals(userInfo.getContent().getUserName())) {
+                responseDTO.setDescribe(StatusCodeEnum.USER_ALREADY_EXIST);
+            }
+            if (StringUtils.isNotBlank(userEmail) && userEmail.equals(userInfo.getContent().getUserEmail())) {
+                responseDTO.setDescribe(StatusCodeEnum.USER_EMAIL_ALREADY_EXIST);
+            }
+            if (StringUtils.isNotBlank(userTel) && userTel.equals(userInfo.getContent().getUserTel())) {
+                responseDTO.setDescribe(StatusCodeEnum.USER_TEL_ALREADY_EXIST);
+            }
+        }
+        return responseDTO;
     }
 }

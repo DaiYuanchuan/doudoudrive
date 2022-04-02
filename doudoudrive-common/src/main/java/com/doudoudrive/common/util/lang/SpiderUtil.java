@@ -1,7 +1,7 @@
 package com.doudoudrive.common.util.lang;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
