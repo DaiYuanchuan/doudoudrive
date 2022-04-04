@@ -31,42 +31,43 @@
     <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.DiskUser" flushCache="true"
             useGeneratedKeys="true" keyProperty="autoId">
         INSERT INTO
-        `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}` (
+        `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(diskUser.businessId, 20)}` (
         <trim suffixOverrides=",">
-            <if test="null != businessId and '' != businessId">`business_id`,</if>
-            <if test="null != userName and '' != userName">`user_name`,</if>
-            <if test="null != userAvatar and '' != userAvatar">`user_avatar`,</if>
-            <if test="null != userEmail and '' != userEmail">`user_email`,</if>
-            <if test="null != userTel and '' != userTel">`user_tel`,</if>
-            <if test="null != userPwd and '' != userPwd">`user_pwd`,</if>
-            <if test="null != userSalt and '' != userSalt">`user_salt`,</if>
-            <if test="null != available">`is_available`,</if>
-            <if test="null != userReason and '' != userReason">`user_reason`,</if>
-            <if test="null != userBanTime and 0 != userBanTime">`user_ban_time`,</if>
-            <if test="null != userUnlockTime">`user_unlock_time`,</if>
+            <if test="null != diskUser.businessId and '' != diskUser.businessId">`business_id`,</if>
+            <if test="null != diskUser.userName and '' != diskUser.userName">`user_name`,</if>
+            <if test="null != diskUser.userAvatar and '' != diskUser.userAvatar">`user_avatar`,</if>
+            <if test="null != diskUser.userEmail and '' != diskUser.userEmail">`user_email`,</if>
+            <if test="null != diskUser.userTel and '' != diskUser.userTel">`user_tel`,</if>
+            <if test="null != diskUser.userPwd and '' != diskUser.userPwd">`user_pwd`,</if>
+            <if test="null != diskUser.userSalt and '' != diskUser.userSalt">`user_salt`,</if>
+            <if test="null != diskUser.available">`is_available`,</if>
+            <if test="null != diskUser.userReason and '' != diskUser.userReason">`user_reason`,</if>
+            <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">`user_ban_time`,</if>
+            <if test="null != diskUser.userUnlockTime">`user_unlock_time`,</if>
         </trim>
         )
         VALUES
         (
         <trim suffixOverrides=",">
-            <if test="null != businessId and '' != businessId">#{businessId},</if>
-            <if test="null != userName and '' != userName">#{userName},</if>
-            <if test="null != userAvatar and '' != userAvatar">#{userAvatar},</if>
-            <if test="null != userEmail and '' != userEmail">#{userEmail},</if>
-            <if test="null != userTel and '' != userTel">#{userTel},</if>
-            <if test="null != userPwd and '' != userPwd">#{userPwd},</if>
-            <if test="null != userSalt and '' != userSalt">#{userSalt},</if>
-            <if test="null != available">#{available},</if>
-            <if test="null != userReason and '' != userReason">#{userReason},</if>
-            <if test="null != userBanTime and 0 != userBanTime">#{userBanTime},</if>
-            <if test="null != userUnlockTime">#{userUnlockTime},</if>
+            <if test="null != diskUser.businessId and '' != diskUser.businessId">#{diskUser.businessId},</if>
+            <if test="null != diskUser.userName and '' != diskUser.userName">#{diskUser.userName},</if>
+            <if test="null != diskUser.userAvatar and '' != diskUser.userAvatar">#{diskUser.userAvatar},</if>
+            <if test="null != diskUser.userEmail and '' != diskUser.userEmail">#{diskUser.userEmail},</if>
+            <if test="null != diskUser.userTel and '' != diskUser.userTel">#{diskUser.userTel},</if>
+            <if test="null != diskUser.userPwd and '' != diskUser.userPwd">#{diskUser.userPwd},</if>
+            <if test="null != diskUser.userSalt and '' != diskUser.userSalt">#{diskUser.userSalt},</if>
+            <if test="null != diskUser.available">#{diskUser.available},</if>
+            <if test="null != diskUser.userReason and '' != diskUser.userReason">#{diskUser.userReason},</if>
+            <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">#{diskUser.userBanTime},</if>
+            <if test="null != diskUser.userUnlockTime">#{diskUser.userUnlockTime},</if>
         </trim>
         )
     </insert>
 
     <!-- 根据业务id(businessId)删除用户模块 -->
     <delete id="delete" parameterType="java.lang.String" flushCache="true">
-        DELETE FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}`
+        DELETE FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId,
+        com.doudoudrive.common.constant.ConstantConfig.TableSuffix.USERINFO)}`
         <where>
             `business_id` = #{businessId}
         </where>
@@ -74,18 +75,19 @@
 
     <!-- 根据业务id(businessId)修改用户模块 -->
     <update id="update" parameterType="com.doudoudrive.common.model.pojo.DiskUser" flushCache="true">
-        UPDATE `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}`
+        UPDATE `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(diskUser.businessId,
+        com.doudoudrive.common.constant.ConstantConfig.TableSuffix.USERINFO)}`
         <trim prefix="SET" suffixOverrides=",">
-            <if test="null != userName and '' != userName">`user_name` = #{userName},</if>
-            <if test="null != userAvatar and '' != userAvatar">`user_avatar` = #{userAvatar},</if>
-            <if test="null != userEmail and '' != userEmail">`user_email` = #{userEmail},</if>
-            <if test="null != userTel and '' != userTel">`user_tel` = #{userTel},</if>
-            <if test="null != userPwd and '' != userPwd">`user_pwd` = #{userPwd},</if>
-            <if test="null != userSalt and '' != userSalt">`user_salt` = #{userSalt},</if>
-            <if test="null != available">`is_available` = #{available},</if>
-            <if test="null != userReason and '' != userReason">`user_reason` = #{userReason},</if>
-            <if test="null != userBanTime and 0 != userBanTime">`user_ban_time` = #{userBanTime},</if>
-            <if test="null != userUnlockTime">`user_unlock_time` = #{userUnlockTime},</if>
+            <if test="null != diskUser.userName and '' != diskUser.userName">`user_name` = #{diskUser.userName},</if>
+            <if test="null != diskUser.userAvatar and '' != diskUser.userAvatar">`user_avatar` = #{diskUser.userAvatar},</if>
+            <if test="null != diskUser.userEmail and '' != diskUser.userEmail">`user_email` = #{diskUser.userEmail},</if>
+            <if test="null != diskUser.userTel and '' != diskUser.userTel">`user_tel` = #{diskUser.userTel},</if>
+            <if test="null != diskUser.userPwd and '' != diskUser.userPwd">`user_pwd` = #{diskUser.userPwd},</if>
+            <if test="null != diskUser.userSalt and '' != diskUser.userSalt">`user_salt` = #{diskUser.userSalt},</if>
+            <if test="null != diskUser.available">`is_available` = #{diskUser.available},</if>
+            <if test="null != diskUser.userReason and '' != diskUser.userReason">`user_reason` = #{diskUser.userReason},</if>
+            <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">`user_ban_time` = #{diskUser.userBanTime},</if>
+            <if test="null != diskUser.userUnlockTime">`user_unlock_time` = #{udiskUser.serUnlockTime},</if>
         </trim>
         <where>
             `business_id` = #{businessId}
@@ -96,7 +98,8 @@
     <select id="getDiskUser" resultType="com.doudoudrive.common.model.pojo.DiskUser" resultMap="diskUserResultMap">
         SELECT
         <include refid="diskUser"/>
-        FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId, 10)}`
+        FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId,
+        com.doudoudrive.common.constant.ConstantConfig.TableSuffix.USERINFO)}`
         <where>
             `business_id` = #{businessId};
         </where>

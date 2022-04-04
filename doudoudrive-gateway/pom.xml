@@ -49,12 +49,6 @@
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
-        <!-- loadbalancer -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
-        </dependency>
-
         <!-- alibaba 的限流、熔断降级服务 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

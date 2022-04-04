@@ -1,6 +1,7 @@
 package com.doudoudrive.commonservice.config;
 
 import com.doudoudrive.common.model.dto.model.DynamicDataSourceProperties;
+import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.google.common.collect.Maps;
 import com.zaxxer.hikari.HikariDataSource;
@@ -112,7 +113,19 @@ public class DataSourceConfiguration implements Closeable {
      */
     @Bean
     public PlatformTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dynamicDataSource());
+        // 获取数据源对象
+        Map<String, HikariDataSource> hikariDataSourceMap = getHikariDataSourceConfig();
+        hikariDataSourceMap.forEach((key, value) -> {
+            // 不获取默认数据源
+            if (!DataSourceEnum.DEFAULT.dataSource.equals(key)) {
+                // 配置事务管理器
+                PlatformTransactionManager transactionManager = new DataSourceTransactionManager(value);
+                // 向spring中动态的注册Bean
+                SpringBeanFactoryUtils.registerBean(DataSourceEnum.getTransactionValue(key), transactionManager);
+            }
+        });
+        // 响应一个默认数据源
+        return new DataSourceTransactionManager(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource));
     }
 
     /**
