@@ -10,12 +10,12 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>doudoudrive-userinfo</artifactId>
+    <artifactId>doudoudrive-auth</artifactId>
     <packaging>jar</packaging>
 
     <!-- 项目说明 -->
     <name>${project.artifactId}</name>
-    <description>兜兜网盘系统-用户信息配置中心</description>
+    <description>兜兜网盘系统-鉴权相关模块</description>
     <url>https://www.doudoudrive.com/</url>
     <!-- 项目说明 -->
 
@@ -47,11 +47,38 @@
             <artifactId>doudoudrive-common-service</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <!-- 鉴权服务 -->
+
+        <!-- Redis -->
         <dependency>
-            <groupId>com.doudoudrive</groupId>
-            <artifactId>doudoudrive-auth</artifactId>
-            <version>${project.parent.version}</version>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
+
+        <!-- shiro权限框架 -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-ehcache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-cas</artifactId>
+        </dependency>
+        <!-- shiro与redis结合的包 -->
+        <dependency>
+            <groupId>org.crazycake</groupId>
+            <artifactId>shiro-redis</artifactId>
         </dependency>
     </dependencies>
 
@@ -65,7 +92,7 @@
                     <!-- 如果没有该配置，devtools不会生效 -->
                     <fork>true</fork>
                     <!-- 指定该Main Class为全局的唯一入口 -->
-                    <mainClass>com.doudoudrive.UserInfoApplication</mainClass>
+                    <mainClass>com.doudoudrive.AuthApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -78,5 +105,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

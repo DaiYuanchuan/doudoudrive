@@ -1,0 +1,30 @@
+server:
+  port: 7000
+  servlet:
+    context-path: /
+  undertow:
+    accesslog:
+      # Undertow 日志存放目录
+      dir: logs/auth
+
+spring:
+  application:
+    # 配置服务名称
+    name: authServer
+  main:
+    # 允许循环引用
+    allow-circular-references: true
+  #redis 连接地址配置
+  redis:
+    host: cloudtest.api.novelweb.cn
+    port: 12800
+    database: 0
+    timeout: 60000
+    password: administrator
+#    cluster:
+#      nodes:
+#        - 192.168.31.192:7011
+#        - 192.168.31.192:7012
+#        - 192.168.31.192:7013
+#    timeout: 60000
+#    password: redispassxfkkslgoecjvkdlspdgje

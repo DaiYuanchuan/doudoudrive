@@ -108,6 +108,8 @@ public class DataSourceConfiguration implements Closeable {
 
     /**
      * 配置事务管理器
+     * 这里的事务只实现单库的本地事务，跨库事务可使用分布式事务如:Atomikos、Seata等
+     * 如果使用 Atomikos 需要将 Hikari 数据源替换为 AtomikosNonXADataSourceBean
      *
      * @return 平台事务管理程序
      */

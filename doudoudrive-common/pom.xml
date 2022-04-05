@@ -41,6 +41,12 @@
             <artifactId>junit-jupiter-api</artifactId>
         </dependency>
 
+        <!-- loadbalancer -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
         <!-- feign服务 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

@@ -76,6 +76,11 @@ public interface ConstantConfig {
         String REFERER = "referer";
 
         /**
+         * 请求头中的header字段
+         */
+        String HEADER = "header";
+
+        /**
          * 微信浏览器请求头中的userAgent标识
          */
         String[] WECHAT_BROWSER_USER_AGENT = {"MicroMessenger/", "WeChat", "Weixin"};
@@ -156,6 +161,18 @@ public interface ConstantConfig {
         String OR = "||";
 
         String AND = "&&";
+    }
+
+    /**
+     * 各模块分表后缀常量
+     */
+    interface TableSuffix {
+
+        /**
+         * 用户表依据 业务id 平均分 20 个表
+         */
+        Integer USERINFO = 20;
+
     }
 
     /**

@@ -31,7 +31,7 @@
     <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.DiskUser" flushCache="true"
             useGeneratedKeys="true" keyProperty="autoId">
         INSERT INTO
-        `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(diskUser.businessId, 20)}` (
+        `disk_user_${tableSuffix}` (
         <trim suffixOverrides=",">
             <if test="null != diskUser.businessId and '' != diskUser.businessId">`business_id`,</if>
             <if test="null != diskUser.userName and '' != diskUser.userName">`user_name`,</if>
@@ -66,8 +66,7 @@
 
     <!-- 根据业务id(businessId)删除用户模块 -->
     <delete id="delete" parameterType="java.lang.String" flushCache="true">
-        DELETE FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId,
-        com.doudoudrive.common.constant.ConstantConfig.TableSuffix.USERINFO)}`
+        DELETE FROM `disk_user_${tableSuffix}`
         <where>
             `business_id` = #{businessId}
         </where>
@@ -75,8 +74,7 @@
 
     <!-- 根据业务id(businessId)修改用户模块 -->
     <update id="update" parameterType="com.doudoudrive.common.model.pojo.DiskUser" flushCache="true">
-        UPDATE `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(diskUser.businessId,
-        com.doudoudrive.common.constant.ConstantConfig.TableSuffix.USERINFO)}`
+        UPDATE `disk_user_${tableSuffix}`
         <trim prefix="SET" suffixOverrides=",">
             <if test="null != diskUser.userName and '' != diskUser.userName">`user_name` = #{diskUser.userName},</if>
             <if test="null != diskUser.userAvatar and '' != diskUser.userAvatar">`user_avatar` = #{diskUser.userAvatar},</if>
@@ -98,8 +96,7 @@
     <select id="getDiskUser" resultType="com.doudoudrive.common.model.pojo.DiskUser" resultMap="diskUserResultMap">
         SELECT
         <include refid="diskUser"/>
-        FROM `disk_user_${@com.doudoudrive.common.util.lang.SequenceUtil@tableSuffix(businessId,
-        com.doudoudrive.common.constant.ConstantConfig.TableSuffix.USERINFO)}`
+        FROM `disk_user_${tableSuffix}`
         <where>
             `business_id` = #{businessId};
         </where>

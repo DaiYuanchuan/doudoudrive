@@ -3,6 +3,7 @@ package com.doudoudrive.common.global;
 import cn.hutool.core.exceptions.ValidateException;
 import cn.hutool.core.util.StrUtil;
 import com.doudoudrive.common.util.http.Result;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
@@ -222,6 +223,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = org.springframework.web.multipart.MultipartException.class)
     public Result<?> multipartExceptionHandler() {
         return Result.build(StatusCodeEnum.PAYLOAD_TOO_LARGE);
+    }
+
+    /**
+     * 业务异常处理
+     *
+     * @param exception 异常信息
+     * @return 错误的状态信息
+     */
+    @ExceptionHandler(BusinessException.class)
+    public Result<?> businessExceptionHandler(BusinessException exception) {
+        return Result.build(exception.getStatusCode(), exception.getReason());
+    }
+
+    /**
+     * feign客户端异常处理
+     *
+     * @param exception 异常信息
+     * @return 错误的状态信息
+     */
+    @ExceptionHandler(FeignException.class)
+    public Result<?> feignExceptionHandler(FeignException exception) {
+        return Result.build(StatusCodeEnum.INTERFACE_INTERNAL_EXCEPTION).data(exception.getMessage());
     }
 
     /**

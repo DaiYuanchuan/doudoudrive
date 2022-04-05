@@ -1,5 +1,6 @@
 package com.doudoudrive.commonservice.service.impl;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.pojo.DiskUser;
@@ -43,7 +44,7 @@ public class DiskUserServiceImpl implements DiskUserService {
         if (StringUtils.isBlank(diskUser.getBusinessId())) {
             diskUser.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_USER));
         }
-        diskUserDao.insert(diskUser);
+        diskUserDao.insert(diskUser, SequenceUtil.tableSuffix(diskUser.getBusinessId(), ConstantConfig.TableSuffix.USERINFO));
     }
 
     /**
@@ -57,7 +58,7 @@ public class DiskUserServiceImpl implements DiskUserService {
         if (StringUtils.isBlank(businessId)) {
             return NumberConstant.INTEGER_ZERO;
         }
-        return diskUserDao.delete(businessId);
+        return diskUserDao.delete(businessId, SequenceUtil.tableSuffix(businessId, ConstantConfig.TableSuffix.USERINFO));
     }
 
     /**
@@ -71,7 +72,7 @@ public class DiskUserServiceImpl implements DiskUserService {
         if (ObjectUtils.isEmpty(diskUser) || StringUtils.isBlank(diskUser.getBusinessId())) {
             return NumberConstant.INTEGER_ZERO;
         }
-        return diskUserDao.update(diskUser);
+        return diskUserDao.update(diskUser, SequenceUtil.tableSuffix(diskUser.getBusinessId(), ConstantConfig.TableSuffix.USERINFO));
     }
 
     /**
@@ -82,6 +83,6 @@ public class DiskUserServiceImpl implements DiskUserService {
      */
     @Override
     public DiskUser getDiskUser(String businessId) {
-        return diskUserDao.getDiskUser(businessId);
+        return diskUserDao.getDiskUser(businessId, SequenceUtil.tableSuffix(businessId, ConstantConfig.TableSuffix.USERINFO));
     }
 }

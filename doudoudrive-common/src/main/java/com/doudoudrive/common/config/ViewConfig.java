@@ -21,14 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 public class ViewConfig {
 
     @SneakyThrows
-    @RequestMapping(value = "/login", produces = "application/json;charset=UTF-8")
-    public Result<String> jumpLogin(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
-        return Result.refuse();
-    }
-
-    @SneakyThrows
     @RequestMapping(value = "/404", produces = "application/json;charset=UTF-8")
     public Result<String> jumpNotFound(HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
