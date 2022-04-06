@@ -2,9 +2,11 @@ package com.doudoudrive.common.model.dto.response;
 
 import cn.hutool.core.date.DatePattern;
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
@@ -15,14 +17,58 @@ import java.util.Date;
  *
  * @author Dan
  **/
-@Setter
-@Getter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class UsernameSearchResponseDTO extends DiskUserModel {
+public class UsernameSearchResponseDTO {
+
+    /**
+     * 用户系统内唯一标识
+     */
+    private String businessId;
+
+    /**
+     * 用户名
+     */
+    private String userName;
+
+    /**
+     * 用户头像
+     */
+    private String userAvatar;
+
+    /**
+     * 用户邮箱
+     */
+    private String userEmail;
+
+    /**
+     * 用户手机号
+     */
+    private String userTel;
+
+    /**
+     * 当前账号是否可用(0:false,1:true)
+     */
+    private Boolean available;
+
+    /**
+     * 当前账号不可用原因
+     */
+    private String userReason;
+
+    /**
+     * 账号被封禁的时间(单位:秒)(-1:永久)最大2144448000
+     */
+    private Integer userBanTime;
+
+    /**
+     * 账号解封时间
+     */
+    @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
+    private Date userUnlockTime;
 
     /**
      * 用户密码

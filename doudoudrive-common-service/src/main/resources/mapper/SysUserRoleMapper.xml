@@ -20,7 +20,7 @@
 
     <!-- 新增用户、角色关联模块 -->
     <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.SysUserRole" flushCache="true"
-            useGeneratedKeys="true" keyProperty="autoId">
+            useGeneratedKeys="true" keyProperty="sysUserRole.autoId">
         INSERT INTO
         `sys_user_role_${tableSuffix}` (
         <trim suffixOverrides=",">

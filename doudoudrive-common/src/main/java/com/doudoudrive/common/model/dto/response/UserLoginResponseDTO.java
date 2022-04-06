@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * <p>用户登录模块响应数据模型</p>
  * <p>2022-04-04 21:45</p>
@@ -28,7 +26,7 @@ public class UserLoginResponseDTO {
     /**
      * 登录的token，用于后续鉴权
      */
-    private Serializable token;
+    private String token;
 
     /**
      * 账号被封禁时间的格式化显示(最大显示粒度为天)

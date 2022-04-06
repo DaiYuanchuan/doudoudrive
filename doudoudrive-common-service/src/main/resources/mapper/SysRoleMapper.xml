@@ -46,7 +46,7 @@
 
     <!-- 新增系统角色管理模块 -->
     <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.SysRole" flushCache="true"
-            useGeneratedKeys="true" keyProperty="autoId">
+            useGeneratedKeys="true" keyProperty="sysRole.autoId">
         INSERT INTO
         `sys_role` (
         <trim suffixOverrides=",">

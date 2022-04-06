@@ -45,7 +45,7 @@
 
     <!-- 新增系统权限管理模块 -->
     <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.SysAuthorization" flushCache="true"
-            useGeneratedKeys="true" keyProperty="autoId">
+            useGeneratedKeys="true" keyProperty="sysAuthorization.autoId">
         INSERT INTO
         `sys_authorization` (
         <trim suffixOverrides=",">
