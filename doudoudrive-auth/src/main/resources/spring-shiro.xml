@@ -72,8 +72,8 @@
     <!-- Redis缓存配置 [start] -->
     <bean id="ehCacheManager" class="org.crazycake.shiro.RedisCacheManager">
         <property name="redisManager" ref="redisManager"/>
-        <!-- 5个小时的缓存 -->
-        <property name="expire" value="18000"/>
+        <!-- 10个小时的缓存 -->
+        <property name="expire" value="36000"/>
     </bean>
     <!-- Redis缓存配置 [end] -->
 
@@ -95,7 +95,7 @@
 
     <!-- 使用重写后的会话管理器 -->
     <bean id="sessionManager" class="com.doudoudrive.auth.config.CustomerWebSessionManager">
-        <property name="globalSessionTimeout" value="18000000"/>
+        <property name="globalSessionTimeout" value="36000000"/>
         <property name="deleteInvalidSessions" value="true"/>
         <property name="sessionValidationSchedulerEnabled" value="true"/>
         <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
@@ -106,7 +106,7 @@
     </bean>
     <bean id="sessionValidationScheduler"
           class="org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler">
-        <property name="interval" value="18000000"/>
+        <property name="interval" value="36000000"/>
         <property name="sessionManager" ref="sessionManager"/>
     </bean>
     <bean id="sessionDAO" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
