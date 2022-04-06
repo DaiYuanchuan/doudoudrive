@@ -81,6 +81,11 @@ public interface ConstantConfig {
         String HEADER = "header";
 
         /**
+         * 浏览器UA标识
+         */
+        String USER_AGENT = "User-Agent";
+
+        /**
          * 微信浏览器请求头中的userAgent标识
          */
         String[] WECHAT_BROWSER_USER_AGENT = {"MicroMessenger/", "WeChat", "Weixin"};
@@ -173,6 +178,26 @@ public interface ConstantConfig {
          */
         Integer USERINFO = 20;
 
+        /**
+         * 用户与角色关联表依据 user_id 平均分 50 个表
+         */
+        Integer SYS_USER_ROLE = 50;
+    }
+
+    /**
+     * 缓存相关的常量
+     */
+    interface Cache {
+
+        /**
+         * 用户信息缓存
+         */
+        String USERINFO_CACHE = "userInfo";
+
+        /**
+         * 用户角色信息缓存
+         */
+        String USER_ROLE_CACHE = "AuthorizationInfo";
     }
 
     /**

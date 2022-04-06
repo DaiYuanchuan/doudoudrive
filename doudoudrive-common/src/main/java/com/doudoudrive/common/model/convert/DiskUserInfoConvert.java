@@ -2,9 +2,12 @@ package com.doudoudrive.common.model.convert;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.SecretSaltingInfo;
+import com.doudoudrive.common.model.dto.model.UserSimpleModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
+import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -50,5 +53,29 @@ public interface DiskUserInfoConvert {
      * @return 保存es用户信息时的请求数据模型
      */
     SaveElasticsearchUserInfoRequestDTO diskUserInfoConvert(DiskUser diskUser, String tableSuffix);
+
+    /**
+     * 将UsernameSearchResponseDTO(通过用户名查询用户信息请求的响应数据模型) 类型转换为 DiskUserModel(通用的用户信息数据模型)
+     *
+     * @param responseDTO 通过用户名查询用户信息请求的响应数据模型
+     * @return 通用的用户信息数据模型
+     */
+    DiskUserModel usernameSearchResponseConvert(UsernameSearchResponseDTO responseDTO);
+
+    /**
+     * 将UserSimpleModel(简单的用户信息数据模型) 类型转换为 DiskUserModel(通用的用户信息数据模型)
+     *
+     * @param userSimpleModel 简单的用户信息数据模型
+     * @return 通用的用户信息数据模型
+     */
+    DiskUserModel userSimpleModelConvert(UserSimpleModel userSimpleModel);
+
+    /**
+     * 将UsernameSearchResponseDTO(通过用户名查询用户信息请求的响应数据模型) 类型转换为 UserSimpleModel(简单的用户信息数据模型)
+     *
+     * @param responseDTO 通过用户名查询用户信息请求的响应数据模型
+     * @return 简单的用户信息数据模型
+     */
+    UserSimpleModel usernameSearchResponseConvertUserSimpleModel(UsernameSearchResponseDTO responseDTO);
 
 }

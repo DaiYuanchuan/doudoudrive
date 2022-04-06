@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.doudoudrive.common.annotation.OpLog;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.log.OpLogCompletionHandler;
 import com.doudoudrive.common.model.dto.model.OpLogInfo;
 import com.doudoudrive.common.model.dto.model.Region;
@@ -257,7 +258,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         String userAgent = "无法获取User-Agent信息";
 
         if (requestAttributes != null) {
-            userAgent = requestAttributes.getRequest().getHeader("User-Agent");
+            userAgent = requestAttributes.getRequest().getHeader(ConstantConfig.HttpRequest.USER_AGENT);
             opLogInfo.setIp(ServletUtil.getClientIP(requestAttributes.getRequest()));
             opLogInfo.setRequestUri(requestAttributes.getRequest().getRequestURI());
             opLogInfo.setMethod(requestAttributes.getRequest().getMethod());

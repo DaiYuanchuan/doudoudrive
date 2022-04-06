@@ -1,10 +1,12 @@
 package com.doudoudrive.common.model.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
  * <p>用户登录模块响应数据模型</p>
@@ -16,12 +18,21 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserLoginResponseDTO {
+
+    /**
+     * 当前的用户信息数据模型
+     */
+    private DiskUserModel userInfo;
 
     /**
      * 登录的token，用于后续鉴权
      */
-    private String token;
+    private Serializable token;
+
+    /**
+     * 账号被封禁时间的格式化显示(最大显示粒度为天)
+     */
+    private String userBanTimeFormat;
 
 }

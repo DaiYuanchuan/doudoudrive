@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.SysUserRoleDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.SysUserRole" id="sysUserRoleResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="remarks" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="sysUserRole">
+        `auto_id`, `business_id`, `user_id`, `role_code`, `remarks`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 新增用户、角色关联模块 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.SysUserRole" flushCache="true"
+            useGeneratedKeys="true" keyProperty="autoId">
+        INSERT INTO
+        `sys_user_role_${tableSuffix}` (
+        <trim suffixOverrides=",">
+            <if test="null != sysUserRole.businessId and '' != sysUserRole.businessId">`business_id`,</if>
+            <if test="null != sysUserRole.userId and '' != sysUserRole.userId">`user_id`,</if>
+            <if test="null != sysUserRole.roleCode and '' != sysUserRole.roleCode">`role_code`,</if>
+            <if test="null != sysUserRole.remarks and '' != sysUserRole.remarks">`remarks`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != sysUserRole.businessId and '' != sysUserRole.businessId">#{sysUserRole.businessId},</if>
+            <if test="null != sysUserRole.userId and '' != sysUserRole.userId">#{sysUserRole.userId},</if>
+            <if test="null != sysUserRole.roleCode and '' != sysUserRole.roleCode">#{sysUserRole.roleCode},</if>
+            <if test="null != sysUserRole.remarks and '' != sysUserRole.remarks">#{sysUserRole.remarks},</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 批量新增用户、角色关联模块 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `sys_user_role_${tableSuffix}` (
+        `business_id`,
+        `user_id`,
+        `role_code`,
+        `remarks`
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.businessId},
+            #{item.userId},
+            #{item.roleCode},
+            #{item.remarks}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除指定用户关联的所有角色 -->
+    <delete id="deleteSysUserRole" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `sys_user_role_${tableSuffix}`
+        <where>
+            `user_id` = #{userId}
+        </where>
+    </delete>
+
+    <!-- 根据用户标识查询指定用户下所有绑定的角色信息 -->
+    <select id="listSysUserRole" resultType="com.doudoudrive.common.model.pojo.SysUserRole"
+            resultMap="sysUserRoleResultMap">
+        SELECT
+        <include refid="sysUserRole"/>
+        FROM `sys_user_role_${tableSuffix}`
+        <where>
+            `user_id` = #{userId}
+        </where>
+    </select>
+
+    <!-- 根据用户标识与系统角色编码批量查询指定用户的角色绑定信息 -->
+    <select id="listSysUserRoleByRoleCode" resultType="com.doudoudrive.common.model.pojo.SysUserRole"
+            resultMap="sysUserRoleResultMap">
+        SELECT
+        <include refid="sysUserRole"/>
+        FROM `sys_user_role_${tableSuffix}`
+        <where>
+            `user_id` = #{userId} AND `role_code` IN
+            <foreach collection="roleCodeList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+</mapper>

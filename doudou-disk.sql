@@ -31,6 +31,72 @@ CREATE TABLE `cloud-user`.`disk_user`  (
  INDEX `idx_user_tel`(`user_tel`) USING BTREE COMMENT '用户绑定的手机号'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户模块' ROW_FORMAT = DYNAMIC;
 
+-- 系统权限表
+DROP TABLE IF EXISTS `cloud-user`.`sys_authorization`;
+CREATE TABLE `cloud-user`.`sys_authorization`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `auth_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '授权编码',
+ `auth_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '授权名称',
+ `auth_remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前权限的描述',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ UNIQUE INDEX `uk_auth_code`(`auth_code`) USING BTREE COMMENT '授权编码唯一'
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统权限管理模块' ROW_FORMAT = DYNAMIC;
+
+-- 系统角色表
+DROP TABLE IF EXISTS `cloud-user`.`sys_role`;
+CREATE TABLE `cloud-user`.`sys_role`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `role_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色编码',
+ `role_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '角色名称',
+ `role_remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '角色描述',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ UNIQUE INDEX `uk_role_code`(`role_code`) USING BTREE COMMENT '角色编码唯一'
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统角色管理模块' ROW_FORMAT = Dynamic;
+
+-- 系统角色与权限关联表(通过角色编码、权限编码多对多关联)
+DROP TABLE IF EXISTS `cloud-user`.`sys_role_auth`;
+CREATE TABLE `cloud-user`.`sys_role_auth`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `role_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色编码',
+ `auth_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '权限编码',
+ `remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '描述',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ INDEX `idx_role_code`(`role_code`) USING BTREE COMMENT '角色编码索引',
+ INDEX `idx_auth_code`(`auth_code`) USING BTREE COMMENT '权限编码索引'
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色、权限关联模块' ROW_FORMAT = Dynamic;
+
+-- 系统用户与角色关联表(通过用户业务标识、角色编码多对多关联)
+DROP TABLE IF EXISTS `cloud-user`.`sys_user_role`;
+CREATE TABLE `cloud-user`.`sys_user_role`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+ `role_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色编码',
+ `remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '描述',
+ `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ INDEX `idx_user_id`(`user_id`) USING BTREE COMMENT '用户唯一标识索引',
+ INDEX `idx_role_code`(`role_code`) USING BTREE COMMENT '角色编码索引'
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户、角色关联模块' ROW_FORMAT = Dynamic;
+
 -- 用户表依据 user_id 平均分 20 个表
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_01` LIKE `cloud-user`.`disk_user`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_02` LIKE `cloud-user`.`disk_user`;
@@ -53,8 +119,61 @@ CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_18` LIKE `cloud-user`.`disk_u
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_19` LIKE `cloud-user`.`disk_user`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_20` LIKE `cloud-user`.`disk_user`;
 
+-- 用户与角色关联表依据 user_id 平均分 50 个表
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_01` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_02` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_03` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_04` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_05` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_06` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_07` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_08` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_09` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_10` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_11` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_12` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_13` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_14` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_15` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_16` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_17` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_18` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_19` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_20` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_21` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_22` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_23` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_24` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_25` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_26` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_27` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_28` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_29` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_30` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_31` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_32` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_33` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_34` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_35` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_36` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_37` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_38` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_39` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_40` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_41` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_42` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_43` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_44` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_45` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_46` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_47` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_48` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_49` LIKE `cloud-user`.`sys_user_role`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_50` LIKE `cloud-user`.`sys_user_role`;
+
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-user`.`disk_user`;
+DROP TABLE IF EXISTS `cloud-user`.`sys_user_role`;
 
 /**
  * ******************************************************* 日志库 *******************************************************
@@ -80,7 +199,6 @@ CREATE TABLE `cloud-log`.`log_login` (
   `os` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '操作系统类型',
   `platform` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '操作平台类型',
   `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '登陆的用户名',
-  `is_success` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '是否登录成功(0:false,1:true)',
   `is_password` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '是否使用密码登录(0:false,1:true)',
   `msg` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '提示消息',
   `session_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前用户登录请求的sessionId',

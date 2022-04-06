@@ -2,19 +2,34 @@ package com.doudoudrive.auth.config;
 
 import com.alibaba.fastjson.JSON;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
+import com.doudoudrive.auth.manager.LoginManager;
+import com.doudoudrive.auth.manager.SysUserRoleManager;
 import com.doudoudrive.auth.model.dto.MockToken;
+import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.LoginType;
+import com.doudoudrive.common.model.dto.model.SysUserAuthModel;
+import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
+import com.doudoudrive.common.model.dto.model.UserSimpleModel;
+import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * <p>配置Shiro继承AuthenticatingRealm类</p>
@@ -31,9 +46,36 @@ public class ShiroRealm extends AuthorizingRealm {
      */
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
 
+    /**
+     * 用户、角色信息数据服务注入
+     */
+    private SysUserRoleManager sysUserRoleManager;
+
+    /**
+     * 登录服务注入
+     */
+    private LoginManager loginManager;
+
+    private DiskUserInfoConvert diskUserInfoConvert;
+
     @Autowired
     public void setUserInfoSearchFeignClient(UserInfoSearchFeignClient userInfoSearchFeignClient) {
         this.userInfoSearchFeignClient = userInfoSearchFeignClient;
+    }
+
+    @Autowired
+    public void setSysUserRoleManager(SysUserRoleManager sysUserRoleManager) {
+        this.sysUserRoleManager = sysUserRoleManager;
+    }
+
+    @Autowired
+    public void setLoginManager(LoginManager loginManager) {
+        this.loginManager = loginManager;
+    }
+
+    @Autowired(required = false)
+    public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
+        this.diskUserInfoConvert = diskUserInfoConvert;
     }
 
     /**
@@ -44,7 +86,44 @@ public class ShiroRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        return null;
+        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
+        if (!SecurityUtils.getSubject().isAuthenticated()) {
+            return authorizationInfo;
+        }
+
+        // 查看是否存在缓存中
+        Subject subject = SecurityUtils.getSubject();
+        Session session = subject.getSession(true);
+        if (session.getAttribute(ConstantConfig.Cache.USER_ROLE_CACHE) != null) {
+            return (SimpleAuthorizationInfo) session.getAttribute(ConstantConfig.Cache.USER_ROLE_CACHE);
+        }
+
+        // 手动注入服务
+        if (sysUserRoleManager == null) {
+            sysUserRoleManager = SpringBeanFactoryUtils.getBean(SysUserRoleManager.class);
+        }
+
+        if (loginManager == null) {
+            loginManager = SpringBeanFactoryUtils.getBean(LoginManager.class);
+        }
+
+        // 获取当前登陆的用户信息
+        UserLoginResponseDTO userLoginInfo = loginManager.getUserInfoToSession();
+        if (userLoginInfo != null) {
+            // 向shiro中添加用户角色、权限相关信息
+            for (SysUserRoleModel userRoleInfo : userLoginInfo.getUserInfo().getRoleInfo()) {
+                // 添加角色
+                authorizationInfo.addRole(userRoleInfo.getRoleCode());
+                List<String> permissionsList = userRoleInfo.getAuthInfo().stream().map(SysUserAuthModel::getAuthCode).toList();
+                if (CollectionUtil.isNotEmpty(permissionsList)) {
+                    // 添加权限
+                    authorizationInfo.addStringPermissions(permissionsList);
+                }
+            }
+            // 在缓存中添加用户权限信息
+            session.setAttribute(ConstantConfig.Cache.USER_ROLE_CACHE, authorizationInfo);
+        }
+        return authorizationInfo;
     }
 
     /**
@@ -59,6 +138,10 @@ public class ShiroRealm extends AuthorizingRealm {
         // 手动注入服务
         if (userInfoSearchFeignClient == null) {
             userInfoSearchFeignClient = SpringBeanFactoryUtils.getBean(UserInfoSearchFeignClient.class);
+        }
+
+        if (diskUserInfoConvert == null) {
+            diskUserInfoConvert = SpringBeanFactoryUtils.getBean(DiskUserInfoConvert.class);
         }
 
         // UsernamePasswordToken对象用来存放提交的登录信息
@@ -79,8 +162,9 @@ public class ShiroRealm extends AuthorizingRealm {
 
         // 同时当前用户账号不可用
         if (!usernameSearchResult.getData().getAvailable()) {
+            UserSimpleModel userSimpleModel = diskUserInfoConvert.usernameSearchResponseConvertUserSimpleModel(usernameSearchResult.getData());
             // 抛出禁用帐户异常
-            throw new DisabledAccountException(JSON.toJSONString(usernameSearchResult.getData()));
+            throw new DisabledAccountException(JSON.toJSONString(userSimpleModel));
         }
 
         // 这里的盐值可以自定义

@@ -31,6 +31,7 @@ public enum StatusCodeEnum {
      */
     SYSTEM_ERROR(500, "系统异常"),
     ABNORMAL_MAIL_SENDING(503, "邮件发送失败"),
+    INVALID_USERINFO(504, "无法正确获取用户信息"),
 
     /**
      * 用户(账号)类:65x
@@ -42,6 +43,8 @@ public enum StatusCodeEnum {
     TOO_MANY_FAILURES(654, "当前登录失败次数过多"),
     USER_EMAIL_ALREADY_EXIST(655, "用户邮箱已存在"),
     USER_TEL_ALREADY_EXIST(656, "用户手机号码已存在"),
+    EXPIRED_CREDENTIALS(657, "用户凭证已过期"),
+    AUTHENTICATION(658, "认证失败"),
 
     /**
      * 接口类:8xx

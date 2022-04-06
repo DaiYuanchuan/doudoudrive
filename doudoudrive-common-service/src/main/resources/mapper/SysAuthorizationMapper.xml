@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.SysAuthorizationDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.SysAuthorization" id="sysAuthorizationResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="authCode" column="auth_code"/>
+        <result property="authName" column="auth_name"/>
+        <result property="authRemarks" column="auth_remarks"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="sysAuthorization">
+        `auto_id`, `business_id`, `auth_code`, `auth_name`, `auth_remarks`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 搜索的参数块 -->
+    <sql id="searchCondition">
+        <if test="null != sysAuthorization">
+            <if test="null != sysAuthorization.autoId and 0 != sysAuthorization.autoId">
+                `auto_id` = #{sysAuthorization.autoId} AND
+            </if>
+            <if test="null != sysAuthorization.businessId and '' != sysAuthorization.businessId">
+                `business_id` = #{sysAuthorization.businessId} AND
+            </if>
+            <if test="null != sysAuthorization.authCode and '' != sysAuthorization.authCode">
+                LOCATE(#{sysAuthorization.authCode}, `auth_code`)>0 AND
+            </if>
+            <if test="null != sysAuthorization.authName and '' != sysAuthorization.authName">
+                LOCATE(#{sysAuthorization.authName}, `auth_name`)>0 AND
+            </if>
+            <if test="null != sysAuthorization.authRemarks and '' != sysAuthorization.authRemarks">
+                LOCATE(#{sysAuthorization.authRemarks}, `auth_remarks`)>0 AND
+            </if>
+        </if>
+        <if test="null != startTime and null != endTime">
+            `create_time` BETWEEN #{startTime} AND #{endTime}
+        </if>
+    </sql>
+
+
+    <!-- 新增系统权限管理模块 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.SysAuthorization" flushCache="true"
+            useGeneratedKeys="true" keyProperty="autoId">
+        INSERT INTO
+        `sys_authorization` (
+        <trim suffixOverrides=",">
+            <if test="null != sysAuthorization.businessId and '' != sysAuthorization.businessId">`business_id`,</if>
+            <if test="null != sysAuthorization.authCode and '' != sysAuthorization.authCode">`auth_code`,</if>
+            <if test="null != sysAuthorization.authName and '' != sysAuthorization.authName">`auth_name`,</if>
+            <if test="null != sysAuthorization.authRemarks and '' != sysAuthorization.authRemarks">`auth_remarks`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != sysAuthorization.businessId and '' != sysAuthorization.businessId">
+                #{sysAuthorization.businessId},
+            </if>
+            <if test="null != sysAuthorization.authCode and '' != sysAuthorization.authCode">
+                #{sysAuthorization.authCode},
+            </if>
+            <if test="null != sysAuthorization.authName and '' != sysAuthorization.authName">
+                #{sysAuthorization.authName},
+            </if>
+            <if test="null != sysAuthorization.authRemarks and '' != sysAuthorization.authRemarks">
+                #{sysAuthorization.authRemarks},
+            </if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 批量新增系统权限管理模块 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `sys_authorization` (
+        `business_id`,
+        `auth_code`,
+        `auth_name`,
+        `auth_remarks`
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.businessId},
+            #{item.authCode},
+            #{item.authName},
+            #{item.authRemarks}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据业务id(businessId)删除系统权限管理模块 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `sys_authorization`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)批量删除系统权限管理模块 -->
+    <delete id="deleteBatch" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `sys_authorization`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改系统权限管理模块 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.SysAuthorization" flushCache="true">
+        UPDATE `sys_authorization`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != sysAuthorization.authCode and '' != sysAuthorization.authCode">
+                `auth_code` = #{sysAuthorization.authCode},
+            </if>
+            <if test="null != sysAuthorization.authName and '' != sysAuthorization.authName">
+                `auth_name` = #{sysAuthorization.authName},
+            </if>
+            <if test="null != sysAuthorization.authRemarks and '' != sysAuthorization.authRemarks">
+                `auth_remarks` = #{sysAuthorization.authRemarks},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{sysAuthorization.businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)批量修改系统权限管理模块 -->
+    <update id="updateBatch" parameterType="java.util.List" flushCache="true">
+        UPDATE `sys_authorization`
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="`auth_code` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.authCode and '' != item.authCode">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.authCode}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`auth_name` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.authName and '' != item.authName">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.authName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`auth_remarks` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.authRemarks and '' != item.authRemarks">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.authRemarks}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+                #{item.businessId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找系统权限管理模块 -->
+    <select id="getSysAuthorization" resultType="com.doudoudrive.common.model.pojo.SysAuthorization"
+            resultMap="sysAuthorizationResultMap">
+        SELECT
+        <include refid="sysAuthorization"/>
+        FROM `sys_authorization`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+    <!-- 根据Model中某个成员变量名称(非数据表中column的名称)查找(value需符合unique约束) -->
+    <select id="getSysAuthorizationToModel" resultType="com.doudoudrive.common.model.pojo.SysAuthorization"
+            resultMap="sysAuthorizationResultMap">
+        SELECT
+        <include refid="sysAuthorization"/>
+        FROM `sys_authorization`
+        <where>
+            `${modelName}` = #{value};
+        </where>
+    </select>
+
+    <!-- 根据业务id(businessId)批量查找系统权限管理模块 -->
+    <select id="listSysAuthorization" resultType="com.doudoudrive.common.model.pojo.SysAuthorization"
+            resultMap="sysAuthorizationResultMap">
+        SELECT
+        <include refid="sysAuthorization"/>
+        FROM `sys_authorization`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <!-- 指定条件查找系统权限管理模块 -->
+    <select id="listSysAuthorizationToKey" resultType="com.doudoudrive.common.model.pojo.SysAuthorization"
+            resultMap="sysAuthorizationResultMap">
+        SELECT
+        <include refid="sysAuthorization"/>
+        FROM `sys_authorization`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+        ${limit};
+    </select>
+
+    <!-- 返回搜索的总数 -->
+    <select id="countSearch" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `sys_authorization`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+    </select>
+
+</mapper>

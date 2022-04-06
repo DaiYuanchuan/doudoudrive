@@ -2,6 +2,8 @@ package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
+import com.doudoudrive.common.model.pojo.DiskUser;
+import com.doudoudrive.common.util.lang.ReflectUtil;
 import com.doudoudrive.search.constant.SearchConstantConfig;
 import com.doudoudrive.search.manager.UserInfoSearchManager;
 import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponseDTO;
@@ -36,6 +38,13 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
     public void setRestTemplate(ElasticsearchRestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
+
+    /**
+     * 用户名、邮箱、密码对应字段的字符串
+     */
+    private static final String USER_NAME = ReflectUtil.property(DiskUser::getUserName);
+    private static final String USER_EMAIL = ReflectUtil.property(DiskUser::getUserEmail);
+    private static final String USER_TEL = ReflectUtil.property(DiskUser::getUserTel);
 
     /**
      * 保存用户信息，es中保存用户信息
@@ -95,9 +104,9 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
         // 构建查询请求
         SearchHits<UserInfoDTO> search = restTemplate.search(new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
-                        .should(QueryBuilders.termQuery("userName", username))
-                        .should(QueryBuilders.termQuery("userEmail", username))
-                        .should(QueryBuilders.termQuery("userTel", username)))
+                        .should(QueryBuilders.termQuery(USER_NAME, username))
+                        .should(QueryBuilders.termQuery(USER_EMAIL, username))
+                        .should(QueryBuilders.termQuery(USER_TEL, username)))
                 .build(), UserInfoDTO.class);
         return search.isEmpty() ? null : search.getSearchHits().get(0).getContent();
     }
@@ -116,15 +125,15 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
         BoolQueryBuilder builder = QueryBuilders.boolQuery();
 
         if (StringUtils.isNotBlank(username)) {
-            builder.should(QueryBuilders.termQuery("userName", username));
+            builder.should(QueryBuilders.termQuery(USER_NAME, username));
         }
 
         if (StringUtils.isNotBlank(userEmail)) {
-            builder.should(QueryBuilders.termQuery("userEmail", userEmail));
+            builder.should(QueryBuilders.termQuery(USER_EMAIL, userEmail));
         }
 
         if (StringUtils.isNotBlank(userTel)) {
-            builder.should(QueryBuilders.termQuery("userTel", userTel));
+            builder.should(QueryBuilders.termQuery(USER_TEL, userTel));
         }
 
         // 执行搜素
