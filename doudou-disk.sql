@@ -47,6 +47,14 @@ CREATE TABLE `cloud-user`.`sys_authorization`  (
  UNIQUE INDEX `uk_auth_code`(`auth_code`) USING BTREE COMMENT '授权编码唯一'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统权限管理模块' ROW_FORMAT = DYNAMIC;
 
+-- 添加默认权限配置
+INSERT INTO `cloud-user`.`sys_authorization` (`business_id`, `auth_code`, `auth_name`, `auth_remarks`) VALUES ('22040717153816493229384780461085968', 'admin', '系统管理员', '系统管理员，当前系统最大权限');
+INSERT INTO `cloud-user`.`sys_authorization` (`business_id`, `auth_code`, `auth_name`, `auth_remarks`) VALUES ('22040717193416493231740980449751502', 'file:upload', '文件上传', '文件基础权限');
+INSERT INTO `cloud-user`.`sys_authorization` (`business_id`, `auth_code`, `auth_name`, `auth_remarks`) VALUES ('22040717194516493231857540468398438', 'file:delete', '文件删除', '文件基础权限');
+INSERT INTO `cloud-user`.`sys_authorization` (`business_id`, `auth_code`, `auth_name`, `auth_remarks`) VALUES ('22040717200016493232008380419446433', 'file:update', '文件修改', '文件基础权限');
+INSERT INTO `cloud-user`.`sys_authorization` (`business_id`, `auth_code`, `auth_name`, `auth_remarks`) VALUES ('22040717201116493232112660467356767', 'file:select', '文件查询', '文件基础权限');
+INSERT INTO `cloud-user`.`sys_authorization` (`business_id`, `auth_code`, `auth_name`, `auth_remarks`) VALUES ('22040717203416493232347010482008045', 'file:share', '文件分享', '对外分享权限');
+
 -- 系统角色表
 DROP TABLE IF EXISTS `cloud-user`.`sys_role`;
 CREATE TABLE `cloud-user`.`sys_role`  (
@@ -62,6 +70,11 @@ CREATE TABLE `cloud-user`.`sys_role`  (
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
  UNIQUE INDEX `uk_role_code`(`role_code`) USING BTREE COMMENT '角色编码唯一'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统角色管理模块' ROW_FORMAT = Dynamic;
+
+-- 添加默认角色配置
+INSERT INTO `cloud-user`.`sys_role` (`business_id`, `role_code`, `role_name`, `role_remarks`) VALUES ('22040717265916493236196240559334142', 'admin', '系统管理员', '拥有系统最大权限');
+INSERT INTO `cloud-user`.`sys_role` (`business_id`, `role_code`, `role_name`, `role_remarks`) VALUES ('22040717314016493239009530588204569', 'file', '文件基础角色', '拥有文件基础权限');
+INSERT INTO `cloud-user`.`sys_role` (`business_id`, `role_code`, `role_name`, `role_remarks`) VALUES ('22040717315016493239104070528655046', 'share', '文件分享角色', '拥有对外分享权限');
 
 -- 系统角色与权限关联表(通过角色编码、权限编码多对多关联)
 DROP TABLE IF EXISTS `cloud-user`.`sys_role_auth`;
@@ -79,6 +92,20 @@ CREATE TABLE `cloud-user`.`sys_role_auth`  (
  INDEX `idx_role_code`(`role_code`) USING BTREE COMMENT '角色编码索引',
  INDEX `idx_auth_code`(`auth_code`) USING BTREE COMMENT '权限编码索引'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色、权限关联模块' ROW_FORMAT = Dynamic;
+
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717332416493240040290632222442', 'admin', 'admin', '绑定管理员权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717353616493241364760682472068', 'admin', 'file:upload', '绑定管理员权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717354716493241472280621403644', 'admin', 'file:delete', '绑定管理员权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717355816493241585010609673759', 'admin', 'file:update', '绑定管理员权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717360816493241688470697621755', 'admin', 'file:select', '绑定管理员权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717361816493241780130646523731', 'admin', 'file:share', '绑定管理员权限');
+
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717381616493242966890696578219', 'file', 'file:upload', '绑定文件基础权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717383116493243113000625050858', 'file', 'file:delete', '绑定文件基础权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717384116493243211260601150119', 'file', 'file:update', '绑定文件基础权限');
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717391116493243517380624037622', 'file', 'file:select', '绑定文件基础权限');
+
+INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717392216493243625730638194608', 'share', 'file:share', '绑定对外分享权限');
 
 -- 系统用户与角色关联表(通过用户业务标识、角色编码多对多关联)
 DROP TABLE IF EXISTS `cloud-user`.`sys_user_role`;

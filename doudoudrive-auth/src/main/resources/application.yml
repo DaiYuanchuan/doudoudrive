@@ -7,6 +7,11 @@ server:
       # Undertow 日志存放目录
       dir: logs/auth
 
+# rocketmq相关配置
+rocketmq:
+  producer:
+    group: AUTH_PRODUCER
+
 spring:
   application:
     # 配置服务名称

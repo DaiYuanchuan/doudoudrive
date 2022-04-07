@@ -1,7 +1,6 @@
 package com.doudoudrive.commonservice.dao;
 
 import com.doudoudrive.common.model.pojo.LogLogin;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -19,6 +18,6 @@ public interface LogLoginDao {
      * @param logLogin 需要新增的登录日志实体
      * @return 返回新增的条数
      */
-    Integer insert(@Param("logLogin") LogLogin logLogin);
+    Integer insert(LogLogin logLogin);
 
 }

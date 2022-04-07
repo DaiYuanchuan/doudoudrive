@@ -78,7 +78,7 @@ public class LoginManagerImpl implements LoginManager {
                 // 构建用户登录模块响应数据DTO模型
                 return UserLoginResponseDTO.builder()
                         .userInfo(userInfo)
-                        .token(session.getId())
+                        .token(session.getId().toString())
                         .build();
             }
         } catch (UnknownSessionException ignored) {
