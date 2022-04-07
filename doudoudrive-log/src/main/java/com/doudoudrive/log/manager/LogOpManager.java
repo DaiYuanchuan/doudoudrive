@@ -1,5 +1,6 @@
 package com.doudoudrive.log.manager;
 
+import com.doudoudrive.common.model.pojo.LogLogin;
 import com.doudoudrive.common.model.pojo.LogOp;
 
 /**
@@ -16,5 +17,12 @@ public interface LogOpManager {
      * @param logOp 需要新增的API操作日志实体
      */
     void insert(LogOp logOp);
+
+    /**
+     * 新增登录日志
+     *
+     * @param logLogin 需要新增的登录日志实体
+     */
+    void insert(LogLogin logLogin);
 
 }

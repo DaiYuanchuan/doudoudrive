@@ -3,6 +3,7 @@ package com.doudoudrive.log.consumer;
 import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.model.pojo.LogLogin;
 import com.doudoudrive.common.model.pojo.LogOp;
 import com.doudoudrive.log.manager.LogOpManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +35,16 @@ public class LogServiceConsumer {
     public void logOpConsumer(LogOp logOpInfo) {
         // 保存日志信息
         logOpManager.insert(logOpInfo);
+    }
+
+    /**
+     * 登录日志消息的消费处理
+     *
+     * @param logLogin 登录日志信息
+     */
+    @RocketmqTagDistribution(messageClass = LogLogin.class, tag = ConstantConfig.Tag.LOGIN_LOG_RECORD)
+    public void logLoginConsumer(LogLogin logLogin) {
+        // 保存日志信息
+        logOpManager.insert(logLogin);
     }
 }
