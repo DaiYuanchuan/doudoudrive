@@ -1,0 +1,22 @@
+server:
+  port: 8000
+  servlet:
+    context-path: /
+  undertow:
+    accesslog:
+      # Undertow 日志存放目录
+      dir: logs/file
+
+# rocketmq相关配置
+rocketmq:
+  producer:
+    group: FILE_PRODUCER
+
+spring:
+  main:
+    allow-circular-references: true
+    # 允许bean覆盖
+    allow-bean-definition-overriding: true
+  application:
+    # 配置服务名称
+    name: fileServer

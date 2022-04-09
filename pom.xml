@@ -22,6 +22,7 @@
         <module>doudoudrive-gateway</module>
         <module>doudoudrive-search</module>
         <module>doudoudrive-auth</module>
+        <module>doudoudrive-file</module>
     </modules>
 
     <!-- 项目说明 -->

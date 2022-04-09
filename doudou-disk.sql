@@ -314,4 +314,37 @@ CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202212` LIKE `cloud-log`.`log_op`
 DROP TABLE IF EXISTS `cloud-log`.`log_login`;
 DROP TABLE IF EXISTS `cloud-log`.`log_op`;
 
+/**
+ * ******************************************************* 配置库 *******************************************************
+ */
+
+-- 配置库
+CREATE DATABASE IF NOT EXISTS `cloud-config` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+USE `cloud-config`;
+
+-- 数据字典表
+DROP TABLE IF EXISTS `cloud-config`.`disk_dictionary`;
+CREATE TABLE `cloud-config`.`disk_dictionary` (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `dictionary_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字段名称',
+ `dictionary_describe` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '字段描述',
+ `dictionary_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '字段内容',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ UNIQUE INDEX `uk_dictionary_name`(`dictionary_name`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据字典模块' ROW_FORMAT = Dynamic;
+
+-- 添加系统默认配置
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22040719590316493327434200038792976', 'mailConfig', '邮件发送配置项', '{
+	"host": "mail.doudoudrive.com",
+	"port": 465,
+	"from": "doudou@doudoudrive.com",
+	"user": "doudou@doudoudrive.com",
+	"pass": "prnbpweakdnogbde"
+}');
+
 SET NAMES utf8mb4;
