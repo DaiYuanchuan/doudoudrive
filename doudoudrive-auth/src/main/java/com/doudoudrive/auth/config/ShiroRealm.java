@@ -180,4 +180,15 @@ public class ShiroRealm extends AuthorizingRealm {
                 getName()
         );
     }
+
+    /**
+     * 重写 supports 使之支持 MockToken
+     *
+     * @param token 验证的Token
+     * @return 判断是否支持
+     */
+    @Override
+    public boolean supports(AuthenticationToken token) {
+        return token instanceof UsernamePasswordToken;
+    }
 }
