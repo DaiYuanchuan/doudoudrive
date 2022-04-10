@@ -1,12 +1,15 @@
 package com.doudoudrive.auth.manager.impl;
 
 import com.doudoudrive.auth.manager.SysUserRoleManager;
+import com.doudoudrive.common.constant.RoleCodeEnum;
 import com.doudoudrive.common.model.convert.SysUserRoleAuthConvert;
 import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
+import com.doudoudrive.common.model.pojo.SysRole;
 import com.doudoudrive.common.model.pojo.SysRoleAuth;
 import com.doudoudrive.common.model.pojo.SysUserRole;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.service.SysRoleAuthService;
+import com.doudoudrive.commonservice.service.SysRoleService;
 import com.doudoudrive.commonservice.service.SysUserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,11 +29,18 @@ import java.util.stream.Collectors;
 @Service("sysUserRoleManager")
 public class SysUserRoleManagerImpl implements SysUserRoleManager {
 
+    private SysRoleService sysRoleService;
+
     private SysUserRoleService sysUserRoleService;
 
     private SysRoleAuthService sysRoleAuthService;
 
     private SysUserRoleAuthConvert sysUserRoleAuthConvert;
+
+    @Autowired
+    public void setSysRoleService(SysRoleService sysRoleService) {
+        this.sysRoleService = sysRoleService;
+    }
 
     @Autowired
     public void setSysUserRoleService(SysUserRoleService sysUserRoleService) {
@@ -89,6 +99,13 @@ public class SysUserRoleManagerImpl implements SysUserRoleManager {
         List<SysUserRole> sysUserRoleList = sysUserRoleService.listSysUserRole(userId);
         // 获取所有的角色编码
         List<String> roleCodeList = sysUserRoleList.stream().map(SysUserRole::getRoleCode).toList();
+
+        // 如果当前用户具有管理员权限，则自动为用户注入系统所有角色、权限
+        if (roleCodeList.contains(RoleCodeEnum.ADMINISTRATOR.roleCode)) {
+            // 系统内所有的角色列表
+            List<SysRole> sysRoleList = sysRoleService.listSysRoleFindAll();
+            roleCodeList = sysRoleList.stream().map(SysRole::getRoleCode).toList();
+        }
 
         // 根据角色编码批量查询当前角色下绑定的所有权限编码
         List<SysRoleAuth> sysRoleAuthList = sysRoleAuthService.listSysRoleAuthToRoleCode(roleCodeList);

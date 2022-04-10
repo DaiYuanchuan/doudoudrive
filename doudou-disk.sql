@@ -94,11 +94,6 @@ CREATE TABLE `cloud-user`.`sys_role_auth`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色、权限关联模块' ROW_FORMAT = Dynamic;
 
 INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717332416493240040290632222442', 'admin', 'admin', '绑定管理员权限');
-INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717353616493241364760682472068', 'admin', 'file:upload', '绑定管理员权限');
-INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717354716493241472280621403644', 'admin', 'file:delete', '绑定管理员权限');
-INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717355816493241585010609673759', 'admin', 'file:update', '绑定管理员权限');
-INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717360816493241688470697621755', 'admin', 'file:select', '绑定管理员权限');
-INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717361816493241780130646523731', 'admin', 'file:share', '绑定管理员权限');
 
 INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717381616493242966890696578219', 'file', 'file:upload', '绑定文件基础权限');
 INSERT INTO `cloud-user`.`sys_role_auth` (`business_id`, `role_code`, `auth_code`, `remarks`) VALUES ('22040717383116493243113000625050858', 'file', 'file:delete', '绑定文件基础权限');
