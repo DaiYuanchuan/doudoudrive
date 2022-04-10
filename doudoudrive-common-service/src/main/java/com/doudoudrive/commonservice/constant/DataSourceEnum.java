@@ -26,7 +26,12 @@ public enum DataSourceEnum {
     /**
      * 日志系统数据源
      */
-    LOG("log", TransactionManagerConstant.LOG_TRANSACTION_MANAGER);
+    LOG("log", TransactionManagerConstant.LOG_TRANSACTION_MANAGER),
+
+    /**
+     * 系统静默配置中心数据源
+     */
+    CONFIG("config", TransactionManagerConstant.CONFIG_TRANSACTION_MANAGER);
 
     /**
      * 数据源key

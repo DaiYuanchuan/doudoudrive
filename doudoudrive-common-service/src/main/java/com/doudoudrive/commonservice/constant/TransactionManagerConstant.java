@@ -23,4 +23,9 @@ public class TransactionManagerConstant {
      */
     public static final String LOG_TRANSACTION_MANAGER = "logTransactionManager";
 
+    /**
+     * 系统静默配置中心的事务管理器
+     */
+    public static final String CONFIG_TRANSACTION_MANAGER = "configTransactionManager";
+
 }

@@ -1,11 +1,17 @@
-package com.doudoudrive.common.config;
+package com.doudoudrive.common.cache;
 
+import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -39,5 +45,36 @@ public class RedisConfig extends CachingConfigurerSupport {
         redisTemplate.afterPropertiesSet();
 
         return redisTemplate;
+    }
+
+    /**
+     * 基于模式匹配的topic
+     *
+     * @return redis 发布、订阅用的Topic
+     */
+    @Bean
+    public PatternTopic patternTopic() {
+        return new PatternTopic(ConstantConfig.Cache.CHANNEL_CONFIG);
+    }
+
+    /**
+     * 消息监听器的初始化
+     */
+    @Bean
+    public MessageListenerAdapter messageListener() {
+        return new MessageListenerAdapter(SpringBeanFactoryUtils.getBean(Subscriber.class));
+    }
+
+    /**
+     * 将订阅者注册到redis
+     */
+    @Bean
+    public RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory) {
+        final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+
+        // 订阅一个channel，可以添加多个messageListener，来订阅不同的channel
+        container.addMessageListener(messageListener(), patternTopic());
+        return container;
     }
 }

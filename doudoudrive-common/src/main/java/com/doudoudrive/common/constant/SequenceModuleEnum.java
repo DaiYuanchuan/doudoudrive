@@ -9,6 +9,11 @@ package com.doudoudrive.common.constant;
 public enum SequenceModuleEnum {
 
     /**
+     * 数据字典
+     */
+    DICTIONARY("00"),
+
+    /**
      * API操作日志模块
      */
     LOG_OP("01"),

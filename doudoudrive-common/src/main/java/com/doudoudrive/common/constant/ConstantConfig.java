@@ -198,6 +198,11 @@ public interface ConstantConfig {
          * 用户角色信息缓存
          */
         String USER_ROLE_CACHE = "AuthorizationInfo";
+
+        /**
+         * redis刷新配置专用通道名(redis需要订阅的渠道名称)
+         */
+        String CHANNEL_CONFIG = "DOUDOU_CONFIG_CHANNEL";
     }
 
     /**

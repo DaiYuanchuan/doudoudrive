@@ -10,6 +10,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * <ol>
  *     <li>--spring加载时候，注入的bean 的顺序是 先是Lisener 然后是 Filter 最后是 Servlet</li>
@@ -118,6 +120,17 @@ public class SpringBeanFactoryUtils implements BeanFactoryPostProcessor, Applica
      */
     public static String getApplicationName() {
         return getProperty("spring.application.name");
+    }
+
+    /**
+     * 获取指定类型对应的所有Bean，包括子类
+     *
+     * @param <T>  Bean类型
+     * @param type 类、接口，null表示获取所有bean
+     * @return 类型对应的bean，key是bean注册的name，value是Bean
+     */
+    public static <T> Map<String, T> getBeansOfType(Class<T> type) {
+        return getBeanFactory().getBeansOfType(type);
     }
 
     /**

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.DiskDictionaryDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.DiskDictionary" id="diskDictionaryResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="dictionaryName" column="dictionary_name"/>
+        <result property="dictionaryDescribe" column="dictionary_describe"/>
+        <result property="dictionaryContent" column="dictionary_content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="diskDictionary">
+        `auto_id`, `business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 搜索的参数块 -->
+    <sql id="searchCondition">
+        <if test="null != diskDictionary">
+            <if test="null != diskDictionary.autoId and 0 != diskDictionary.autoId">
+                `auto_id` = #{diskDictionary.autoId} AND
+            </if>
+            <if test="null != diskDictionary.businessId and '' != diskDictionary.businessId">
+                `business_id` = #{diskDictionary.businessId} AND
+            </if>
+            <if test="null != diskDictionary.dictionaryName and '' != diskDictionary.dictionaryName">
+                LOCATE(#{diskDictionary.dictionaryName}, `dictionary_name`)>0 AND
+            </if>
+            <if test="null != diskDictionary.dictionaryDescribe and '' != diskDictionary.dictionaryDescribe">
+                LOCATE(#{diskDictionary.dictionaryDescribe}, `dictionary_describe`)>0 AND
+            </if>
+            <if test="null != diskDictionary.dictionaryContent and '' != diskDictionary.dictionaryContent">
+                `dictionary_content` = #{diskDictionary.dictionaryContent} AND
+            </if>
+        </if>
+        <if test="null != startTime and null != endTime">
+            STR_TO_DATE(`create_time`,'%Y-%m-%d') &lt;= STR_TO_DATE(#{startTime},'%Y-%m-%d') and
+            STR_TO_DATE(`create_time`,'%Y-%m-%d') >= STR_TO_DATE(#{endTime},'%Y-%m-%d') and
+        </if>
+    </sql>
+
+
+    <!-- 新增数据字典模块 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.DiskDictionary" flushCache="true"
+            useGeneratedKeys="true" keyProperty="diskDictionary.autoId">
+        INSERT INTO
+        `disk_dictionary` (
+        <trim suffixOverrides=",">
+            <if test="null != diskDictionary.businessId and '' != diskDictionary.businessId">
+                `business_id`,
+            </if>
+            <if test="null != diskDictionary.dictionaryName and '' != diskDictionary.dictionaryName">
+                `dictionary_name`,
+            </if>
+            <if test="null != diskDictionary.dictionaryDescribe and '' != diskDictionary.dictionaryDescribe">
+                `dictionary_describe`,
+            </if>
+            <if test="null != diskDictionary.dictionaryContent and '' != diskDictionary.dictionaryContent">
+                `dictionary_content`,
+            </if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != diskDictionary.businessId and '' != diskDictionary.businessId">
+                #{diskDictionary.businessId},
+            </if>
+            <if test="null != diskDictionary.dictionaryName and '' != diskDictionary.dictionaryName">
+                #{diskDictionary.dictionaryName},
+            </if>
+            <if test="null != diskDictionary.dictionaryDescribe and '' != diskDictionary.dictionaryDescribe">
+                #{diskDictionary.dictionaryDescribe},
+            </if>
+            <if test="null != diskDictionary.dictionaryContent and '' != diskDictionary.dictionaryContent">
+                #{diskDictionary.dictionaryContent},
+            </if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 批量新增数据字典模块 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `disk_dictionary` (
+        `business_id`,
+        `dictionary_name`,
+        `dictionary_describe`,
+        `dictionary_content`,
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.businessId},
+            #{item.dictionaryName},
+            #{item.dictionaryDescribe},
+            #{item.dictionaryContent},
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据业务id(businessId)删除数据字典模块 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `disk_dictionary`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)批量删除数据字典模块 -->
+    <delete id="deleteBatch" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `disk_dictionary`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改数据字典模块 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.DiskDictionary" flushCache="true">
+        UPDATE `disk_dictionary`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != diskDictionary.dictionaryName and '' != diskDictionary.dictionaryName">
+                `dictionary_name` = #{diskDictionary.dictionaryName},
+            </if>
+            <if test="null != diskDictionary.dictionaryDescribe and '' != diskDictionary.dictionaryDescribe">
+                `dictionary_describe` = #{diskDictionary.dictionaryDescribe},
+            </if>
+            <if test="null != diskDictionary.dictionaryContent and '' != diskDictionary.dictionaryContent">
+                `dictionary_content` = #{diskDictionary.dictionaryContent},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{diskDictionary.businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)批量修改数据字典模块 -->
+    <update id="updateBatch" parameterType="java.util.List" flushCache="true">
+        UPDATE `disk_dictionary`
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="`dictionary_name` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.dictionaryName and '' != item.dictionaryName">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.dictionaryName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`dictionary_describe` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.dictionaryDescribe and '' != item.dictionaryDescribe">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.dictionaryDescribe}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`dictionary_content` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.dictionaryContent and '' != item.dictionaryContent">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.dictionaryContent}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+                #{item.businessId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找数据字典模块 -->
+    <select id="getDiskDictionary" resultType="com.doudoudrive.common.model.pojo.DiskDictionary"
+            resultMap="diskDictionaryResultMap">
+        SELECT
+        <include refid="diskDictionary"/>
+        FROM `disk_dictionary`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+    <!-- 根据Model中某个成员变量名称(非数据表中column的名称)查找(value需符合unique约束) -->
+    <select id="getDiskDictionaryToModel" resultType="com.doudoudrive.common.model.pojo.DiskDictionary"
+            resultMap="diskDictionaryResultMap">
+        SELECT
+        <include refid="diskDictionary"/>
+        FROM `disk_dictionary`
+        <where>
+            `${modelName}` = #{value};
+        </where>
+    </select>
+
+    <!-- 根据业务id(businessId)批量查找数据字典模块 -->
+    <select id="listDiskDictionary" resultType="com.doudoudrive.common.model.pojo.DiskDictionary"
+            resultMap="diskDictionaryResultMap">
+        SELECT
+        <include refid="diskDictionary"/>
+        FROM `disk_dictionary`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <!-- 指定条件查找数据字典模块 -->
+    <select id="listDiskDictionaryToKey" resultType="com.doudoudrive.common.model.pojo.DiskDictionary"
+            resultMap="diskDictionaryResultMap">
+        SELECT
+        <include refid="diskDictionary"/>
+        FROM `disk_dictionary`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+        ${limit};
+    </select>
+
+    <!-- 返回搜索的总数 -->
+    <select id="countSearch" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `disk_dictionary`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+    </select>
+
+</mapper>
