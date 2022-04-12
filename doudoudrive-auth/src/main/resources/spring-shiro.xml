@@ -64,6 +64,8 @@
 
                 /favicon.ico = anon
 
+                /sms/** = anon
+
                 /** = oauth
             </value>
         </property>

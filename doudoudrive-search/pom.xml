@@ -37,7 +37,7 @@
     <dependencies>
         <!-- 公共模块 -->
         <dependency>
-            <groupId>com.doudoudrive</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>doudoudrive-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>

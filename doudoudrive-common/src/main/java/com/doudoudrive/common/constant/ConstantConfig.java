@@ -206,6 +206,31 @@ public interface ConstantConfig {
     }
 
     /**
+     * es索引名称相关常量
+     */
+    interface IndexName {
+        String USERINFO = "userinfo";
+    }
+
+    /**
+     * ik分词器相关常量
+     */
+    interface IkConstant {
+
+        /**
+         * 最粗粒度的拆分
+         * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,国歌”，适合 Phrase 查询</p>
+         */
+        String IK_SMART = "ik_smart";
+
+        /**
+         * 最大化会将文本做最细粒度的拆分
+         * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,中华人民,中华,华人,人民共和国,人民,人,民,共和国,共和,和,国国,国歌”，会穷尽各种可能的组合，适合 Term Query；</p>
+         */
+        String IK_MAX_WORD = "ik_max_word";
+    }
+
+    /**
      * 最多一次性处理的任务数量
      */
     Long MAX_BATCH_TASKS_QUANTITY = 400L;

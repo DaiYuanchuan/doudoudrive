@@ -37,7 +37,7 @@
     <dependencies>
         <!-- 鉴权服务 -->
         <dependency>
-            <groupId>com.doudoudrive</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>doudoudrive-auth</artifactId>
             <version>${project.parent.version}</version>
         </dependency>

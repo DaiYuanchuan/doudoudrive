@@ -1,4 +1,4 @@
-package com.doudoudrive.search.model.elasticsearch;
+package com.doudoudrive.auth.model.dto;
 
 import com.doudoudrive.common.constant.ConstantConfig;
 import lombok.AllArgsConstructor;
@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
+ /**
  * <p>用户实体信息ES数据模型</p>
  * <p>2022-03-20 20:02</p>
  *

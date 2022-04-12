@@ -1,10 +1,10 @@
 package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.lang.ReflectUtil;
-import com.doudoudrive.search.constant.SearchConstantConfig;
 import com.doudoudrive.search.manager.UserInfoSearchManager;
 import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponseDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
@@ -87,7 +87,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
         restTemplate.update(UpdateQuery
                 .builder(id)
                 .withDocument(Document.from(userInfoMap))
-                .build(), IndexCoordinates.of(SearchConstantConfig.IndexName.USERINFO));
+                .build(), IndexCoordinates.of(ConstantConfig.IndexName.USERINFO));
     }
 
     /**

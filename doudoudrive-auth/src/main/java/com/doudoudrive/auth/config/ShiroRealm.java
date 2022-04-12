@@ -1,19 +1,17 @@
 package com.doudoudrive.auth.config;
 
 import com.alibaba.fastjson.JSON;
-import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.manager.SysUserRoleManager;
+import com.doudoudrive.auth.model.convert.UserInfoConvert;
 import com.doudoudrive.auth.model.dto.MockToken;
+import com.doudoudrive.auth.model.dto.UserInfoDTO;
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.LoginType;
 import com.doudoudrive.common.model.dto.model.SysUserAuthModel;
 import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
 import com.doudoudrive.common.model.dto.model.UserSimpleModel;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
-import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -42,11 +40,6 @@ import java.util.List;
 public class ShiroRealm extends AuthorizingRealm {
 
     /**
-     * 用户搜索服务注入
-     */
-    private UserInfoSearchFeignClient userInfoSearchFeignClient;
-
-    /**
      * 用户、角色信息数据服务注入
      */
     private SysUserRoleManager sysUserRoleManager;
@@ -56,12 +49,7 @@ public class ShiroRealm extends AuthorizingRealm {
      */
     private LoginManager loginManager;
 
-    private DiskUserInfoConvert diskUserInfoConvert;
-
-    @Autowired
-    public void setUserInfoSearchFeignClient(UserInfoSearchFeignClient userInfoSearchFeignClient) {
-        this.userInfoSearchFeignClient = userInfoSearchFeignClient;
-    }
+    private UserInfoConvert userInfoConvert;
 
     @Autowired
     public void setSysUserRoleManager(SysUserRoleManager sysUserRoleManager) {
@@ -74,8 +62,8 @@ public class ShiroRealm extends AuthorizingRealm {
     }
 
     @Autowired(required = false)
-    public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
-        this.diskUserInfoConvert = diskUserInfoConvert;
+    public void setUserInfoConvert(UserInfoConvert userInfoConvert) {
+        this.userInfoConvert = userInfoConvert;
     }
 
     /**
@@ -136,12 +124,12 @@ public class ShiroRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
         // 手动注入服务
-        if (userInfoSearchFeignClient == null) {
-            userInfoSearchFeignClient = SpringBeanFactoryUtils.getBean(UserInfoSearchFeignClient.class);
+        if (loginManager == null) {
+            loginManager = SpringBeanFactoryUtils.getBean(LoginManager.class);
         }
 
-        if (diskUserInfoConvert == null) {
-            diskUserInfoConvert = SpringBeanFactoryUtils.getBean(DiskUserInfoConvert.class);
+        if (userInfoConvert == null) {
+            userInfoConvert = SpringBeanFactoryUtils.getBean(UserInfoConvert.class);
         }
 
         // UsernamePasswordToken对象用来存放提交的登录信息
@@ -154,27 +142,27 @@ public class ShiroRealm extends AuthorizingRealm {
         }
 
         // 通过登陆的 用户名 、 用户邮箱 、 手机号 查找对应的用户信息
-        Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(upToken.getUsername());
-        if (Result.isNotSuccess(usernameSearchResult)) {
+        UserInfoDTO usernameSearch = loginManager.usernameSearch(upToken.getUsername());
+        if (usernameSearch == null) {
             // 抛出用户名不存在的异常
             throw new UnknownAccountException();
         }
 
         // 同时当前用户账号不可用
-        if (!usernameSearchResult.getData().getAvailable()) {
-            UserSimpleModel userSimpleModel = diskUserInfoConvert.usernameSearchResponseConvertUserSimpleModel(usernameSearchResult.getData());
+        if (!usernameSearch.getAvailable()) {
+            UserSimpleModel userSimpleModel = userInfoConvert.usernameSearchResponseConvertUserSimpleModel(usernameSearch);
             // 抛出禁用帐户异常
             throw new DisabledAccountException(JSON.toJSONString(userSimpleModel));
         }
 
         // 这里的盐值可以自定义
-        ByteSource credentialsSalt = ByteSource.Util.bytes(usernameSearchResult.getData().getUserSalt());
+        ByteSource credentialsSalt = ByteSource.Util.bytes(usernameSearch.getUserSalt());
         // 将此用户存放到登录认证info中
         return new SimpleAuthenticationInfo(
                 // 用户名
-                usernameSearchResult.getData().getUserName(),
+                usernameSearch.getUserName(),
                 // 密码
-                usernameSearchResult.getData().getUserPwd(),
+                usernameSearch.getUserPwd(),
                 // 盐值 = 随机32数
                 credentialsSalt,
                 getName()

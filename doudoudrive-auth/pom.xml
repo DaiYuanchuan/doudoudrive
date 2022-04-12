@@ -35,17 +35,21 @@
 
     <!-- 项目依赖 -->
     <dependencies>
-        <!-- 公共模块 -->
-        <dependency>
-            <groupId>com.doudoudrive</groupId>
-            <artifactId>doudoudrive-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
         <!-- 公共的DB服务层 -->
         <dependency>
-            <groupId>com.doudoudrive</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>doudoudrive-common-service</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+
+        <!-- elasticsearch搜索模块依赖 -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-elasticsearch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
         </dependency>
 
         <!-- Redis -->

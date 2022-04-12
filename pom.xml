@@ -23,6 +23,7 @@
         <module>doudoudrive-search</module>
         <module>doudoudrive-auth</module>
         <module>doudoudrive-file</module>
+        <module>doudoudrive-sms</module>
     </modules>
 
     <!-- 项目说明 -->

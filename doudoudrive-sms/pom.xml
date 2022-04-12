@@ -10,12 +10,12 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>doudoudrive-gateway</artifactId>
+    <artifactId>doudoudrive-sms</artifactId>
     <packaging>jar</packaging>
 
     <!-- 项目说明 -->
     <name>${project.artifactId}</name>
-    <description>兜兜网盘系统-gateway网关配置中心</description>
+    <description>兜兜网盘系统-短信、邮件配置中心</description>
     <url>https://www.doudoudrive.com/</url>
     <!-- 项目说明 -->
 
@@ -35,36 +35,12 @@
 
     <!-- 项目依赖 -->
     <dependencies>
-
-        <!-- 公共模块 -->
+        <!-- 鉴权服务 -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>doudoudrive-common</artifactId>
+            <artifactId>doudoudrive-auth</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-
-        <!-- 网关 -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
-        </dependency>
-
-        <!-- alibaba 的限流、熔断降级服务 -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-        </dependency>
-        <!-- sentinel 网关 -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
-        </dependency>
-        <!-- sentinel 持久化数据源配置 -->
-        <dependency>
-            <groupId>com.alibaba.csp</groupId>
-            <artifactId>sentinel-datasource-nacos</artifactId>
-        </dependency>
-
     </dependencies>
 
     <!-- 依赖的插件配置 -->
@@ -77,7 +53,7 @@
                     <!-- 如果没有该配置，devtools不会生效 -->
                     <fork>true</fork>
                     <!-- 指定该Main Class为全局的唯一入口 -->
-                    <mainClass>com.doudoudrive.GatewayApplication</mainClass>
+                    <mainClass>com.doudoudrive.SmsApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -90,5 +66,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
