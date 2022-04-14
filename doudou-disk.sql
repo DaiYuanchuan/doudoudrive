@@ -278,6 +278,26 @@ CREATE TABLE `cloud-log`.`log_op` (
   INDEX `username`(`username`) USING BTREE COMMENT '用户名索引'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8 COLLATE = utf8_bin COMMENT = 'API操作日志' ROW_FORMAT = Dynamic;
 
+-- 短信、邮件发送记录表
+DROP TABLE IF EXISTS `cloud-log`.`sms_send_record`;
+CREATE TABLE `cloud-log`.`sms_send_record` (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `sms_recipient` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '收件人信息',
+ `sms_title` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息发送标题',
+ `sms_data_id` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息发送时的数据标识',
+ `sms_error_reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '消息发送失败时获取到的异常原因',
+ `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前操作的用户名',
+ `sms_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息类型(1:邮件；2:短信)',
+ `sms_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息发送状态(1:待分发；2:发送成功；3:发送失败)',
+ `sms_send_time` timestamp(0) NOT NULL COMMENT '消息发送时间',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识'
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'SMS发送记录' ROW_FORMAT = Dynamic;
+
 -- 日志表依据 创建时间 分表
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202201` LIKE `cloud-log`.`log_login`;
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202202` LIKE `cloud-log`.`log_login`;
@@ -305,9 +325,23 @@ CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202210` LIKE `cloud-log`.`log_op`
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202211` LIKE `cloud-log`.`log_op`;
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202212` LIKE `cloud-log`.`log_op`;
 
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202201` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202202` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202203` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202204` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202205` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202206` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202207` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202208` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202209` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202210` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202211` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202212` LIKE `cloud-log`.`sms_send_record`;
+
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-log`.`log_login`;
 DROP TABLE IF EXISTS `cloud-log`.`log_op`;
+DROP TABLE IF EXISTS `cloud-log`.`sms_send_record`;
 
 /**
  * ******************************************************* 配置库 *******************************************************
