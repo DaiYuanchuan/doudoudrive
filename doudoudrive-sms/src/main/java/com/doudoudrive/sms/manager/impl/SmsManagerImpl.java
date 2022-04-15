@@ -74,16 +74,13 @@ public class SmsManagerImpl implements SmsManager {
     /**
      * 邮件发送
      *
-     * @param recipient          收件人邮箱
-     * @param subject            邮件发送时的标题
-     * @param dataId             需要发送的邮件内容模板id
      * @param model              自定义参数
      * @param smsSendRecordModel SMS发送记录的BO模型
      */
     @Override
-    public void sendMail(String recipient, String subject, String dataId, Map<String, Object> model, SmsSendRecordModel smsSendRecordModel) {
+    public void sendMail(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel) {
         // 构建子模板名称
-        model.put(SmsConstant.SUB_TEMPLATE, String.format(SmsConstant.FREEMARKER_TEMPLATE_NAME, dataId));
+        model.put(SmsConstant.SUB_TEMPLATE, String.format(SmsConstant.FREEMARKER_TEMPLATE_NAME, smsSendRecordModel.getSmsDataId()));
 
         // 获取SMS发送记录
         SmsSendRecord smsSendRecord = new SmsSendRecord();
@@ -93,7 +90,7 @@ public class SmsManagerImpl implements SmsManager {
             // 加载据模型文件，同时对指定内容进行渲染
             Template mailTemplate = configuration.getTemplate(SmsConstant.MAIL_TEMPLATE);
             String content = FreeMarkerTemplateUtils.processTemplateIntoString(mailTemplate, model);
-            MailUtil.send(getMailAccount(), recipient, subject, content, true);
+            MailUtil.send(getMailAccount(), smsSendRecordModel.getSmsRecipient(), smsSendRecordModel.getSmsTitle(), content, true);
             smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.status);
             smsSendRecord.setSmsSendTime(new Date());
         } catch (Exception e) {

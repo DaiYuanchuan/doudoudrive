@@ -115,6 +115,11 @@ public interface ConstantConfig {
          * 日志记录服务
          */
         String LOG_RECORD = "LOG_INFO_RECORD";
+
+        /**
+         * SMS服务
+         */
+        String SMS_SERVICE = "SMS_SERVICE";
     }
 
     /**
@@ -131,10 +136,15 @@ public interface ConstantConfig {
          * API接口访问日志记录
          */
         String ACCESS_LOG_RECORD = "ACCESS_LOG_RECORD";
+
+        /**
+         * 邮件发送
+         */
+        String SEND_MAIL = "SEND_MAIL";
     }
 
     /**
-     * RocketMQ消费者组定义
+     * RocketMQ消费者订阅组定义
      */
     interface ConsumerGroup {
 
@@ -142,6 +152,11 @@ public interface ConstantConfig {
          * 日志服务所属消费者组
          */
         String LOG = "LOG_CONSUMER_GROUP";
+
+        /**
+         * SMS服务所属消费者组
+         */
+        String SMS = "SMS_CONSUMER_GROUP";
     }
 
     /**

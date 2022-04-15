@@ -33,4 +33,19 @@ public class SmsSendRecordModel implements Serializable {
      */
     private String businessId;
 
+    /**
+     * 收件人信息
+     */
+    private String smsRecipient;
+
+    /**
+     * 消息发送标题
+     */
+    private String smsTitle;
+
+    /**
+     * 消息发送时的数据标识
+     */
+    private String smsDataId;
+
 }

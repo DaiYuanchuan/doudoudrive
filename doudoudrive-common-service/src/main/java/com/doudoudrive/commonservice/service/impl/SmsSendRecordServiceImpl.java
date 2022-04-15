@@ -2,6 +2,7 @@ package com.doudoudrive.commonservice.service.impl;
 
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
+import com.doudoudrive.common.model.convert.SmsSendRecordConvert;
 import com.doudoudrive.common.model.dto.model.SmsSendRecordModel;
 import com.doudoudrive.common.model.pojo.SmsSendRecord;
 import com.doudoudrive.common.util.date.DateUtils;
@@ -27,9 +28,16 @@ public class SmsSendRecordServiceImpl implements SmsSendRecordService {
 
     private SmsSendRecordDao smsSendRecordDao;
 
+    private SmsSendRecordConvert sendRecordConvert;
+
     @Autowired
     public void setSmsSendRecordDao(SmsSendRecordDao smsSendRecordDao) {
         this.smsSendRecordDao = smsSendRecordDao;
+    }
+
+    @Autowired(required = false)
+    public void setSendRecordConvert(SmsSendRecordConvert sendRecordConvert) {
+        this.sendRecordConvert = sendRecordConvert;
     }
 
     /**
@@ -50,10 +58,7 @@ public class SmsSendRecordServiceImpl implements SmsSendRecordService {
         String tableSuffix = DateUtils.toMonth();
         Integer result = smsSendRecordDao.insert(smsSendRecord, tableSuffix);
         if (result > NumberConstant.INTEGER_ZERO) {
-            return SmsSendRecordModel.builder()
-                    .businessId(smsSendRecord.getBusinessId())
-                    .tableSuffix(tableSuffix)
-                    .build();
+            return sendRecordConvert.smsSendRecordConvert(smsSendRecord, tableSuffix);
         }
         return null;
     }

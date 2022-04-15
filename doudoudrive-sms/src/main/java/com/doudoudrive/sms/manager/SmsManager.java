@@ -15,12 +15,9 @@ public interface SmsManager {
     /**
      * 邮件发送
      *
-     * @param recipient          收件人邮箱
-     * @param subject            邮件发送时的标题
-     * @param dataId             需要发送的邮件内容模板id
      * @param model              自定义参数
      * @param smsSendRecordModel SMS发送记录的BO模型
      */
-    void sendMail(String recipient, String subject, String dataId, Map<String, Object> model, SmsSendRecordModel smsSendRecordModel);
+    void sendMail(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel);
 
 }
