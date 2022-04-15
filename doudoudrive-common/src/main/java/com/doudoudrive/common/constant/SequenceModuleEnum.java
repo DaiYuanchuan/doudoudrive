@@ -46,7 +46,12 @@ public enum SequenceModuleEnum {
     /**
      * 系统用户与角色关联
      */
-    SYS_USER_ROLE("07");
+    SYS_USER_ROLE("07"),
+
+    /**
+     * SMS发送记录
+     */
+    SMS_SEND_RECORD("08");
 
     /**
      * 业务模块标识，固定为两位数字

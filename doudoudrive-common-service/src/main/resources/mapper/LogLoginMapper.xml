@@ -28,7 +28,7 @@
     <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.LogLogin" flushCache="true"
             useGeneratedKeys="true" keyProperty="autoId">
         INSERT INTO
-        `log_login_${@cn.hutool.core.date.DateUtil@format(new java.util.Date(),"yyyyMM")}` (
+        `log_login_${@com.doudoudrive.common.util.date.DateUtils@toMonth()}` (
         <trim suffixOverrides=",">
             <if test="null != businessId and '' != businessId">`business_id`,</if>
             <if test="null != ip and '' != ip">`ip`,</if>

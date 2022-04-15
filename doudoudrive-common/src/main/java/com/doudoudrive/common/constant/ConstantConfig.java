@@ -231,6 +231,36 @@ public interface ConstantConfig {
     }
 
     /**
+     * SMS消息发送状态枚举
+     */
+    enum SmsStatusEnum {
+
+        /**
+         * 待分发
+         */
+        WAIT("1"),
+
+        /**
+         * 发送成功
+         */
+        SUCCESS("2"),
+
+        /**
+         * 发送失败
+         */
+        FAIL("3");
+
+        /**
+         * SMS消息发送状态
+         */
+        public final String status;
+
+        SmsStatusEnum(String status) {
+            this.status = status;
+        }
+    }
+
+    /**
      * 最多一次性处理的任务数量
      */
     Long MAX_BATCH_TASKS_QUANTITY = 400L;

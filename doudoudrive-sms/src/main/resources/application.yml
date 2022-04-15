@@ -16,3 +16,16 @@ spring:
   application:
     # 配置服务名称
     name: smsServer
+  freemarker:
+    template-loader-path: classpath:/templates/
+    cache: false
+    enabled: true
+    charset: utf-8
+    check-template-location: true
+    content-type: text/html
+    expose-request-attributes: false
+    expose-session-attributes: false
+    expose-spring-macro-helpers: false
+    allow-request-override: false
+    request-context-attribute: request
+    suffix: .ftl

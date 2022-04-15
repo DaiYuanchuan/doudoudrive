@@ -81,11 +81,13 @@
         <mapstruct.version>1.5.0.Beta2</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
-        <hutool.version>5.7.22</hutool.version>
+        <hutool.version>5.8.0.M3</hutool.version>
         <!-- fastjson 版本号 -->
         <fastjson.version>1.2.80</fastjson.version>
         <!-- es搜索 版本号 -->
         <elasticsearch.version>7.17.1</elasticsearch.version>
+        <!-- 发送邮件依赖包 版本号 -->
+        <mail.version>1.6.2</mail.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -410,6 +412,14 @@
                 <version>1.7.2</version>
             </dependency>
             <!-- ip2region end -->
+
+            <!-- 发送邮件依赖包 start -->
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${mail.version}</version>
+            </dependency>
+            <!-- 发送邮件依赖包 end -->
 
         </dependencies>
     </dependencyManagement>

@@ -41,6 +41,20 @@
             <artifactId>doudoudrive-auth</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+
+        <!-- freemarker 模板依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+
+        <!-- 发送邮件依赖包 start -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+        </dependency>
+        <!-- 发送邮件依赖包 end -->
+
     </dependencies>
 
     <!-- 依赖的插件配置 -->
