@@ -18,9 +18,9 @@ import java.util.function.Function;
 @Slf4j
 public class ReflectUtil {
 
-    private final static String IS = "is";
-    private final static String GET = "get";
-    private final static String SET = "set";
+    public final static String IS = "is";
+    public final static String GET = "get";
+    public final static String SET = "set";
 
     private ReflectUtil() {
     }

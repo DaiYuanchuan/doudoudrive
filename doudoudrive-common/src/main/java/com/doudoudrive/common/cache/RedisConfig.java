@@ -1,7 +1,7 @@
 package com.doudoudrive.common.cache;
 
-import com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
@@ -34,10 +34,10 @@ public class RedisConfig extends CachingConfigurerSupport {
         redisTemplate.setKeySerializer(stringRedisSerializer);
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
 
-        // 设置值（value）的序列化采用GenericFastJsonRedisSerializer
-        GenericFastJsonRedisSerializer genericFastJsonRedisSerializer = new GenericFastJsonRedisSerializer();
-        redisTemplate.setHashValueSerializer(genericFastJsonRedisSerializer);
-        redisTemplate.setValueSerializer(genericFastJsonRedisSerializer);
+        // 设置值（value）的序列化方式
+        RedisSerializerUtil<Object> redisSerializer = new RedisSerializerUtil<>();
+        redisTemplate.setHashValueSerializer(redisSerializer);
+        redisTemplate.setValueSerializer(redisSerializer);
 
         //设置连接工厂
         redisTemplate.setConnectionFactory(lettuceConnectionFactory);
