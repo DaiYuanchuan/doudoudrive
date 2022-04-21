@@ -3,8 +3,12 @@ package com.doudoudrive.auth.config;
 import com.doudoudrive.common.constant.ConstantConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.session.UnknownSessionException;
+import org.apache.shiro.session.mgt.SessionKey;
 import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import org.apache.shiro.web.session.mgt.WebSessionKey;
 import org.apache.shiro.web.util.WebUtils;
 
 import javax.servlet.ServletRequest;
@@ -52,5 +56,39 @@ public class CustomerWebSessionManager extends DefaultWebSessionManager {
             return authorization;
         }
         return super.getSessionId(request, response);
+    }
+
+    /**
+     * 获取session，优化单次请求需要多次访问redis的问题
+     * 重写了父类的retrieveSession方法，在 Web 下使用 shiro 时，可以把 session 对象放入当前请求对象中
+     *
+     * @param sessionKey 会话key值
+     * @return 返回一个标准的会话
+     * @throws UnknownSessionException 抛出未知会话异常
+     */
+    @Override
+    protected Session retrieveSession(SessionKey sessionKey) throws UnknownSessionException {
+        Serializable sessionId = getSessionId(sessionKey);
+
+        ServletRequest request = null;
+        if (sessionKey instanceof WebSessionKey) {
+            request = ((WebSessionKey) sessionKey).getServletRequest();
+        }
+
+        if (request != null && null != sessionId) {
+            Object sessionObj = request.getAttribute(sessionId.toString());
+            if (sessionObj != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("read session from request");
+                }
+                return (Session) sessionObj;
+            }
+        }
+
+        Session session = super.retrieveSession(sessionKey);
+        if (request != null && null != sessionId) {
+            request.setAttribute(sessionId.toString(), session);
+        }
+        return session;
     }
 }
