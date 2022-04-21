@@ -56,15 +56,11 @@
                 user  验证通过或RememberMe登录的都可以
                 rest  用于rest无状态服务
                 -->
-                <!-- 退出登陆 -->
-                /oauth/logout = logout
 
                 <!-- 密码登录的API -->
                 /oauth/login = anon
 
                 /favicon.ico = anon
-
-                /sms/** = anon
 
                 /** = oauth
             </value>
@@ -72,10 +68,7 @@
     </bean>
 
     <!-- Redis缓存配置 [start] -->
-    <bean id="ehCacheManager" class="org.crazycake.shiro.RedisCacheManager">
-        <property name="redisManager" ref="redisManager"/>
-        <!-- 10个小时的缓存 -->
-        <property name="expire" value="36000"/>
+    <bean id="ehCacheManager" class="com.doudoudrive.auth.shiro.RedisCacheManager">
     </bean>
     <!-- Redis缓存配置 [end] -->
 
@@ -105,13 +98,19 @@
         <property name="sessionIdCookieEnabled" value="true"/>
         <property name="sessionIdCookie" ref="sessionIdCookie"/>
         <property name="sessionIdUrlRewritingEnabled" value="false"/>
+        <property name="sessionFactory" ref="sessionFactory"/>
+        <property name="sessionListeners">
+            <list>
+                <bean class="com.doudoudrive.auth.shiro.ShiroSessionListener"/>
+            </list>
+        </property>
     </bean>
+    <bean id="sessionFactory" class="com.doudoudrive.auth.shiro.ShiroSessionFactory"/>
     <bean id="sessionValidationScheduler"
           class="org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler">
         <property name="interval" value="36000000"/>
     </bean>
-    <bean id="sessionDAO" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
-        <property name="activeSessionsCacheName" value="session"/>
+    <bean id="sessionDAO" class="com.doudoudrive.auth.shiro.RedisSessionDAO">
         <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
     </bean>
     <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
@@ -119,21 +118,6 @@
         <property name="name" value="token"/>
         <property name="httpOnly" value="true"/>
         <property name="maxAge" value="-1"/>
-    </bean>
-
-    <!-- shiro redisManager -->
-    <bean id="redisManager" class="org.crazycake.shiro.RedisClusterManager">
-        <property name="host" value="192.168.31.192:7011,192.168.31.192:7012,192.168.31.192:7013"/>
-        <property name="database" value="0"/>
-        <property name="timeout" value="60000"/>
-        <property name="password" value="redispassxfkkslgoecjvkdlspdgje"/>
-        <property name="jedisPoolConfig" ref="jedisPoolConfig"/>
-    </bean>
-    <!-- 连接池配置 -->
-    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
-        <property name="maxIdle" value="10"/>
-        <property name="maxTotal" value="100"/>
-        <property name="maxWait" value="60000"/>
     </bean>
 
 </beans>

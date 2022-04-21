@@ -23,11 +23,14 @@ spring:
       max-redirects: 3
       # 集群节点信息
       nodes:
-        - 192.168.31.192:7011
-        - 192.168.31.192:7012
-        - 192.168.31.192:7013
+        - 10.21.19.72:10001
+        - 10.21.19.72:10002
+        - 10.21.19.72:10003
+        - 10.21.19.72:10004
+        - 10.21.19.72:10005
+        - 10.21.19.72:10006
     timeout: 60000
-    password: redispassxfkkslgoecjvkdlspdgje
+#    password: redispassxfkkslgoecjvkdlspdgje
     lettuce:
       pool:
         #连接池最大连接数（使用负值表示没有限制）
