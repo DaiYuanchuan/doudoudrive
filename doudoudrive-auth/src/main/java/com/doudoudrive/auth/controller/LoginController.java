@@ -29,10 +29,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -153,6 +150,15 @@ public class LoginController {
         rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(logLogin));
 
         return Result.ok(userLoginInfo);
+    }
+
+    @SneakyThrows
+    @GetMapping(value = "/logout", produces = "application/json;charset=UTF-8")
+    public Result<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("application/json;charset=UTF-8");
+        SecurityUtils.getSubject().logout();
+        return Result.ok();
     }
 
     /**
