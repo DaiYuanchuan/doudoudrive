@@ -70,8 +70,6 @@
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <commons-net.version>3.8.0</commons-net.version>
         <httpmime.version>4.5.13</httpmime.version>
-        <!-- redis依赖jedis版本号 -->
-        <jedis.version>3.3.0</jedis.version>
         <!-- shiro权限框架版本号 -->
         <shiro.version>1.9.0</shiro.version>
         <shiro-redis.version>3.3.1</shiro-redis.version>
@@ -334,14 +332,6 @@
             </dependency>
             <!-- 分布式依赖包 -->
 
-            <!-- Redis -->
-            <dependency>
-                <groupId>redis.clients</groupId>
-                <artifactId>jedis</artifactId>
-                <version>${jedis.version}</version>
-            </dependency>
-            <!-- Redis -->
-
             <!-- shiro权限框架 -->
             <dependency>
                 <groupId>org.apache.shiro</groupId>
@@ -371,26 +361,6 @@
                     <exclusion>
                         <groupId>javax.servlet</groupId>
                         <artifactId>servlet-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <!-- shiro与redis结合的包 -->
-            <dependency>
-                <groupId>org.crazycake</groupId>
-                <artifactId>shiro-redis</artifactId>
-                <version>${shiro-redis.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>redis.clients</groupId>
-                        <artifactId>jedis</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.shiro</groupId>
-                        <artifactId>shiro-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-validator</groupId>
-                        <artifactId>commons-validator</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

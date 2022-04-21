@@ -52,12 +52,6 @@
             <artifactId>spring-data-commons</artifactId>
         </dependency>
 
-        <!-- Redis -->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-        </dependency>
-
         <!-- shiro权限框架 -->
         <dependency>
             <groupId>org.apache.shiro</groupId>
@@ -78,11 +72,6 @@
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-cas</artifactId>
-        </dependency>
-        <!-- shiro与redis结合的包 -->
-        <dependency>
-            <groupId>org.crazycake</groupId>
-            <artifactId>shiro-redis</artifactId>
         </dependency>
     </dependencies>
 
