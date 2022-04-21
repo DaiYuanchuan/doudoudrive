@@ -31,7 +31,7 @@ import java.util.Date;
 public class UserInfoDTO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 2203202013131647778L;
+    private static final long serialVersionUID = 2203202013131647779L;
 
     /**
      * 自增长标识
