@@ -272,8 +272,7 @@ public class GlobalExceptionHandler {
         return (container -> {
             ErrorPage error400Page = new ErrorPage(HttpStatus.BAD_REQUEST, "/404");
             ErrorPage error404Page = new ErrorPage(HttpStatus.NOT_FOUND, "/404");
-            ErrorPage error500Page = new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/404");
-            container.addErrorPages(error404Page, error500Page, error400Page);
+            container.addErrorPages(error404Page, error400Page);
         });
     }
 }

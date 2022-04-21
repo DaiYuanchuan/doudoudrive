@@ -71,6 +71,11 @@ public interface ConstantConfig {
         String AUTHORIZATION = "Authorization";
 
         /**
+         * Cookie内容中的鉴权字段
+         */
+        String TOKEN = "token";
+
+        /**
          * 请求头中的referer字段
          */
         String REFERER = "referer";
@@ -218,6 +223,21 @@ public interface ConstantConfig {
          * redis刷新配置专用通道名(redis需要订阅的渠道名称)
          */
         String CHANNEL_CONFIG = "DOUDOU_CONFIG_CHANNEL";
+
+        /**
+         * 默认session内容缓存的key值前缀
+         */
+        String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
+
+        /**
+         * session内容缓存默认key值字段名称
+         */
+        String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
+
+        /**
+         * session内容缓存默认失效时间(10小时):秒
+         */
+        Long DEFAULT_EXPIRE = 36000L;
     }
 
     /**

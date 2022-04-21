@@ -32,6 +32,8 @@ public enum StatusCodeEnum {
     SYSTEM_ERROR(500, "系统异常"),
     ABNORMAL_MAIL_SENDING(503, "邮件发送失败"),
     INVALID_USERINFO(504, "无法正确获取用户信息"),
+    PRINCIPAL_INSTANCE_EXCEPTION(505, "无法正确获取到缓存key"),
+    CACHE_MANAGER_PRINCIPAL_ID_NOT_ASSIGNED_EXCEPTION(506, "CacheManager没有分配主体Id"),
 
     /**
      * 用户(账号)类:65x
