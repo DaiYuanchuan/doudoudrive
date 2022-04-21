@@ -220,11 +220,6 @@ public interface ConstantConfig {
         String USER_ROLE_CACHE = "AuthorizationInfo";
 
         /**
-         * redis刷新配置专用通道名(redis需要订阅的渠道名称)
-         */
-        String CHANNEL_CONFIG = "DOUDOU_CONFIG_CHANNEL";
-
-        /**
          * 默认session内容缓存的key值前缀
          */
         String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
@@ -238,6 +233,30 @@ public interface ConstantConfig {
          * session内容缓存默认失效时间(10小时):秒
          */
         Long DEFAULT_EXPIRE = 36000L;
+
+        /**
+         * redis通道名称枚举(redis需要订阅的渠道名称)
+         */
+        enum ChanelEnum {
+            /**
+             * redis刷新配置专用通道名
+             */
+            CHANNEL_CONFIG("DOUDOU_CONFIG_CHANNEL"),
+
+            /**
+             * redis缓存刷新同步专用通道名(redis需要订阅的渠道名称)
+             */
+            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL");
+
+            /**
+             * SMS消息发送状态
+             */
+            public final String channel;
+
+            ChanelEnum(String channel) {
+                this.channel = channel;
+            }
+        }
     }
 
     /**

@@ -295,7 +295,7 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      */
     @Override
     public void receiveMessage(String message, String channel) {
-        if (ConstantConfig.Cache.CHANNEL_CONFIG.equals(channel)) {
+        if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.channel.equals(channel)) {
             // 获取当前所有系统缓存
             List<DiskDictionary> allDictionary = listDiskDictionaryFindAll();
             SYS_DICTIONARY_CACHE.clear();
@@ -309,6 +309,6 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      */
     @Override
     public void run(String... args) {
-        receiveMessage(null, ConstantConfig.Cache.CHANNEL_CONFIG);
+        receiveMessage(null, ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.channel);
     }
 }
