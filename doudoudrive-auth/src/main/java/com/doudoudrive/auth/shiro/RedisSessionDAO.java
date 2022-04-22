@@ -1,15 +1,19 @@
 package com.doudoudrive.auth.shiro;
 
-import com.doudoudrive.auth.manager.ShiroCacheManager;
+import cn.hutool.core.text.CharSequenceUtil;
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.model.ShiroAuthenticationModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.ValidatingSession;
 import org.apache.shiro.session.mgt.eis.AbstractSessionDAO;
+import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,17 +35,22 @@ public class RedisSessionDAO extends AbstractSessionDAO {
     /**
      * 负责缓存会话的Cache实例
      */
-    private ShiroCacheManager shiroCacheManager;
+    private CacheManagerConfig cacheManagerConfig;
 
     @Autowired
-    public void setShiroCacheManager(ShiroCacheManager shiroCacheManager) {
-        this.shiroCacheManager = shiroCacheManager;
+    public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
+        this.cacheManagerConfig = cacheManagerConfig;
     }
 
     /**
      * 序列化工具
      */
     private static final RedisSerializerUtil<ShiroSession> SERIALIZER = new RedisSerializerUtil<>();
+
+    /**
+     * The session key that is used to store subject principals.
+     */
+    private static final String PRINCIPALS_SESSION_KEY = DefaultSubjectContext.class.getName() + "_PRINCIPALS_SESSION_KEY";
 
 
     /**
@@ -99,7 +108,7 @@ public class RedisSessionDAO extends AbstractSessionDAO {
     @Override
     public Collection<Session> getActiveSessions() {
         // 获取缓存中所有的key
-        Set<String> keys = shiroCacheManager.getRedisTemplateClient().scan(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + ConstantConfig.SpecialSymbols.ASTERISK);
+        Set<String> keys = cacheManagerConfig.keys(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + ConstantConfig.SpecialSymbols.ASTERISK);
         if (CollectionUtils.isEmpty(keys)) {
             return Collections.emptySet();
         }
@@ -176,7 +185,7 @@ public class RedisSessionDAO extends AbstractSessionDAO {
      */
     private ShiroSession getSessionFromCache(String sessionId) {
         // 从缓存中获取到shiro鉴权对象
-        ShiroAuthenticationModel shiroAuthenticationModel = shiroCacheManager.getCache(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId);
+        ShiroAuthenticationModel shiroAuthenticationModel = cacheManagerConfig.getCache(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId);
         if (shiroAuthenticationModel == null) {
             return null;
         }
@@ -190,7 +199,7 @@ public class RedisSessionDAO extends AbstractSessionDAO {
      * @param sessionId 会话标识
      */
     private void deleteSessionFromCache(String sessionId) {
-        shiroCacheManager.removeCache(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId);
+        cacheManagerConfig.removeCache(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId);
     }
 
     /**
@@ -204,12 +213,32 @@ public class RedisSessionDAO extends AbstractSessionDAO {
         ShiroAuthenticationModel shiroAuthenticationModel = ShiroAuthenticationModel.builder()
                 .sessionId(sessionId)
                 // 从当前session中获取到当前登录的用户名
-                .username(shiroCacheManager.getUsername(shiroSession))
+                .username(this.getUsername(shiroSession))
                 // 序列化当前session对象
                 .session(SERIALIZER.serialize(shiroSession))
                 .build();
         // 往缓存中插入session对象
-        shiroCacheManager.putCache(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId, shiroAuthenticationModel, ConstantConfig.Cache.DEFAULT_EXPIRE);
+        cacheManagerConfig.putCache(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId, shiroAuthenticationModel, ConstantConfig.Cache.DEFAULT_EXPIRE);
+    }
+
+    /**
+     * 从当前session中获取存储与session的用户名
+     *
+     * @param session 当前用户会话
+     * @return 返回用户登录的用户名信息，不存在返回空字符串
+     */
+    private String getUsername(Session session) {
+        // 从当前session中获取PrincipalCollection对象
+        Object principalsObject = session.getAttribute(PRINCIPALS_SESSION_KEY);
+        if (ObjectUtils.isNotEmpty(principalsObject)) {
+            try {
+                PrincipalCollection principals = (PrincipalCollection) principalsObject;
+                return principals.getPrimaryPrincipal().toString();
+            } catch (Exception e) {
+                return CharSequenceUtil.EMPTY;
+            }
+        }
+        return CharSequenceUtil.EMPTY;
     }
 }
 

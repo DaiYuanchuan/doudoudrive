@@ -1,6 +1,6 @@
 package com.doudoudrive.auth.shiro;
 
-import com.doudoudrive.auth.manager.ShiroCacheManager;
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessException;
@@ -29,9 +29,9 @@ import java.util.Set;
 public class RedisCache<k, V> implements Cache<k, V> {
 
     /**
-     * shiro鉴权服务框架缓存实现
+     * 服务框架缓存实现
      */
-    private final ShiroCacheManager shiroCacheManager;
+    private final CacheManagerConfig cacheManagerConfig;
 
     /**
      * 缓存前缀
@@ -51,16 +51,16 @@ public class RedisCache<k, V> implements Cache<k, V> {
     /**
      * RedisCache 默认构造方法
      *
-     * @param shiroCacheManager    shiro鉴权服务框架缓存实现
+     * @param cacheManagerConfig   框架服务缓存信息通用处理配置实现
      * @param prefix               缓存前缀
      * @param expire               缓存过期时间
      * @param principalIdFieldName 缓存默认key值字段名称
      */
-    public RedisCache(ShiroCacheManager shiroCacheManager, String prefix, Long expire, String principalIdFieldName) {
-        if (ObjectUtils.isEmpty(shiroCacheManager)) {
+    public RedisCache(CacheManagerConfig cacheManagerConfig, String prefix, Long expire, String principalIdFieldName) {
+        if (ObjectUtils.isEmpty(cacheManagerConfig)) {
             throw new IllegalArgumentException("shiroCacheManager cannot be null.");
         }
-        this.shiroCacheManager = shiroCacheManager;
+        this.cacheManagerConfig = cacheManagerConfig;
         if (StringUtils.isNotBlank(prefix)) {
             this.keyPrefix = prefix;
         }
@@ -88,7 +88,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
         }
 
         try {
-            return shiroCacheManager.getCache(getRedisCacheKey(key));
+            return cacheManagerConfig.getCache(getRedisCacheKey(key));
         } catch (Exception e) {
             throw new CacheException(e);
         }
@@ -114,7 +114,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
                 log.debug("put key, [{}]", key);
             }
 
-            shiroCacheManager.putCache(getRedisCacheKey(key), value, expire);
+            cacheManagerConfig.putCache(getRedisCacheKey(key), value, expire);
             return value;
         } catch (Exception e) {
             throw new CacheException(e);
@@ -140,7 +140,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
 
         try {
             // 删除缓存对象，同时返回被删除的值
-            return shiroCacheManager.removeCache(getRedisCacheKey(key));
+            return cacheManagerConfig.removeCache(getRedisCacheKey(key));
         } catch (Exception e) {
             throw new CacheException(e);
         }
@@ -159,7 +159,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
 
         try {
             // 清空所有缓存
-            shiroCacheManager.clear(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK);
+            cacheManagerConfig.clear(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK);
         } catch (Exception e) {
             throw new CacheException(e);
         }
@@ -177,7 +177,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
         }
 
         try {
-            return shiroCacheManager.getRedisTemplateClient().scanSize(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK).intValue();
+            return cacheManagerConfig.getRedisTemplateClient().scanSize(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK).intValue();
         } catch (Exception e) {
             log.error("get key error:{}", e.getMessage());
             return NumberConstant.INTEGER_ZERO;
@@ -194,7 +194,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
         if (log.isDebugEnabled()) {
             log.debug("get keys");
         }
-        return shiroCacheManager.keys(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK);
+        return cacheManagerConfig.keys(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK);
     }
 
     /**
@@ -210,13 +210,13 @@ public class RedisCache<k, V> implements Cache<k, V> {
 
         try {
             // 获取所有的key
-            Set<String> keys = shiroCacheManager.getRedisTemplateClient().scan(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK);
+            Set<String> keys = cacheManagerConfig.getRedisTemplateClient().scan(this.keyPrefix + ConstantConfig.SpecialSymbols.ASTERISK);
             if (CollectionUtils.isEmpty(keys)) {
                 return Collections.emptySet();
             }
 
             // 根据key获取缓存中的值
-            return shiroCacheManager.getCache(keys);
+            return cacheManagerConfig.getCache(keys);
         } catch (Exception e) {
             log.error("get values error", e);
             return Collections.emptySet();

@@ -2,6 +2,7 @@ package com.doudoudrive.common.log;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.convert.LogOpInfoConvert;
@@ -11,7 +12,6 @@ import com.doudoudrive.common.model.pojo.LogOp;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.Cookie;
@@ -34,7 +34,7 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
 
     private LogOpInfoConvert logOpInfoConvert;
 
-    private RedisTemplate<String, Object> redisTemplate;
+    private CacheManagerConfig cacheManagerConfig;
 
     @Autowired
     public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
@@ -47,8 +47,8 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
     }
 
     @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
+        this.cacheManagerConfig = cacheManagerConfig;
     }
 
     /**
@@ -93,15 +93,14 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
         Optional.ofNullable(getSessionId(request)).ifPresent(sessionId -> {
             // 构建缓存key
             String cacheKey = ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId;
-            // 通过sessionId查询当前登录的用户信息
-            Optional.ofNullable(redisTemplate.opsForValue().get(cacheKey)).ifPresent(cacheObject -> {
-                ShiroAuthenticationModel shiroAuthentication = (ShiroAuthenticationModel) cacheObject;
-                logOpInfo.setUsername(shiroAuthentication.getUsername());
-            });
+            // 通过sessionId从缓存中获取到shiro鉴权对象
+            ShiroAuthenticationModel shiroAuthenticationModel = cacheManagerConfig.getCache(cacheKey);
+            Optional.ofNullable(shiroAuthenticationModel)
+                    .ifPresent(shiroAuthentication -> logOpInfo.setUsername(shiroAuthentication.getUsername()));
         });
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.LOG_RECORD + ":" + ConstantConfig.Tag.ACCESS_LOG_RECORD;
+        String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.ACCESS_LOG_RECORD;
         rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(logOpInfo));
     }
 

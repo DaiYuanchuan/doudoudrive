@@ -4,7 +4,7 @@ import com.doudoudrive.auth.model.dto.UserInfoDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 
 /**
- * <p>登录服务通用业务处理层接口</p>
+ * <p>登录鉴权服务通用业务处理层接口</p>
  * <p>2022-04-05 18:39</p>
  *
  * @author Dan

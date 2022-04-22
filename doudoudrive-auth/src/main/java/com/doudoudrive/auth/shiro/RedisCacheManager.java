@@ -1,6 +1,6 @@
 package com.doudoudrive.auth.shiro;
 
-import com.doudoudrive.auth.manager.ShiroCacheManager;
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.cache.Cache;
@@ -20,13 +20,13 @@ import org.springframework.stereotype.Component;
 public class RedisCacheManager implements CacheManager {
 
     /**
-     * shiro鉴权服务框架缓存实现
+     * 服务框架缓存实现
      */
-    private ShiroCacheManager shiroCacheManager;
+    private CacheManagerConfig cacheManagerConfig;
 
     @Autowired
-    public void setShiroCacheManager(ShiroCacheManager shiroCacheManager) {
-        this.shiroCacheManager = shiroCacheManager;
+    public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
+        this.cacheManagerConfig = cacheManagerConfig;
     }
 
     @Override
@@ -34,6 +34,14 @@ public class RedisCacheManager implements CacheManager {
         if (log.isDebugEnabled()) {
             log.debug("get cache, name={}", name);
         }
-        return new RedisCache<>(shiroCacheManager, ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX, ConstantConfig.Cache.DEFAULT_EXPIRE, ConstantConfig.Cache.DEFAULT_PRINCIPAL_ID_FIELD_NAME);
+
+        // 获取本地缓存中的值
+        Cache<k, V> cache = cacheManagerConfig.getCacheFromLocal(name);
+        if (cache == null) {
+            cache = new RedisCache<>(cacheManagerConfig, ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX,
+                    ConstantConfig.Cache.DEFAULT_EXPIRE, ConstantConfig.Cache.DEFAULT_PRINCIPAL_ID_FIELD_NAME);
+            cacheManagerConfig.putCacheFromLocal(name, cache);
+        }
+        return cache;
     }
 }

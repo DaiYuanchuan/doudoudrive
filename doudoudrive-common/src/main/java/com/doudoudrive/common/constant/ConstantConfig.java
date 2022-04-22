@@ -186,6 +186,8 @@ public interface ConstantConfig {
         String OR = "||";
 
         String AND = "&&";
+
+        String ENGLISH_COLON = ":";
     }
 
     /**

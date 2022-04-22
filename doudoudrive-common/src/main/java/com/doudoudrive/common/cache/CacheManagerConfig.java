@@ -1,10 +1,6 @@
-package com.doudoudrive.auth.manager.impl;
+package com.doudoudrive.common.cache;
 
 import cn.hutool.cache.impl.TimedCache;
-import cn.hutool.core.text.CharSequenceUtil;
-import com.doudoudrive.auth.manager.ShiroCacheManager;
-import com.doudoudrive.auth.model.dto.ShiroCache;
-import com.doudoudrive.common.cache.RedisTemplateClient;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -12,25 +8,22 @@ import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 /**
- * <p>shiro鉴权框架服务缓存信息通用业务处理层接口实现</p>
- * <p>2022-04-20 21:03</p>
+ * <p>框架服务缓存信息通用处理配置</p>
+ * <p>2022-04-22 15:09</p>
  *
  * @author Dan
  **/
 @Slf4j
+@Component
 @Scope("singleton")
-@Service("shiroCacheManager")
-public class ShiroCacheManagerImpl implements ShiroCacheManager {
+public class CacheManagerConfig {
 
     /**
      * Redis客户端操作相关工具类
@@ -43,14 +36,9 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
     }
 
     /**
-     * The session key that is used to store subject principals.
-     */
-    private static final String PRINCIPALS_SESSION_KEY = DefaultSubjectContext.class.getName() + "_PRINCIPALS_SESSION_KEY";
-
-    /**
      * 当前jvm的本地缓存线程
      */
-    private static final FastThreadLocal<TimedCache<String, ShiroCache>> LOCAL_CACHE = new FastThreadLocal<>();
+    private static final FastThreadLocal<TimedCache<String, Object>> LOCAL_CACHE = new FastThreadLocal<>();
 
     /**
      * 定义本地缓存超时时间(1小时)(毫秒)
@@ -58,43 +46,48 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
     private static final long CACHE_TIMEOUT = 3600000L;
 
     /**
-     * 获取缓存中的值
+     * 获取缓存中的值，本地缓存不存在时会从redis中获取，并将redis的值同步到本地缓存中去
      *
      * @param key 指定的key
      * @param <T> 值的类型
      * @return 根据key从缓存中查找固定的值
      */
-    @Override
     public <T> T getCache(String key) {
-        // 获取本地缓存Map对象
-        TimedCache<String, ShiroCache> localCacheMap = getLocalCacheMap();
-
-        // 从map中获取指定缓存对象
-        ShiroCache shiroCache = localCacheMap.get(key, false);
-        // 本地缓存为空时，从redis中获取
-        if (shiroCache == null) {
-            // 构建临时缓存对象
-            shiroCache = ShiroCache.builder()
-                    .cache(redisTemplateClient.get(key))
-                    .createTime(System.currentTimeMillis())
-                    .build();
+        // 获取本地jvm缓存对象
+        TimedCache<String, Object> localCacheMap = getLocalCacheMap();
+        // 从jvm缓存中获取指定的缓存对象
+        Object cache = localCacheMap.get(key, false);
+        // 当本地缓存为空时，尝试从redis中获取
+        if (cache == null) {
+            cache = redisTemplateClient.get(key);
             // 将缓存对象存储到临时缓存中去
-            localCacheMap.put(key, shiroCache);
-            return convert(shiroCache.getCache());
+            localCacheMap.put(key, cache);
         }
 
         // 获取当前缓存对象
-        return convert(shiroCache.getCache());
+        return convert(cache);
     }
 
     /**
-     * 批量获取缓存对象信息
+     * 获取本地缓存中的值，只获取本地jvm缓存的值，不会从redis中读取
+     *
+     * @param key 指定的key
+     * @param <T> 值的类型
+     * @return 根据key从缓存中查找固定的值
+     */
+    public <T> T getCacheFromLocal(String key) {
+        // 获取本地缓存Map对象
+        TimedCache<String, Object> localCacheMap = getLocalCacheMap();
+        return convert(localCacheMap.get(key, false));
+    }
+
+    /**
+     * 批量获取缓存对象信息，本地缓存不存在时会从redis中获取，并将redis的值同步到本地缓存中去
      *
      * @param keys 指定的key
      * @param <T>  值的类型
      * @return 根据key从缓存中查找到的缓存对象集合
      */
-    @Override
     public <T> Collection<T> getCache(Set<String> keys) {
         List<T> list = new ArrayList<>();
         CollectionUtil.collectionCutting(keys, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(key -> {
@@ -107,75 +100,78 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
     }
 
     /**
-     * 向缓存中插入值
+     * 向缓存中插入值，会同步向jvm本地缓存，redis缓存中插入
      *
      * @param key    缓存中的key值
      * @param value  缓存对象
      * @param expire 缓存过期时间，为NULL时不设置过期时间(秒)
      */
-    @Override
     public void putCache(String key, Object value, Long expire) {
         if (!ObjectUtils.allNotNull(key, value)) {
             return;
         }
 
-        // 获取本地缓存Map对象
-        TimedCache<String, ShiroCache> localCacheMap = getLocalCacheMap();
         // 将临时缓存对象存储到Jvm缓存中去
-        localCacheMap.put(key, ShiroCache.builder()
-                .cache(value)
-                .createTime(System.currentTimeMillis())
-                .build());
-
+        this.putCacheFromLocal(key, value);
         // 向redis中插入缓存数据
         redisTemplateClient.set(key, value, expire);
     }
 
     /**
-     * 从缓存中删除数据
+     * 只向本地jvm缓存中插入值
+     *
+     * @param key   缓存中的key值
+     * @param value 缓存对象
+     */
+    public void putCacheFromLocal(String key, Object value) {
+        if (!ObjectUtils.allNotNull(key, value)) {
+            return;
+        }
+
+        // 获取本地缓存Map对象
+        TimedCache<String, Object> localCacheMap = getLocalCacheMap();
+        // 将临时缓存对象存储到Jvm缓存中去
+        localCacheMap.put(key, value);
+    }
+
+    /**
+     * 从缓存中删除数据，会同步删除本地、redis中的数据
      *
      * @param key 指定删除缓存中的key值
      * @param <T> 值的类型
      * @return 返回被删除的缓存对象，如果缓存对象不存在，则返回null
      */
-    @Override
     public <T> T removeCache(String key) {
         if (StringUtils.isBlank(key)) {
             return null;
         }
 
-        // 缓存对象
-        Object cache;
-
         // 获取本地缓存Map对象
-        TimedCache<String, ShiroCache> localCacheMap = getLocalCacheMap();
-        ShiroCache shiroCache = localCacheMap.get(key, false);
-        if (shiroCache != null) {
-            // 从map中获取到本地缓存对象
-            cache = shiroCache.getCache();
-            localCacheMap.remove(key);
-        } else {
-            // 从redis中获取到缓存对象
-            cache = redisTemplateClient.get(key);
+        TimedCache<String, Object> localCacheMap = getLocalCacheMap();
+        Object cache = Optional.ofNullable(localCacheMap.get(key, false)).orElse(redisTemplateClient.get(key));
+
+        // 如果从本地缓存、redis缓存中都无法获取到值时，直接返回null
+        if (cache == null) {
+            return null;
         }
 
+        // 删除本地缓存对象
+        localCacheMap.remove(key);
         // 删除redis中的缓存对象
         redisTemplateClient.delete(key);
         return convert(cache);
     }
 
     /**
-     * 根据缓存前缀清空所有指定缓存(会清空所有本地缓存)
+     * 根据缓存前缀清空所有指定缓存(会清空所有本地缓存和所有符合缓存前缀的redis缓存)
      *
      * @param prefix 缓存前缀(xx*)
      */
-    @Override
     public void clear(String prefix) {
         // 清空本地缓存Map对象
         getLocalCacheMap().clear();
 
         Set<String> keys = redisTemplateClient.scan(prefix);
-
         if (CollectionUtil.isEmpty(keys)) {
             return;
         }
@@ -193,7 +189,6 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
      * @param <T>    值的类型
      * @return 缓存中所有实际的key
      */
-    @Override
     public <T> Set<T> keys(String prefix) {
         try {
             // 获取缓存中实际存在的key
@@ -214,30 +209,8 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
      *
      * @return Redis客户端操作相关工具类
      */
-    @Override
     public RedisTemplateClient getRedisTemplateClient() {
         return redisTemplateClient;
-    }
-
-    /**
-     * 从当前session中获取存储与session的用户名
-     *
-     * @param session 当前用户会话
-     * @return 返回用户登录的用户名信息，不存在返回空字符串
-     */
-    @Override
-    public String getUsername(Session session) {
-        // 从当前session中获取PrincipalCollection对象
-        Object principalsObject = session.getAttribute(PRINCIPALS_SESSION_KEY);
-        if (ObjectUtils.isNotEmpty(principalsObject)) {
-            try {
-                PrincipalCollection principals = (PrincipalCollection) principalsObject;
-                return principals.getPrimaryPrincipal().toString();
-            } catch (Exception e) {
-                return CharSequenceUtil.EMPTY;
-            }
-        }
-        return CharSequenceUtil.EMPTY;
     }
 
     // ==================================================== private ====================================================
@@ -247,8 +220,8 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
      *
      * @return 本地缓存中的Map对象
      */
-    private static TimedCache<String, ShiroCache> getLocalCacheMap() {
-        TimedCache<String, ShiroCache> localCacheMap = LOCAL_CACHE.get();
+    private static TimedCache<String, Object> getLocalCacheMap() {
+        TimedCache<String, Object> localCacheMap = LOCAL_CACHE.get();
         if (localCacheMap == null) {
             // 创建超时缓存
             localCacheMap = new TimedCache<>(CACHE_TIMEOUT);
@@ -268,6 +241,11 @@ public class ShiroCacheManagerImpl implements ShiroCacheManager {
      */
     @SuppressWarnings("unchecked")
     private static <T> T convert(Object object) {
-        return (T) object;
+        try {
+            return (T) object;
+        } catch (Exception e) {
+            log.error("object cast exception:", e);
+            return null;
+        }
     }
 }
