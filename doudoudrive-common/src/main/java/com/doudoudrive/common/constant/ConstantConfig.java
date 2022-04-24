@@ -237,6 +237,36 @@ public interface ConstantConfig {
         Long DEFAULT_EXPIRE = 36000L;
 
         /**
+         * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
+         */
+        enum KeyEventEnum {
+
+            /**
+             * 过期事件
+             */
+            EXPIRED("__keyevent@*__:expired"),
+
+            /**
+             * 新增 、修改事件
+             */
+            UPDATE("__keyevent@*__:set"),
+
+            /**
+             * 删除事件
+             */
+            DELETE("__keyevent@*__:del");
+
+            /**
+             * 监听的事件类型
+             */
+            public final String event;
+
+            KeyEventEnum(String event) {
+                this.event = event;
+            }
+        }
+
+        /**
          * redis通道名称枚举(redis需要订阅的渠道名称)
          */
         enum ChanelEnum {
@@ -251,7 +281,7 @@ public interface ConstantConfig {
             CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL");
 
             /**
-             * SMS消息发送状态
+             * 通道名称
              */
             public final String channel;
 

@@ -1,6 +1,7 @@
 package com.doudoudrive.common.util.date;
 
 import cn.hutool.core.date.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.List;
  *
  * @author Dan
  **/
+@Slf4j
 public class DateUtils {
 
     /**
@@ -242,7 +244,7 @@ public class DateUtils {
             // 输出北京时间
             return format(date, format);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return "";
     }

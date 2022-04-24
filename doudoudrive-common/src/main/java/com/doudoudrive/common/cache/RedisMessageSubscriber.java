@@ -14,6 +14,6 @@ public interface RedisMessageSubscriber {
      * @param message redis消息体
      * @param channel 当前消息体对应的通道
      */
-    void receiveMessage(String message, String channel);
+    void receiveMessage(byte[] message, String channel);
 
 }

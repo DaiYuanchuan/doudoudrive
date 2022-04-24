@@ -42,12 +42,11 @@ public class Subscriber implements MessageListener, InitializingBean {
     @Override
     public void onMessage(@NonNull Message message, byte[] pattern) {
         // 获取消息体和channelName
-        String body = new String(message.getBody(), StandardCharsets.UTF_8);
         String channel = new String(message.getChannel(), StandardCharsets.UTF_8);
         ThreadUtil.execAsync(() -> {
             try {
                 // 异步回调所有实现了回调接口的类
-                plugins.values().forEach(plugin -> plugin.receiveMessage(body, channel));
+                plugins.values().forEach(plugin -> plugin.receiveMessage(message.getBody(), channel));
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

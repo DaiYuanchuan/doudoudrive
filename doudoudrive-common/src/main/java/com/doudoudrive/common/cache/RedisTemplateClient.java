@@ -1,5 +1,6 @@
 package com.doudoudrive.common.cache;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -137,5 +138,15 @@ public class RedisTemplateClient {
             }
             return count;
         });
+    }
+
+    /**
+     * Redis Publish 命令用于将信息发送到指定的频道
+     *
+     * @param channel redis通道名称枚举值，用于将消息发送到指定频道
+     * @param message 需要发送的消息
+     */
+    public void publish(ConstantConfig.Cache.ChanelEnum channel, Object message) {
+        redisTemplate.convertAndSend(channel.channel, message);
     }
 }

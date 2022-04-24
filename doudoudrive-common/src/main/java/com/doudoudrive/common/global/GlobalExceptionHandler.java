@@ -131,7 +131,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = NumberFormatException.class)
     public Result<?> numberFormatExceptionExceptionHandler(NumberFormatException e) {
-        e.printStackTrace();
+        log.error(e.getMessage(), e);
         return Result.build(StatusCodeEnum.PARAM_INVALID).message("不被接受的请求:数字格式异常");
     }
 

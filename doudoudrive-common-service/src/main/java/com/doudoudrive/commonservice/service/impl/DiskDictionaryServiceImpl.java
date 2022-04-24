@@ -294,7 +294,7 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      * @param channel 当前消息体对应的通道
      */
     @Override
-    public void receiveMessage(String message, String channel) {
+    public void receiveMessage(byte[] message, String channel) {
         if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.channel.equals(channel)) {
             // 获取当前所有系统缓存
             List<DiskDictionary> allDictionary = listDiskDictionaryFindAll();

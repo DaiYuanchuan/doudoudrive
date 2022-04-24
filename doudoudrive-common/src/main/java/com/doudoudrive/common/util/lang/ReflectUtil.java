@@ -61,8 +61,7 @@ public class ReflectUtil {
             // 传入方法名
             return methodToProperty(Objects.requireNonNull(serializedLambda.getImplMethodName()));
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Failed to get Java Bean property name");
+            log.error(e.getMessage(), e);
             throw new RuntimeException("Failed to get Java Bean property name");
         }
     }

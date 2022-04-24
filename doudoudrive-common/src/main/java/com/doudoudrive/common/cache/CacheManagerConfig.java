@@ -3,7 +3,9 @@ package com.doudoudrive.common.cache;
 import cn.hutool.cache.impl.TimedCache;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -23,7 +25,7 @@ import java.util.*;
 @Slf4j
 @Component
 @Scope("singleton")
-public class CacheManagerConfig {
+public class CacheManagerConfig implements RedisMessageSubscriber, EventMessageListener {
 
     /**
      * Redis客户端操作相关工具类
@@ -44,6 +46,11 @@ public class CacheManagerConfig {
      * 定义本地缓存超时时间(1小时)(毫秒)
      */
     private static final long CACHE_TIMEOUT = 3600000L;
+
+    /**
+     * 序列化工具
+     */
+    private static final RedisSerializerUtil<CacheRefreshModel> SERIALIZER = new RedisSerializerUtil<>();
 
     /**
      * 获取缓存中的值，本地缓存不存在时会从redis中获取，并将redis的值同步到本地缓存中去
@@ -159,6 +166,11 @@ public class CacheManagerConfig {
         localCacheMap.remove(key);
         // 删除redis中的缓存对象
         redisTemplateClient.delete(key);
+
+        // 将被删除的key同步到其他服务
+        redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
+                .cacheKey(key)
+                .build());
         return convert(cache);
     }
 
@@ -170,6 +182,11 @@ public class CacheManagerConfig {
     public void clear(String prefix) {
         // 清空本地缓存Map对象
         getLocalCacheMap().clear();
+
+        // 同步清理其他服务中的缓存数据
+        redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
+                .clear(Boolean.TRUE)
+                .build());
 
         Set<String> keys = redisTemplateClient.scan(prefix);
         if (CollectionUtil.isEmpty(keys)) {
@@ -211,6 +228,49 @@ public class CacheManagerConfig {
      */
     public RedisTemplateClient getRedisTemplateClient() {
         return redisTemplateClient;
+    }
+
+    /**
+     * redis事件消息接收
+     *
+     * @param key   触发事件的key值
+     * @param event 触发的事件类型
+     */
+    @Override
+    public void eventMessage(String key, ConstantConfig.Cache.KeyEventEnum event) {
+        if (ConstantConfig.Cache.KeyEventEnum.EXPIRED.equals(event)) {
+            // 获取本地缓存对象
+            TimedCache<String, Object> localCacheMap = getLocalCacheMap();
+            // 删除本地缓存对象
+            localCacheMap.remove(key);
+        }
+    }
+
+    /**
+     * Redis消息订阅者收到的消息
+     *
+     * @param message redis消息体
+     * @param channel 当前消息体对应的通道
+     */
+    @Override
+    public void receiveMessage(byte[] message, String channel) {
+        // 缓存删除同步时触发
+        if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE.channel.equals(channel)) {
+            // 获取需要刷新的缓存
+            Optional.ofNullable(SERIALIZER.deserialize(message)).ifPresent(cacheRefreshModel -> {
+                // 获取本地缓存对象
+                TimedCache<String, Object> localCacheMap = getLocalCacheMap();
+
+                if (cacheRefreshModel.getClear()) {
+                    // 清空所有本地缓存的对象
+                    localCacheMap.clear();
+                }
+                if (StringUtils.isNotBlank(cacheRefreshModel.getCacheKey())) {
+                    // 删除本地缓存对象
+                    localCacheMap.remove(cacheRefreshModel.getCacheKey());
+                }
+            });
+        }
     }
 
     // ==================================================== private ====================================================

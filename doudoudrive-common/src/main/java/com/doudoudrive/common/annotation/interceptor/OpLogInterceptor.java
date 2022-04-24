@@ -93,7 +93,7 @@ public class OpLogInterceptor implements InitializingBean {
         try {
             handleLog(joinPoint, null, result);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 
