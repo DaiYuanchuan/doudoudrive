@@ -25,7 +25,7 @@ import java.util.*;
 @Slf4j
 @Component
 @Scope("singleton")
-public class CacheManagerConfig implements RedisMessageSubscriber, EventMessageListener {
+public class CacheManagerConfig implements RedisMessageSubscriber {
 
     /**
      * Redis客户端操作相关工具类
@@ -63,12 +63,21 @@ public class CacheManagerConfig implements RedisMessageSubscriber, EventMessageL
         // 获取本地jvm缓存对象
         TimedCache<String, Object> localCacheMap = getLocalCacheMap();
         // 从jvm缓存中获取指定的缓存对象
-        Object cache = localCacheMap.get(key, false);
+        Object cache = localCacheMap.get(key);
         // 当本地缓存为空时，尝试从redis中获取
         if (cache == null) {
             cache = redisTemplateClient.get(key);
-            // 将缓存对象存储到临时缓存中去
-            localCacheMap.put(key, cache);
+            // Redis查询不为空，将缓存对象存储到临时缓存中去
+            Optional.ofNullable(cache).ifPresent(object -> localCacheMap.put(key, object));
+        }
+
+        // 如果从redis中也无法获取时，则通知其他服务同步删除此缓存
+        if (cache == null) {
+            // 将被删除的key同步到其他服务
+            redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
+                    .cacheKey(key)
+                    .build());
+            return null;
         }
 
         // 获取当前缓存对象
@@ -85,7 +94,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber, EventMessageL
     public <T> T getCacheFromLocal(String key) {
         // 获取本地缓存Map对象
         TimedCache<String, Object> localCacheMap = getLocalCacheMap();
-        return convert(localCacheMap.get(key, false));
+        return convert(localCacheMap.get(key));
     }
 
     /**
@@ -155,7 +164,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber, EventMessageL
 
         // 获取本地缓存Map对象
         TimedCache<String, Object> localCacheMap = getLocalCacheMap();
-        Object cache = Optional.ofNullable(localCacheMap.get(key, false)).orElse(redisTemplateClient.get(key));
+        Object cache = Optional.ofNullable(localCacheMap.get(key)).orElse(redisTemplateClient.get(key));
 
         // 如果从本地缓存、redis缓存中都无法获取到值时，直接返回null
         if (cache == null) {
@@ -228,22 +237,6 @@ public class CacheManagerConfig implements RedisMessageSubscriber, EventMessageL
      */
     public RedisTemplateClient getRedisTemplateClient() {
         return redisTemplateClient;
-    }
-
-    /**
-     * redis事件消息接收
-     *
-     * @param key   触发事件的key值
-     * @param event 触发的事件类型
-     */
-    @Override
-    public void eventMessage(String key, ConstantConfig.Cache.KeyEventEnum event) {
-        if (ConstantConfig.Cache.KeyEventEnum.EXPIRED.equals(event)) {
-            // 获取本地缓存对象
-            TimedCache<String, Object> localCacheMap = getLocalCacheMap();
-            // 删除本地缓存对象
-            localCacheMap.remove(key);
-        }
     }
 
     /**
