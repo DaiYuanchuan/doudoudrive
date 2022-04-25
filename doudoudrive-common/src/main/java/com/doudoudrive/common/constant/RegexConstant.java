@@ -25,7 +25,7 @@ public interface RegexConstant {
 
     /**
      * 单个中文汉字<br>
-     * 参照维基百科汉字Unicode范围(https://zh.wikipedia.org/wiki/%E6%B1%89%E5%AD%97 页面右侧)
+     * 参照维基百科汉字Unicode范围(<a href="https://zh.wikipedia.org/wiki/%E6%B1%89%E5%AD%97">https://zh.wikipedia.org/wiki/%E6%B1%89%E5%AD%97</a> 页面右侧)
      */
     String CHINESE = "[\u2E80-\u2EFF\u2F00-\u2FDF\u31C0-\u31EF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uD840\uDC00-\uD869\uDEDF\uD869\uDF00-\uD86D\uDF3F\uD86D\uDF40-\uD86E\uDC1F\uD86E\uDC20-\uD873\uDEAF\uD87E\uDC00-\uD87E\uDE1F]";
 
@@ -122,7 +122,7 @@ public interface RegexConstant {
 
     /**
      * URI<br>
-     * 定义见：https://www.ietf.org/rfc/rfc3986.html#appendix-B
+     * 定义见：<a href="https://www.ietf.org/rfc/rfc3986.html#appendix-B">https://www.ietf.org/rfc/rfc3986.html#appendix-B</a>
      */
     String URI = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?";
 
@@ -132,7 +132,7 @@ public interface RegexConstant {
     String URL = "[a-zA-Z]+://[\\w-+&@#/%?=~_|!:,.;]*[\\w-+&@#/%=~_|]";
 
     /**
-     * Http URL（来自：http://urlregex.com/）<br>
+     * Http URL（来自：<a href="http://urlregex.com/">http://urlregex.com/</a>）<br>
      * 此正则同时支持FTP、File等协议的URL
      */
     String URL_HTTP = "(https?|ftp|file)://[\\w-+&@#/%?=~_|!:,.;]*[\\w-+&@#/%=~_|]";
