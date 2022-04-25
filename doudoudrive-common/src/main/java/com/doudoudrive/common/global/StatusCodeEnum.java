@@ -44,9 +44,10 @@ public enum StatusCodeEnum {
     ACCOUNT_FORBIDDEN(653, "该账号已被限制登录"),
     TOO_MANY_FAILURES(654, "当前登录失败次数过多"),
     USER_EMAIL_ALREADY_EXIST(655, "用户邮箱已存在"),
-    USER_TEL_ALREADY_EXIST(656, "用户手机号码已存在"),
-    EXPIRED_CREDENTIALS(657, "用户凭证已过期"),
-    AUTHENTICATION(658, "认证失败"),
+    USER_EMAIL_NOT_EXIST(656, "邮箱不存在，请重新输入"),
+    USER_TEL_ALREADY_EXIST(657, "用户手机号码已存在"),
+    EXPIRED_CREDENTIALS(658, "用户凭证已过期"),
+    AUTHENTICATION(659, "认证失败"),
 
     /**
      * 接口类:8xx

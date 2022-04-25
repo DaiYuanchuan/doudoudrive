@@ -5,6 +5,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.doudoudrive.common.util.lang.ConvertUtil;
 import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
         }
 
         // 获取当前缓存对象
-        return convert(cache);
+        return ConvertUtil.convert(cache);
     }
 
     /**
@@ -94,7 +95,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
     public <T> T getCacheFromLocal(String key) {
         // 获取本地缓存Map对象
         TimedCache<String, Object> localCacheMap = getLocalCacheMap();
-        return convert(localCacheMap.get(key));
+        return ConvertUtil.convert(localCacheMap.get(key));
     }
 
     /**
@@ -180,7 +181,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
         redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
                 .cacheKey(key)
                 .build());
-        return convert(cache);
+        return ConvertUtil.convert(cache);
     }
 
     /**
@@ -221,7 +222,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
             Set<String> keys = redisTemplateClient.scan(prefix);
             Set<T> convertedKeys = new HashSet<>();
             for (String key : keys) {
-                convertedKeys.add(convert(key));
+                convertedKeys.add(ConvertUtil.convert(key));
             }
             return convertedKeys;
         } catch (Exception e) {
@@ -283,22 +284,5 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
             LOCAL_CACHE.set(localCacheMap);
         }
         return localCacheMap;
-    }
-
-    /**
-     * 对象类型强制转换
-     *
-     * @param object 待转换的对象
-     * @param <T>    转换强制的类型
-     * @return 输出强制转换后的类型
-     */
-    @SuppressWarnings("unchecked")
-    private static <T> T convert(Object object) {
-        try {
-            return (T) object;
-        } catch (Exception e) {
-            log.error("object cast exception:", e);
-            return null;
-        }
     }
 }

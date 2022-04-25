@@ -23,4 +23,18 @@ public interface SmsConstant {
      */
     String MAIL_TEMPLATE = "mail-template.ftl";
 
+    /**
+     * 邮箱验证码数据模板相关常量
+     */
+    interface MailVerificationCode {
+        /**
+         * 邮箱验证码模板数据标识
+         */
+        String MAIL_VERIFICATION_CODE = "mail-verification-code";
+
+        /**
+         * 参数:验证码
+         */
+        String CODE = "code";
+    }
 }

@@ -207,6 +207,56 @@ public interface ConstantConfig {
     }
 
     /**
+     * 日期时间单位，每个单位都是以毫秒为基数
+     */
+    enum DateUnit {
+        /**
+         * 一毫秒 = 0.001 秒
+         */
+        MS(1L, null),
+
+        /**
+         * 一秒的毫秒数 = 1秒
+         */
+        SECOND(1000L, 1L),
+
+        /**
+         * 一分钟的毫秒数 = 60秒
+         */
+        MINUTE(SECOND.ms * 60, SECOND.s * 60),
+
+        /**
+         * 一小时的毫秒数 = 3600秒
+         */
+        HOUR(MINUTE.ms * 60, MINUTE.s * 60),
+
+        /**
+         * 一天的毫秒数 = 86400秒
+         */
+        DAY(HOUR.ms * 24, HOUR.s * 24),
+
+        /**
+         * 一周的毫秒数 = 604800 秒
+         */
+        WEEK(DAY.ms * 7, DAY.s * 7);
+
+        /**
+         * 毫秒数
+         */
+        public final Long ms;
+
+        /**
+         * 秒数
+         */
+        public final Long s;
+
+        DateUnit(Long ms, Long s) {
+            this.ms = ms;
+            this.s = s;
+        }
+    }
+
+    /**
      * 缓存相关的常量
      */
     interface Cache {
@@ -235,6 +285,11 @@ public interface ConstantConfig {
          * session内容缓存默认失效时间(10小时):秒
          */
         Long DEFAULT_EXPIRE = 36000L;
+
+        /**
+         * 邮箱验证码缓存前缀
+         */
+        String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
 
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
@@ -343,6 +398,30 @@ public interface ConstantConfig {
 
         SmsStatusEnum(String status) {
             this.status = status;
+        }
+    }
+
+    /**
+     * 消息记录类型枚举
+     */
+    enum SmsTypeEnum {
+        /**
+         * 邮箱
+         */
+        MAIL("1"),
+
+        /**
+         * 短信
+         */
+        SMS("2");
+
+        /**
+         * 消息记录类型
+         */
+        public final String type;
+
+        SmsTypeEnum(String type) {
+            this.type = type;
         }
     }
 

@@ -60,6 +60,9 @@
                 <!-- 密码登录的API -->
                 /oauth/login = anon
 
+                <!-- 发送邮箱验证码 -->
+                /send/mail/verification-code = anon
+
                 /favicon.ico = anon
 
                 /** = oauth

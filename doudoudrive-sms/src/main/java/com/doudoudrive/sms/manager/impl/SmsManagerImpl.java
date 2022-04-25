@@ -1,11 +1,15 @@
 package com.doudoudrive.sms.manager.impl;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.extra.mail.MailAccount;
 import cn.hutool.extra.mail.MailUtil;
 import com.alibaba.fastjson.JSON;
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.global.BusinessExceptionUtil;
+import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.MailConfig;
 import com.doudoudrive.common.model.dto.model.SmsSendRecordModel;
 import com.doudoudrive.common.model.pojo.SmsSendRecord;
@@ -14,6 +18,8 @@ import com.doudoudrive.commonservice.service.SmsSendRecordService;
 import com.doudoudrive.sms.constant.SmsConstant;
 import com.doudoudrive.sms.manager.SmsManager;
 import com.doudoudrive.sms.model.convert.MailInfoConvert;
+import com.doudoudrive.sms.model.dto.VerificationCodeCache;
+import com.google.common.collect.Maps;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +52,8 @@ public class SmsManagerImpl implements SmsManager {
 
     private Configuration configuration;
 
+    private CacheManagerConfig cacheManagerConfig;
+
     @Autowired
     public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
         this.diskDictionaryService = diskDictionaryService;
@@ -66,6 +74,11 @@ public class SmsManagerImpl implements SmsManager {
         this.configuration = configuration;
     }
 
+    @Autowired
+    public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
+        this.cacheManagerConfig = cacheManagerConfig;
+    }
+
     /**
      * 异常字段的最大索引值
      */
@@ -76,9 +89,10 @@ public class SmsManagerImpl implements SmsManager {
      *
      * @param model              自定义参数
      * @param smsSendRecordModel SMS发送记录的BO模型
+     * @return 消息发送结果
      */
     @Override
-    public void sendMail(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel) {
+    public SmsSendRecord sendMail(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel) {
         // 构建子模板名称
         model.put(SmsConstant.SUB_TEMPLATE, String.format(SmsConstant.FREEMARKER_TEMPLATE_NAME, smsSendRecordModel.getSmsDataId()));
 
@@ -102,7 +116,63 @@ public class SmsManagerImpl implements SmsManager {
             }
         }
         smsSendRecordService.update(smsSendRecord, smsSendRecordModel.getTableSuffix());
+        return smsSendRecord;
     }
+
+    /**
+     * 邮箱验证码信息发送
+     *
+     * @param email    需要发送到的收件人邮箱
+     * @param username 当前操作的用户名，可以为null
+     */
+    @Override
+    public void mailVerificationCode(String email, String username) {
+        // 邮箱验证码缓存key
+        String cacheKey = ConstantConfig.Cache.MAIL_VERIFICATION_CODE + email;
+
+        // 获取缓存中验证码的值
+        VerificationCodeCache cacheData = cacheManagerConfig.getCache(cacheKey);
+        if (cacheData != null) {
+            // 缓存的时间戳 > 当前的时间戳
+            if (cacheData.getTimestamp() >= System.currentTimeMillis()) {
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.TOO_MANY_REQUESTS);
+            }
+        }
+
+        // 生成4位数随机安全码
+        String securityCode = RandomUtil.randomStringUpper(4);
+        // 构建报错消息发送记录
+        SmsSendRecordModel sendRecordModel = smsSendRecordService.insert(SmsSendRecord.builder()
+                .smsRecipient(email)
+                .smsTitle(String.format("验证码：%s", securityCode))
+                .smsDataId(SmsConstant.MailVerificationCode.MAIL_VERIFICATION_CODE)
+                .username(username)
+                .smsType(ConstantConfig.SmsTypeEnum.MAIL.type)
+                .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.status)
+                .build());
+
+        // 构建数据模板参数
+        Map<String, Object> model = Maps.newHashMapWithExpectedSize(2);
+        model.put(SmsConstant.MailVerificationCode.CODE, securityCode);
+
+        // 发送邮件
+        SmsSendRecord smsSendRecord = this.sendMail(model, sendRecordModel);
+        if (ConstantConfig.SmsStatusEnum.FAIL.status.equals(smsSendRecord.getSmsStatus())) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ABNORMAL_MAIL_SENDING);
+        }
+
+        // 构建验证码缓存对象
+        VerificationCodeCache cache = new VerificationCodeCache();
+        cache.setNumber(cache.getNumber() + NumberConstant.INTEGER_ONE);
+        cache.setSecurityCode(securityCode);
+        // 获取当前时间偏移1分钟后的时间戳
+        cache.setTimestamp(System.currentTimeMillis() + ConstantConfig.DateUnit.MINUTE.ms);
+
+        // 插入缓存，设置缓存有效期为1天
+        cacheManagerConfig.putCache(cacheKey, cache, ConstantConfig.DateUnit.DAY.s);
+    }
+
+    // ==================================================== private ====================================================
 
     /**
      * 获取一个邮件发送对象
