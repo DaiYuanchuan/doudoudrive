@@ -1,5 +1,6 @@
 package com.doudoudrive.userinfo.manager.impl;
 
+import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.util.EncryptionUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
@@ -12,7 +13,6 @@ import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskUserService;
-import com.doudoudrive.userinfo.client.UserInfoSearchFeignClient;
 import com.doudoudrive.userinfo.manager.UserInfoManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,11 +1,11 @@
 package com.doudoudrive.userinfo.controller;
 
 import cn.hutool.core.util.PhoneUtil;
+import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
 import com.doudoudrive.common.util.http.Result;
-import com.doudoudrive.userinfo.client.UserInfoSearchFeignClient;
 import com.doudoudrive.userinfo.manager.UserInfoManager;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
