@@ -7,13 +7,13 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.sms.manager.SmsManager;
 import com.doudoudrive.sms.model.dto.request.MailVerificationCodeRequestDTO;
+import com.doudoudrive.sms.model.dto.request.MailVerifyCodeRequestDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +29,6 @@ import javax.validation.Valid;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping(value = "/send/mail")
 public class MailController {
 
     /**
@@ -51,7 +50,7 @@ public class MailController {
 
     @SneakyThrows
     @OpLog(title = "邮箱验证码", businessType = "发送")
-    @PostMapping(value = "/verification-code", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/mail/send/verification-code", produces = "application/json;charset=UTF-8")
     public Result<String> verificationCode(@RequestBody @Valid MailVerificationCodeRequestDTO requestDTO,
                                            HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
@@ -67,6 +66,17 @@ public class MailController {
 
         // 邮箱验证码信息发送
         smsManager.mailVerificationCode(requestDTO.getEmail(), requestDTO.getUsername());
+        return Result.ok();
+    }
+
+    @SneakyThrows
+    @OpLog(title = "邮箱验证码", businessType = "校验")
+    @PostMapping(value = "/mail/verify-code", produces = "application/json;charset=UTF-8")
+    public Result<String> verifyCode(@RequestBody @Valid MailVerifyCodeRequestDTO requestDTO,
+                                     HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("application/json;charset=UTF-8");
+        smsManager.verifyCode(requestDTO.getEmail(), requestDTO.getCode());
         return Result.ok();
     }
 }

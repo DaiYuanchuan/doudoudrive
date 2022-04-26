@@ -23,11 +23,19 @@ public interface SmsManager {
     SmsSendRecord sendMail(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel);
 
     /**
-     * 邮箱验证码信息发送
+     * 邮箱验证码信息发送，发送失败时会抛出异常
      *
      * @param email    需要发送到的收件人邮箱
      * @param username 当前操作的用户名，可以为null
      */
     void mailVerificationCode(String email, String username);
+
+    /**
+     * 校验邮箱验证码是否正确，校验失败时会抛出异常
+     *
+     * @param email 需要校验的收件人邮箱
+     * @param code  邮箱验证码
+     */
+    void verifyCode(String email, String code);
 
 }

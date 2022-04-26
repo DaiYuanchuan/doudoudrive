@@ -36,6 +36,11 @@ public class VerificationCodeCache implements Serializable {
     private Long timestamp;
 
     /**
+     * 缓存数据创建时间的时间戳
+     */
+    private Long createTime;
+
+    /**
      * 累计发送次数
      */
     private Integer number;

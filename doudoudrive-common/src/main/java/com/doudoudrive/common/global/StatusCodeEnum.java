@@ -25,6 +25,8 @@ public enum StatusCodeEnum {
     PAYLOAD_TOO_LARGE(413, "有效负载过大"),
     UNSUPPORTED_MEDIA_TYPE(415, "不支持的内容类型"),
     TOO_MANY_REQUESTS(429, "请求过于频繁"),
+    VERIFY_CODE_NOT_EXIST(430, "验证码已过期，请重新获取"),
+    VERIFY_CODE_INVALID(431, "验证码无效"),
 
     /**
      * 系统类:50x

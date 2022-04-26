@@ -165,11 +165,42 @@ public class SmsManagerImpl implements SmsManager {
         VerificationCodeCache cache = new VerificationCodeCache();
         cache.setNumber(cache.getNumber() + NumberConstant.INTEGER_ONE);
         cache.setSecurityCode(securityCode);
+        cache.setCreateTime(System.currentTimeMillis());
         // 获取当前时间偏移1分钟后的时间戳
-        cache.setTimestamp(System.currentTimeMillis() + ConstantConfig.DateUnit.MINUTE.ms);
+        cache.setTimestamp(cache.getCreateTime() + ConstantConfig.DateUnit.MINUTE.ms);
 
         // 插入缓存，设置缓存有效期为1天
         cacheManagerConfig.putCache(cacheKey, cache, ConstantConfig.DateUnit.DAY.s);
+    }
+
+    /**
+     * 校验邮箱验证码是否正确，校验失败时会抛出异常
+     *
+     * @param email 需要校验的收件人邮箱
+     * @param code  邮箱验证码
+     */
+    @Override
+    public void verifyCode(String email, String code) {
+        // 邮箱验证码缓存key
+        String cacheKey = ConstantConfig.Cache.MAIL_VERIFICATION_CODE + email;
+
+        // 获取缓存中验证码的值
+        VerificationCodeCache cacheData = cacheManagerConfig.getCache(cacheKey);
+        if (cacheData == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.VERIFY_CODE_NOT_EXIST);
+        }
+
+        // 获取缓存插入时间偏移5分钟后的时间戳
+        long validTime = cacheData.getCreateTime() + (NumberConstant.INTEGER_FIVE * ConstantConfig.DateUnit.MINUTE.ms);
+        // 有效时间 < 当前的时间戳
+        if (validTime < System.currentTimeMillis()) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.VERIFY_CODE_NOT_EXIST);
+        }
+
+        // 判断缓存中的值与给定的值是否一致
+        if (!code.equalsIgnoreCase(cacheData.getSecurityCode())) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.VERIFY_CODE_INVALID);
+        }
     }
 
     // ==================================================== private ====================================================
