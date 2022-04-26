@@ -14,10 +14,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  * @author Dan
  **/
 @EnableWebMvc
-@EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableTransactionManagement
+@EnableFeignClients(basePackages = {"com.doudoudrive.auth.client"})
 public class AuthApplication {
 
     public static void main(String[] args) {

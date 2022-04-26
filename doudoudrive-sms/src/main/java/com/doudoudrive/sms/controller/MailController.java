@@ -1,10 +1,10 @@
 package com.doudoudrive.sms.controller;
 
+import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.util.http.Result;
-import com.doudoudrive.sms.client.UserInfoSearchFeignClient;
 import com.doudoudrive.sms.manager.SmsManager;
 import com.doudoudrive.sms.model.dto.request.MailVerificationCodeRequestDTO;
 import lombok.SneakyThrows;
@@ -60,7 +60,7 @@ public class MailController {
         if (requestDTO.getExist()) {
             // 根据用户邮箱查询用户信息
             Result<String> userInfoSearch = userInfoSearchFeignClient.userInfoKeyExistsSearch(null, requestDTO.getEmail(), null);
-            if (Result.isNotSuccess(userInfoSearch)) {
+            if (Result.isSuccess(userInfoSearch)) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.USER_EMAIL_NOT_EXIST);
             }
         }
