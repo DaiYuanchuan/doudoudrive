@@ -3,7 +3,6 @@ package com.doudoudrive.sms.manager.impl;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.extra.mail.MailAccount;
 import cn.hutool.extra.mail.MailUtil;
-import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
@@ -12,6 +11,7 @@ import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.MailConfig;
 import com.doudoudrive.common.model.dto.model.SmsSendRecordModel;
+import com.doudoudrive.common.model.dto.model.Throughput;
 import com.doudoudrive.common.model.pojo.SmsSendRecord;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.SmsSendRecordService;
@@ -133,8 +133,11 @@ public class SmsManagerImpl implements SmsManager {
         // 获取缓存中验证码的值
         VerificationCodeCache cacheData = cacheManagerConfig.getCache(cacheKey);
         if (cacheData != null) {
+            // 获取邮件最大吞吐量配置
+            Throughput throughput = diskDictionaryService.getDictionary(DictionaryConstant.THROUGHPUT, Throughput.class);
+
             // 缓存的时间戳 > 当前的时间戳
-            if (cacheData.getTimestamp() >= System.currentTimeMillis()) {
+            if (cacheData.getTimestamp() >= System.currentTimeMillis() || cacheData.getNumber() >= throughput.getMail()) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.TOO_MANY_REQUESTS);
             }
         }
@@ -212,8 +215,7 @@ public class SmsManagerImpl implements SmsManager {
      */
     private MailAccount getMailAccount() {
         // 获取系统邮件配置信息
-        String mailConfigStr = diskDictionaryService.getDictionary(DictionaryConstant.MAIL_CONFIG);
-        MailConfig mailConfig = JSON.parseObject(mailConfigStr, MailConfig.class);
+        MailConfig mailConfig = diskDictionaryService.getDictionary(DictionaryConstant.MAIL_CONFIG, MailConfig.class);
         return mailInfoConvert.mailConfigConvert(mailConfig);
     }
 }

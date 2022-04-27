@@ -13,4 +13,9 @@ public interface DictionaryConstant {
      */
     String MAIL_CONFIG = "mailConfig";
 
+    /**
+     * 短信、邮件最大吞吐量配置
+     */
+    String THROUGHPUT = "throughput";
+
 }

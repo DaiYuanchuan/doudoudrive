@@ -375,5 +375,9 @@ INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, 
 	"user": "doudou@doudoudrive.com",
 	"pass": "prnbpweakdnogbde"
 }');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22042716251116510479117800011980439', 'throughput', '短信、邮件最大吞吐量配置', '{
+	"mail": 100,
+	"sms": 10
+}');
 
 SET NAMES utf8mb4;

@@ -264,14 +264,20 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
     }
 
     /**
-     * 获取当前jvm缓存中的字典数据
+     * 获取当前jvm缓存中的字典数据，同时转换为指定的class类型
      *
      * @param dictionaryName 需要获取的字典名称
+     * @param clazz          需要映射到的class类
+     * @param <T>            需要映射到的类型
      * @return 从缓存中获取到的字典数据的内容
      */
     @Override
-    public String getDictionary(String dictionaryName) {
-        return SYS_DICTIONARY_CACHE.get(dictionaryName);
+    public <T> T getDictionary(String dictionaryName, Class<T> clazz) {
+        String dictionary = SYS_DICTIONARY_CACHE.get(dictionaryName);
+        if (StringUtils.isBlank(dictionary)) {
+            return null;
+        }
+        return JSON.parseObject(dictionary, clazz);
     }
 
     /**
