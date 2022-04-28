@@ -52,11 +52,6 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
     }
 
     /**
-     * 异常字段的最大索引值
-     */
-    private static final Integer MAXIMUM_INDEX = 255;
-
-    /**
      * 操作日志信息处理完成后自动回调该接口
      * 此接口主要用于用户将日志信息存入MySQL、Redis等等
      *
@@ -73,20 +68,21 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
 
         // 避免 errorCause 为 null
         String errorCause = Optional.ofNullable(logOpInfo.getErrorCause()).orElse(CharSequenceUtil.EMPTY);
-        if (errorCause.length() > MAXIMUM_INDEX) {
-            logOpInfo.setErrorCause(errorCause.substring(NumberConstant.INTEGER_ZERO, MAXIMUM_INDEX));
+        if (errorCause.length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
+            logOpInfo.setErrorCause(errorCause.substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE));
         }
         // 避免 errorMsg 为 null
         String errorMsg = Optional.ofNullable(logOpInfo.getErrorMsg()).orElse(CharSequenceUtil.EMPTY);
-        if (errorMsg.length() > MAXIMUM_INDEX) {
-            logOpInfo.setErrorMsg(errorMsg.substring(NumberConstant.INTEGER_ZERO, MAXIMUM_INDEX));
+        if (errorMsg.length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
+            logOpInfo.setErrorMsg(errorMsg.substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE));
         }
 
         // 获取当前的请求体
         HttpServletRequest request = opLogInfo.getRequest();
         // 获取当前请求中的referer字段
         logOpInfo.setReferer(Optional.ofNullable(request.getHeader(ConstantConfig.HttpRequest.REFERER))
-                .map(referer -> referer.length() > MAXIMUM_INDEX ? referer.substring(0, MAXIMUM_INDEX) : referer)
+                .map(referer -> referer.length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE ?
+                        referer.substring(0, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) : referer)
                 .orElse(CharSequenceUtil.EMPTY));
 
         // 获取当前请求的sessionId

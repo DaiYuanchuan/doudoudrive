@@ -182,11 +182,12 @@ public interface ConstantConfig {
     interface SpecialSymbols {
 
         String ASTERISK = "*";
-
         String OR = "||";
-
+        String QUESTION_MARK = "?";
+        String COMMA = ",";
         String AND = "&&";
-
+        String PLUS_SIGN = "+";
+        String TILDE = "~";
         String ENGLISH_COLON = ":";
     }
 

@@ -80,11 +80,6 @@ public class SmsManagerImpl implements SmsManager {
     }
 
     /**
-     * 异常字段的最大索引值
-     */
-    private static final Integer MAXIMUM_INDEX = 255;
-
-    /**
      * 邮件发送
      *
      * @param model              自定义参数
@@ -111,8 +106,8 @@ public class SmsManagerImpl implements SmsManager {
             smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.status);
             smsSendRecord.setSmsErrorReason(e.getMessage());
             // 判断消息发送失败时的异常原因字数是否达到最大值
-            if (smsSendRecord.getSmsErrorReason().length() > MAXIMUM_INDEX) {
-                smsSendRecord.setSmsErrorReason(e.getMessage().substring(NumberConstant.INTEGER_ZERO, MAXIMUM_INDEX));
+            if (smsSendRecord.getSmsErrorReason().length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
+                smsSendRecord.setSmsErrorReason(e.getMessage().substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE));
             }
         }
         smsSendRecordService.update(smsSendRecord, smsSendRecordModel.getTableSuffix());

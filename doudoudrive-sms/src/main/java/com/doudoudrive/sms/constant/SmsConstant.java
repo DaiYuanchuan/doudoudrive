@@ -37,4 +37,28 @@ public interface SmsConstant {
          */
         String CODE = "code";
     }
+
+    /**
+     * 发送短信时使用的应用类型枚举
+     */
+    enum AppTypeEnum {
+        /**
+         * 使用阿里大鱼发送
+         */
+        ALIYUN("aliyun"),
+
+        /**
+         * 使用腾讯云发送
+         */
+        TENCENT_CLOUD("tencent");
+
+        /**
+         * 应用类型
+         */
+        public final String appType;
+
+        AppTypeEnum(String appType) {
+            this.appType = appType;
+        }
+    }
 }

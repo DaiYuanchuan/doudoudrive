@@ -13,10 +13,6 @@ rocketmq:
     group: FILE_PRODUCER
 
 spring:
-  main:
-    allow-circular-references: true
-    # 允许bean覆盖
-    allow-bean-definition-overriding: true
   application:
     # 配置服务名称
     name: fileServer

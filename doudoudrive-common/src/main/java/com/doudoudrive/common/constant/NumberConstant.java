@@ -78,6 +78,11 @@ public interface NumberConstant {
     Long LONG_HUNDRED = 100L;
 
     /**
+     * 常量 long 255
+     */
+    Long LONG_TWO_HUNDRED_AND_FIFTY_FIVE = 255L;
+
+    /**
      * 常量 long 1000
      */
     Long LONG_ONE_THOUSAND = 1000L;
@@ -158,6 +163,11 @@ public interface NumberConstant {
     Integer INTEGER_HUNDRED = 100;
 
     /**
+     * 常量 integer 255
+     */
+    Integer INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE = 255;
+
+    /**
      * 常量 integer 1000
      */
     Integer INTEGER_ONE_THOUSAND = 1000;
@@ -236,6 +246,11 @@ public interface NumberConstant {
      * 常量 string 100
      */
     String STRING_HUNDRED = "100";
+
+    /**
+     * 常量 string 255
+     */
+    String STRING_TWO_HUNDRED_AND_FIFTY_FIVE = "255";
 
     /**
      * 常量 string 1000
