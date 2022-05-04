@@ -32,10 +32,13 @@ public enum StatusCodeEnum {
      * 系统类:50x
      */
     SYSTEM_ERROR(500, "系统异常"),
+    SYSTEM_CONFIG_ERROR(501, "配置异常"),
     ABNORMAL_MAIL_SENDING(503, "邮件发送失败"),
     INVALID_USERINFO(504, "无法正确获取用户信息"),
     PRINCIPAL_INSTANCE_EXCEPTION(505, "无法正确获取到缓存key"),
     CACHE_MANAGER_PRINCIPAL_ID_NOT_ASSIGNED_EXCEPTION(506, "CacheManager没有分配主体Id"),
+    SMS_SIGNATURE_EXCEPTION(507, "短信签名异常"),
+    ABNORMAL_SMS_SENDING(508, "短信发送失败"),
 
     /**
      * 用户(账号)类:65x
@@ -50,7 +53,7 @@ public enum StatusCodeEnum {
     USER_TEL_ALREADY_EXIST(657, "用户手机号码已存在"),
     EXPIRED_CREDENTIALS(658, "用户凭证已过期"),
     AUTHENTICATION(659, "认证失败"),
-
+    USER_TEL_NOT_EXIST(656, "用户手机号不存在，请重新输入"),
     /**
      * 接口类:8xx
      */

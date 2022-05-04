@@ -63,6 +63,8 @@
                 <!-- 发送、验证邮箱验证码 -->
                 /mail/send/verification-code = anon
                 /mail/verify-code = anon
+                /sms/send/verification-code = anon
+                /sms/verify-code = anon
 
                 /favicon.ico = anon
 

@@ -18,4 +18,9 @@ public interface DictionaryConstant {
      */
     String THROUGHPUT = "throughput";
 
+    /**
+     * 短信发送时的基本配置项
+     */
+    String SMS_CONFIG = "smsConfig";
+
 }

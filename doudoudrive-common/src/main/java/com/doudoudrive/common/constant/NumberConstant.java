@@ -7,6 +7,12 @@ package com.doudoudrive.common.constant;
  * @author Dan
  **/
 public interface NumberConstant {
+
+    /**
+     * 常量 long -1
+     */
+    Long LONG_MINUS_ONE = -1L;
+
     /**
      * 常量 long 0
      */
@@ -93,6 +99,11 @@ public interface NumberConstant {
     Long LONG_MAXIMUM = 9223372036854775807L;
 
     /**
+     * 常量 integer -1
+     */
+    Integer INTEGER_MINUS_ONE = -1;
+
+    /**
      * 常量 integer 0
      */
     Integer INTEGER_ZERO = 0;
@@ -176,6 +187,11 @@ public interface NumberConstant {
      * 常量 integer 最大值
      */
     Integer INTEGER_MAXIMUM = 2147483647;
+
+    /**
+     * 常量 string -1
+     */
+    String STRING_MINUS_ONE = "-1";
 
     /**
      * 常量 string 0

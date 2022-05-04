@@ -7,6 +7,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
+import com.doudoudrive.common.model.dto.model.SmsConfig;
 import com.doudoudrive.common.model.dto.model.Throughput;
 import com.doudoudrive.common.model.pojo.SmsSendRecord;
 import com.doudoudrive.common.util.http.Result;
@@ -30,27 +31,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * <p>邮件信息发送服务控制层实现</p>
- * <p>2022-04-25 17:58</p>
+ * <p>短信发送服务控制层实现</p>
+ * <p>2022-04-29 19:07</p>
  *
  * @author Dan
  **/
 @Slf4j
 @Validated
 @RestController
-public class MailController {
+public class SmsController {
 
     /**
      * 用户信息搜索服务
      */
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
 
-    private SmsFactory smsFactory;
-
     /**
      * 数据字典模块服务
      */
     private DiskDictionaryService diskDictionaryService;
+
+    private SmsFactory smsFactory;
 
     private CacheManagerConfig cacheManagerConfig;
 
@@ -65,13 +66,13 @@ public class MailController {
     }
 
     @Autowired
-    public void setSmsFactory(SmsFactory smsFactory) {
-        this.smsFactory = smsFactory;
+    public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
+        this.diskDictionaryService = diskDictionaryService;
     }
 
     @Autowired
-    public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
-        this.diskDictionaryService = diskDictionaryService;
+    public void setSmsFactory(SmsFactory smsFactory) {
+        this.smsFactory = smsFactory;
     }
 
     @Autowired
@@ -85,9 +86,9 @@ public class MailController {
     }
 
     @SneakyThrows
-    @OpLog(title = "邮箱验证码", businessType = "发送")
-    @PostMapping(value = "/mail/send/verification-code", produces = "application/json;charset=UTF-8")
-    public Result<String> verificationCode(@RequestBody @Validated(SmsConstant.MailVerificationCode.class)
+    @OpLog(title = "短信验证码", businessType = "发送")
+    @PostMapping(value = "/sms/send/verification-code", produces = "application/json;charset=UTF-8")
+    public Result<String> verificationCode(@RequestBody @Validated(SmsConstant.AliYunSmsTemplate.class)
                                            VerificationCodeRequestDTO requestDTO, HttpServletRequest request,
                                            HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
@@ -95,32 +96,42 @@ public class MailController {
 
         if (requestDTO.getExist()) {
             // 根据用户邮箱查询用户信息
-            Result<String> userInfoSearch = userInfoSearchFeignClient.userInfoKeyExistsSearch(null, requestDTO.getSmsRecipient(), null);
+            Result<String> userInfoSearch = userInfoSearchFeignClient.userInfoKeyExistsSearch(null, null, requestDTO.getSmsRecipient());
             if (Result.isSuccess(userInfoSearch)) {
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.USER_EMAIL_NOT_EXIST);
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.USER_TEL_NOT_EXIST);
             }
         }
 
-        // 获取邮件最大吞吐量配置
+        // 获取短信配置信息
+        SmsConfig smsConfig = diskDictionaryService.getDictionary(DictionaryConstant.SMS_CONFIG, SmsConfig.class);
+        // 根据配置获取通讯平台处理层接口
+        SmsManager smsManager = smsFactory.getSmsManager(smsConfig.getAppType());
+
+        // 获取sms最大吞吐量配置
         Throughput throughput = diskDictionaryService.getDictionary(DictionaryConstant.THROUGHPUT, Throughput.class);
 
-        // 获取邮件配置处理层接口
-        SmsManager mailManager = smsFactory.getSmsManager(SmsConstant.AppType.MAIL);
-        // 邮箱验证码信息发送
-        SmsUtil.verificationCode(SmsSendRecord.builder()
+        // 构建消息发送记录
+        SmsSendRecord sendRecord = SmsSendRecord.builder()
                 .smsRecipient(requestDTO.getSmsRecipient())
-                .smsDataId(SmsConstant.MailVerificationCode.MAIL_VERIFICATION_CODE)
                 .username(requestDTO.getUsername())
-                .smsType(ConstantConfig.SmsTypeEnum.MAIL.type)
+                .smsType(ConstantConfig.SmsTypeEnum.SMS.type)
                 .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.status)
-                .build(), throughput.getMail(), cacheManagerConfig, mailManager, smsSendRecordService);
+                .build();
+
+        // 根据应用类型配置消息发送记录
+        if (SmsConstant.AppType.A_LI_YUN.equals(smsConfig.getAppType())) {
+            sendRecord.setSmsDataId(SmsConstant.AliYunSmsTemplate.VERIFICATION_CODE);
+        }
+
+        // 短信验证码信息发送
+        SmsUtil.verificationCode(sendRecord, throughput.getSms(), cacheManagerConfig, smsManager, smsSendRecordService);
         return Result.ok();
     }
 
     @SneakyThrows
-    @OpLog(title = "邮箱验证码", businessType = "校验")
-    @PostMapping(value = "/mail/verify-code", produces = "application/json;charset=UTF-8")
-    public Result<String> verifyCode(@RequestBody @Validated(SmsConstant.MailVerificationCode.class)
+    @OpLog(title = "短信验证码", businessType = "校验")
+    @PostMapping(value = "/sms/verify-code", produces = "application/json;charset=UTF-8")
+    public Result<String> verifyCode(@RequestBody @Validated(SmsConstant.AliYunSmsTemplate.class)
                                      VerifyCodeRequestDTO requestDTO, HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");

@@ -4,6 +4,8 @@ import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.SendMailRequestDTO;
+import com.doudoudrive.sms.config.SmsFactory;
+import com.doudoudrive.sms.constant.SmsConstant;
 import com.doudoudrive.sms.manager.SmsManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,11 +20,11 @@ import org.springframework.stereotype.Component;
 @RocketmqListener(topic = ConstantConfig.Topic.SMS_SERVICE, consumerGroup = ConstantConfig.ConsumerGroup.SMS)
 public class SmsServiceConsumer {
 
-    private SmsManager smsManager;
+    private SmsFactory smsFactory;
 
     @Autowired
-    public void setSmsManager(SmsManager smsManager) {
-        this.smsManager = smsManager;
+    public void setSmsFactory(SmsFactory smsFactory) {
+        this.smsFactory = smsFactory;
     }
 
     /**
@@ -32,6 +34,8 @@ public class SmsServiceConsumer {
      */
     @RocketmqTagDistribution(messageClass = SendMailRequestDTO.class, tag = ConstantConfig.Tag.SEND_MAIL)
     public void sendMailConsumer(SendMailRequestDTO sendMailRequest) {
-        smsManager.sendMail(sendMailRequest.getModel(), sendMailRequest.getSendRecordModel());
+        // 获取邮件配置处理层接口
+        SmsManager mailManager = smsFactory.getSmsManager(SmsConstant.AppType.MAIL);
+        mailManager.send(sendMailRequest.getModel(), sendMailRequest.getSendRecordModel());
     }
 }

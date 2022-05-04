@@ -14,28 +14,20 @@ import java.util.Map;
 public interface SmsManager {
 
     /**
-     * 邮件发送
+     * 通讯平台通用发送接口
      *
      * @param model              自定义参数
      * @param smsSendRecordModel SMS发送记录的BO模型
      * @return 消息发送结果
      */
-    SmsSendRecord sendMail(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel);
+    SmsSendRecord send(Map<String, Object> model, SmsSendRecordModel smsSendRecordModel);
 
     /**
-     * 邮箱验证码信息发送，发送失败时会抛出异常
+     * 通讯平台验证码信息发送，发送失败时会抛出异常
      *
-     * @param email    需要发送到的收件人邮箱
-     * @param username 当前操作的用户名，可以为null
+     * @param securityCode       4位数随机安全码
+     * @param smsSendRecordModel SMS发送记录的BO模型
      */
-    void mailVerificationCode(String email, String username);
-
-    /**
-     * 校验邮箱验证码是否正确，校验失败时会抛出异常
-     *
-     * @param email 需要校验的收件人邮箱
-     * @param code  邮箱验证码
-     */
-    void verifyCode(String email, String code);
+    void verificationCode(String securityCode, SmsSendRecordModel smsSendRecordModel);
 
 }

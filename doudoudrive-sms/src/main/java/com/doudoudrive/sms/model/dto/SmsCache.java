@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * <p>邮箱、SMS验证码缓存对象</p>
+ * <p>邮箱、SMS发送数据缓存对象</p>
  * <p>2022-04-25 19:14</p>
  *
  * @author Dan
@@ -20,15 +20,15 @@ import java.util.Optional;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VerificationCodeCache implements Serializable {
+public class SmsCache implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 验证码信息
+     * 发送的数据
      */
-    private String securityCode;
+    private String data;
 
     /**
      * 当前时间偏移1分钟后的时间戳，用来校验在1分钟内是否重复发送

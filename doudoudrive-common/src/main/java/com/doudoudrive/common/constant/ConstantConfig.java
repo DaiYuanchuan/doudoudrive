@@ -20,6 +20,11 @@ public interface ConstantConfig {
          * 上海时区
          */
         String DEFAULT_TIME_ZONE = "Asia/Shanghai";
+
+        /**
+         * UTC时区
+         */
+        String UTC = "GMT+:08:00";
     }
 
     /**
@@ -186,6 +191,8 @@ public interface ConstantConfig {
         String QUESTION_MARK = "?";
         String COMMA = ",";
         String AND = "&&";
+        String AMPERSAND = "&";
+        String EQUALS = "=";
         String PLUS_SIGN = "+";
         String TILDE = "~";
         String ENGLISH_COLON = ":";
