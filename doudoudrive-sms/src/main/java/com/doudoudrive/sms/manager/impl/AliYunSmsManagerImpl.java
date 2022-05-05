@@ -37,7 +37,7 @@ import java.util.Map;
  * @author Dan
  **/
 @Slf4j
-@Service("aliYunSms")
+@Service(SmsConstant.AppType.A_LI_YUN)
 public class AliYunSmsManagerImpl implements SmsManager {
 
     /**

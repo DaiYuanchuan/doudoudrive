@@ -1,5 +1,6 @@
 package com.doudoudrive.sms.controller;
 
+import cn.hutool.core.util.RandomUtil;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.cache.CacheManagerConfig;
@@ -104,6 +105,9 @@ public class MailController {
         // 获取邮件最大吞吐量配置
         Throughput throughput = diskDictionaryService.getDictionary(DictionaryConstant.THROUGHPUT, Throughput.class);
 
+        // 生成4位数随机安全码
+        String securityCode = RandomUtil.randomStringUpper(4);
+
         // 获取邮件配置处理层接口
         SmsManager mailManager = smsFactory.getSmsManager(SmsConstant.AppType.MAIL);
         // 邮箱验证码信息发送
@@ -113,7 +117,7 @@ public class MailController {
                 .username(requestDTO.getUsername())
                 .smsType(ConstantConfig.SmsTypeEnum.MAIL.type)
                 .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.status)
-                .build(), throughput.getMail(), cacheManagerConfig, mailManager, smsSendRecordService);
+                .build(), securityCode, throughput.getMail(), cacheManagerConfig, mailManager, smsSendRecordService);
         return Result.ok();
     }
 

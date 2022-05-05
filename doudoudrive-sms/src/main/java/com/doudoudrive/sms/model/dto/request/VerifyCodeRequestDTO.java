@@ -35,10 +35,16 @@ public class VerifyCodeRequestDTO implements Serializable {
     @Size(max = 50, message = "邮箱格式有误", groups = {SmsConstant.MailVerificationCode.class})
     @Pattern(regexp = RegexConstant.EMAIL, message = "邮箱格式有误", groups = {SmsConstant.MailVerificationCode.class})
     @NotBlank(message = "请输入手机号码", groups = {SmsConstant.AliYunSmsTemplate.class})
-    @Size(max = 15, message = "手机号码格式不正确，请重新输入", groups = {SmsConstant.AliYunSmsTemplate.class})
+    @Size(max = 11, message = "手机号码格式不正确，请重新输入", groups = {SmsConstant.AliYunSmsTemplate.class})
     @Pattern(regexp = RegexConstant.MOBILE, message = "手机号码格式不正确，请重新输入", groups = {SmsConstant.AliYunSmsTemplate.class})
     private String smsRecipient;
 
+    /**
+     * 验证码信息
+     */
+    @NotBlank(message = "请填写验证码", groups = {SmsConstant.MailVerificationCode.class, SmsConstant.AliYunSmsTemplate.class})
+    @Size(max = 4, message = "验证码无效", groups = {SmsConstant.MailVerificationCode.class})
+    @Size(max = 6, message = "验证码无效", groups = {SmsConstant.AliYunSmsTemplate.class})
     private String code;
 
 }

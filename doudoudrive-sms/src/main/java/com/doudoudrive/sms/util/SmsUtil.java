@@ -1,6 +1,5 @@
 package com.doudoudrive.sms.util;
 
-import cn.hutool.core.util.RandomUtil;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
@@ -24,17 +23,15 @@ public class SmsUtil {
      * 通讯平台验证码信息发送，发送失败时抛出业务异常
      *
      * @param sendRecord         消息发送记录数据
+     * @param securityCode       生成的随机安全码
      * @param throughput         最大吞吐量配置
      * @param cacheManagerConfig 框架服务缓存信息处理接口
      * @param smsManager         通讯平台通用业务处理层接口
      * @param recordService      SMS发送记录服务层接口
      */
-    public static void verificationCode(SmsSendRecord sendRecord,
+    public static void verificationCode(SmsSendRecord sendRecord, String securityCode,
                                         Integer throughput, CacheManagerConfig cacheManagerConfig,
                                         SmsManager smsManager, SmsSendRecordService recordService) {
-        // 生成4位数随机安全码
-        String securityCode = RandomUtil.randomStringUpper(4);
-
         // 验证码缓存key
         String cacheKey = ConstantConfig.Cache.MAIL_VERIFICATION_CODE + sendRecord.getSmsRecipient();
         // 获取缓存中的值

@@ -1,5 +1,6 @@
 package com.doudoudrive.sms.controller;
 
+import cn.hutool.core.util.RandomUtil;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.cache.CacheManagerConfig;
@@ -123,8 +124,11 @@ public class SmsController {
             sendRecord.setSmsDataId(SmsConstant.AliYunSmsTemplate.VERIFICATION_CODE);
         }
 
+        // 生成6位数随机安全码
+        String securityCode = RandomUtil.randomNumbers(6);
+
         // 短信验证码信息发送
-        SmsUtil.verificationCode(sendRecord, throughput.getSms(), cacheManagerConfig, smsManager, smsSendRecordService);
+        SmsUtil.verificationCode(sendRecord, securityCode, throughput.getSms(), cacheManagerConfig, smsManager, smsSendRecordService);
         return Result.ok();
     }
 

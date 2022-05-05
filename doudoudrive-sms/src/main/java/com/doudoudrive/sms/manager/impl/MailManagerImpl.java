@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * @author Dan
  **/
-@Service("mail")
+@Service(SmsConstant.AppType.MAIL)
 public class MailManagerImpl implements SmsManager {
 
     /**
