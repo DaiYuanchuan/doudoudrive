@@ -48,4 +48,24 @@ public class MailConfig implements Serializable {
      */
     private String pass;
 
+    /**
+     * 是否开启ssl
+     */
+    private Boolean sslEnable;
+
+    /**
+     * socket工厂类
+     */
+    private String socketFactoryClass;
+
+    /**
+     * 连接超时时间
+     */
+    private Long timeout;
+
+    /**
+     * 是否鉴权
+     */
+    private Boolean auth;
+
 }
