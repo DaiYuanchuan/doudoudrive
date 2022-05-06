@@ -38,6 +38,11 @@ public class SmsConfig implements Serializable {
     private String appKey;
 
     /**
+     * 腾讯云应用专属，短信应用的唯一标识
+     */
+    private String sdkAppId;
+
+    /**
      * 发送短信时用的域名，统一使用https协议，配置时不用带https请求头
      */
     private String domain;

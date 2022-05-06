@@ -69,9 +69,126 @@ public interface SmsConstant {
     }
 
     /**
+     * 腾讯云短信模板相关常量
+     */
+    interface TencentCloudSmsTemplate {
+
+        /**
+         * 腾讯云短信验证码场景使用的模板id
+         */
+        String VERIFICATION_CODE = "1386619";
+    }
+
+    /**
      * sms短信发送时请求成功的标志
      */
     String OK = "OK";
+
+    /**
+     * 腾讯云短信配置信息
+     */
+    interface TencentCloudSmsConfig {
+
+        /**
+         * 请求参数
+         */
+        interface Param {
+
+            /**
+             * 需要发送的手机号码[单次请求最多支持200个手机号且要求全为境内手机号或全为境外手机号,格式为+[国家或地区码][手机号] 例: +8617895721475]
+             */
+            String PHONE_NUMBER_SET = "PhoneNumberSet";
+
+            /**
+             * 模板 ID，必须填写已审核通过的模板 ID，若向境外手机号发送短信，仅支持使用国际/港澳台短信模板。
+             */
+            String TEMPLATE_ID = "TemplateId";
+
+            /**
+             * 模板参数，若无模板参数，则设置为空。
+             */
+            String TEMPLATE_PARAM_SET = "TemplateParamSet";
+
+            /**
+             * 短信SdkAppId在 短信控制台 添加应用后生成的实际SdkAppId
+             */
+            String SMS_SDK_APP_ID = "SmsSdkAppId";
+
+            /**
+             * 短信签名内容，使用 UTF-8 编码，必须填写已审核通过的签名
+             */
+            String SIGN_NAME = "SignName";
+        }
+
+        /**
+         * 请求头
+         */
+        enum RequestHeaderEnum {
+
+            /**
+             * 请求的内容类型
+             */
+            CONTENT_TYPE("Content-Type", "application/json; charset=utf-8"),
+
+            /**
+             * 请求HOST
+             */
+            HOST("Host", ""),
+
+            /**
+             * HTTP 标准身份认证头部字段
+             */
+            AUTHORIZATION("Authorization", ""),
+
+            /**
+             * HTTP 请求头，操作的接口名称
+             */
+            ACTION("X-TC-Action", ""),
+
+            /**
+             * 当前 UNIX 时间戳，可记录发起 API 请求的时间
+             */
+            TIMESTAMP("X-TC-Timestamp", ""),
+
+            /**
+             * 当前操作的 API 的版本
+             */
+            VERSION("X-TC-Version", "2021-01-11"),
+
+            /**
+             * 地域参数，用来标识希望操作哪个地域的数据
+             * <pre>
+             * 华北地区(北京)	ap-beijing
+             * 华南地区(广州)	ap-guangzhou
+             * 华东地区(南京)	ap-nanjing
+             * </pre>
+             */
+            REGION("X-TC-Region", "ap-nanjing");
+
+            /**
+             * 腾讯云短信配置参数
+             */
+            public final String param;
+
+            /**
+             * 腾讯云短信配置参数的值
+             */
+            public final String value;
+
+            RequestHeaderEnum(String param, String value) {
+                this.param = param;
+                this.value = value;
+            }
+
+            /**
+             * @return 构建初始化map
+             */
+            public static Map<String, String> builderMap() {
+                // 枚举值转换为TreeMap
+                return Stream.of(values()).collect(Collectors.toMap(value -> value.param, value -> value.value, (key1, key2) -> key2, TreeMap::new));
+            }
+        }
+    }
 
     /**
      * 阿里大鱼短信配置枚举信息

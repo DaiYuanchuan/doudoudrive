@@ -6,6 +6,7 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.Throughput;
@@ -106,7 +107,7 @@ public class MailController {
         Throughput throughput = diskDictionaryService.getDictionary(DictionaryConstant.THROUGHPUT, Throughput.class);
 
         // 生成4位数随机安全码
-        String securityCode = RandomUtil.randomStringUpper(4);
+        String securityCode = RandomUtil.randomStringUpper(NumberConstant.INTEGER_FOUR);
 
         // 获取邮件配置处理层接口
         SmsManager mailManager = smsFactory.getSmsManager(SmsConstant.AppType.MAIL);

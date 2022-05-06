@@ -204,4 +204,9 @@ public interface RegexConstant {
      * 仅限：中国驾驶证档案编号
      */
     String CAR_DRIVING_LICENCE = "^[0-9]{12}$";
+
+    /**
+     * 匹配在某个字符之前的所有字符(点)
+     */
+    String BEFORE_CHARACTER_DOT = "^\\w+(?=\\.)";
 }

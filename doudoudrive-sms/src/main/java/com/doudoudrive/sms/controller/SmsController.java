@@ -6,6 +6,7 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.SmsConfig;
@@ -124,8 +125,12 @@ public class SmsController {
             sendRecord.setSmsDataId(SmsConstant.AliYunSmsTemplate.VERIFICATION_CODE);
         }
 
+        if (SmsConstant.AppType.TENCENT_CLOUD.equals(smsConfig.getAppType())) {
+            sendRecord.setSmsDataId(SmsConstant.TencentCloudSmsTemplate.VERIFICATION_CODE);
+        }
+
         // 生成6位数随机安全码
-        String securityCode = RandomUtil.randomNumbers(6);
+        String securityCode = RandomUtil.randomNumbers(NumberConstant.INTEGER_SIX);
 
         // 短信验证码信息发送
         SmsUtil.verificationCode(sendRecord, securityCode, throughput.getSms(), cacheManagerConfig, smsManager, smsSendRecordService);

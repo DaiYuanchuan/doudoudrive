@@ -146,8 +146,7 @@ public class AliYunSmsManagerImpl implements SmsManager {
         if (StringUtils.isNotBlank(smsSendRecord.getSmsErrorReason())
                 && smsSendRecord.getSmsErrorReason().length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
             // 字符串截断
-            String truncation = smsSendRecord.getSmsErrorReason().substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE);
-            smsSendRecord.setSmsErrorReason(truncation);
+            smsSendRecord.setSmsErrorReason(smsSendRecord.getSmsErrorReason().substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE));
         }
 
         // 更新消息发送记录
@@ -165,10 +164,10 @@ public class AliYunSmsManagerImpl implements SmsManager {
     @Override
     public void verificationCode(String securityCode, SmsSendRecordModel smsSendRecordModel) {
         // 构建数据模板参数
-        Map<String, Object> model = Maps.newHashMapWithExpectedSize(1);
+        Map<String, Object> model = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_ONE);
         model.put(SmsConstant.AliYunSmsTemplate.CODE, securityCode);
 
-        // 发送邮件
+        // 发送短信
         SmsSendRecord smsSendRecord = this.send(model, smsSendRecordModel);
         if (ConstantConfig.SmsStatusEnum.FAIL.status.equals(smsSendRecord.getSmsStatus())) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ABNORMAL_SMS_SENDING);
