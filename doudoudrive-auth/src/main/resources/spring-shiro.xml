@@ -66,6 +66,9 @@
                 /sms/send/verification-code = anon
                 /sms/verify-code = anon
 
+                <!-- 忘记密码 -->
+                /userinfo/reset-password = anon
+
                 /favicon.ico = anon
 
                 /** = oauth

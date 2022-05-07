@@ -11,6 +11,9 @@ import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.SmsConfig;
 import com.doudoudrive.common.model.dto.model.Throughput;
+import com.doudoudrive.common.model.dto.model.ValidatedInterface;
+import com.doudoudrive.common.model.dto.request.VerificationCodeRequestDTO;
+import com.doudoudrive.common.model.dto.request.VerifyCodeRequestDTO;
 import com.doudoudrive.common.model.pojo.SmsSendRecord;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
@@ -18,8 +21,6 @@ import com.doudoudrive.commonservice.service.SmsSendRecordService;
 import com.doudoudrive.sms.config.SmsFactory;
 import com.doudoudrive.sms.constant.SmsConstant;
 import com.doudoudrive.sms.manager.SmsManager;
-import com.doudoudrive.sms.model.dto.request.VerificationCodeRequestDTO;
-import com.doudoudrive.sms.model.dto.request.VerifyCodeRequestDTO;
 import com.doudoudrive.sms.util.SmsUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +91,7 @@ public class SmsController {
     @SneakyThrows
     @OpLog(title = "短信验证码", businessType = "发送")
     @PostMapping(value = "/sms/send/verification-code", produces = "application/json;charset=UTF-8")
-    public Result<String> verificationCode(@RequestBody @Validated(SmsConstant.AliYunSmsTemplate.class)
+    public Result<String> verificationCode(@RequestBody @Validated(ValidatedInterface.Sms.class)
                                            VerificationCodeRequestDTO requestDTO, HttpServletRequest request,
                                            HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
@@ -132,7 +133,7 @@ public class SmsController {
     @SneakyThrows
     @OpLog(title = "短信验证码", businessType = "校验")
     @PostMapping(value = "/sms/verify-code", produces = "application/json;charset=UTF-8")
-    public Result<String> verifyCode(@RequestBody @Validated(SmsConstant.AliYunSmsTemplate.class)
+    public Result<String> verifyCode(@RequestBody @Validated(ValidatedInterface.Sms.class)
                                      VerifyCodeRequestDTO requestDTO, HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");
