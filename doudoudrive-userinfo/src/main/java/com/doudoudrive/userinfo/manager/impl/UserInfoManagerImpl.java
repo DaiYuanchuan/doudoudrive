@@ -3,11 +3,13 @@ package com.doudoudrive.userinfo.manager.impl;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.util.EncryptionUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.SecretSaltingInfo;
 import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
+import com.doudoudrive.common.model.dto.request.UpdateElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.SequenceUtil;
@@ -69,6 +71,36 @@ public class UserInfoManagerImpl implements UserInfoManager {
         Result<?> saveElasticsearchResult = userInfoSearchFeignClient.saveElasticsearchUserInfo(diskUserInfoConvert.diskUserInfoConvert(diskUserInfo, tableSuffix));
         if (Result.isNotSuccess(saveElasticsearchResult)) {
             BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
+        }
+    }
+
+    /**
+     * 重置用户密码
+     *
+     * @param businessId 用户系统内唯一标识
+     * @param password   用户需要修改的新密码
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.USERINFO_TRANSACTION_MANAGER)
+    public void resetPassword(String businessId, String password) {
+        // 对明文密码进行加盐加密
+        SecretSaltingInfo saltingInfo = EncryptionUtil.secretSalting(password);
+        // 先修改数据库信息
+        Integer integer = diskUserService.update(DiskUser.builder()
+                .businessId(businessId)
+                .userPwd(saltingInfo.getPassword())
+                .userSalt(saltingInfo.getSalt())
+                .build());
+        if (integer > NumberConstant.INTEGER_ZERO) {
+            // 数据库修改成功后再修改es数据
+            Result<?> result = userInfoSearchFeignClient.updateElasticsearchUserInfo(UpdateElasticsearchUserInfoRequestDTO.builder()
+                    .businessId(businessId)
+                    .userPwd(saltingInfo.getPassword())
+                    .userSalt(saltingInfo.getSalt())
+                    .build());
+            if (Result.isNotSuccess(result)) {
+                BusinessExceptionUtil.throwBusinessException(result);
+            }
         }
     }
 }

@@ -85,10 +85,10 @@
             <if test="null != diskUser.available">`is_available` = #{diskUser.available},</if>
             <if test="null != diskUser.userReason and '' != diskUser.userReason">`user_reason` = #{diskUser.userReason},</if>
             <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">`user_ban_time` = #{diskUser.userBanTime},</if>
-            <if test="null != diskUser.userUnlockTime">`user_unlock_time` = #{udiskUser.serUnlockTime},</if>
+            <if test="null != diskUser.userUnlockTime">`user_unlock_time` = #{diskUser.serUnlockTime},</if>
         </trim>
         <where>
-            `business_id` = #{businessId}
+            `business_id` = #{diskUser.businessId}
         </where>
     </update>
 

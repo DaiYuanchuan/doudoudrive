@@ -17,4 +17,12 @@ public interface UserInfoManager {
      */
     void insert(SaveUserInfoRequestDTO saveUserInfoRequestDTO);
 
+    /**
+     * 重置用户密码
+     *
+     * @param businessId 用户系统内唯一标识
+     * @param password   用户需要修改的新密码
+     */
+    void resetPassword(String businessId, String password);
+
 }

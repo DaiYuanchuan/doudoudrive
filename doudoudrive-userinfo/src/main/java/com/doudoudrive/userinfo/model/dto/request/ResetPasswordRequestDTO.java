@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
@@ -29,13 +28,6 @@ public class ResetPasswordRequestDTO implements Serializable {
     @NotBlank(message = "请输入邮箱或手机号")
     @Size(max = 45, message = "当前用户不存在")
     private String username;
-
-    /**
-     * 邮箱:1，短信:2
-     */
-    @NotBlank(message = "账号类型错误")
-    @Pattern(regexp = "^[1-2_-]", message = "账号类型错误")
-    private String type;
 
     @NotBlank(message = "请输入验证码")
     @Size(max = 6, message = "验证码无效")

@@ -54,6 +54,8 @@ public enum StatusCodeEnum {
     EXPIRED_CREDENTIALS(658, "用户凭证已过期"),
     AUTHENTICATION(659, "认证失败"),
     USER_TEL_NOT_EXIST(656, "用户手机号不存在，请重新输入"),
+    ACCOUNT_TYPE_EXCEPTION(657, "账号类型异常"),
+
     /**
      * 接口类:8xx
      */
