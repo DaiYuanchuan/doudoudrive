@@ -76,6 +76,9 @@
                     <fork>true</fork>
                     <!-- 指定该Main Class为全局的唯一入口 -->
                     <mainClass>com.doudoudrive.AuthApplication</mainClass>
+                    <!-- spring-boot-maven-plugin打包出来的jar是不可依赖的，这里会打两个jar包，⼀个⽤来直接执⾏，⼀个⽤来依赖 -->
+                    <!-- 这个属性为可执行jar包的名字后缀 -->
+                    <classifier>exec</classifier>
                 </configuration>
                 <executions>
                     <execution>
