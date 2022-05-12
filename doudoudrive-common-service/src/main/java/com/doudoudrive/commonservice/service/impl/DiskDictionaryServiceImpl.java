@@ -11,6 +11,7 @@ import com.doudoudrive.common.model.dto.response.PageResponse;
 import com.doudoudrive.common.model.pojo.DiskDictionary;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.doudoudrive.common.util.lang.ConvertUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.annotation.DataSource;
@@ -277,6 +278,12 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
         if (StringUtils.isBlank(dictionary)) {
             return null;
         }
+
+        // 如果是String类型的，直接返回即可
+        if (String.class.equals(clazz)) {
+            return ConvertUtil.convert(dictionary);
+        }
+
         return JSON.parseObject(dictionary, clazz);
     }
 
