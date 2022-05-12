@@ -51,7 +51,12 @@ public enum SequenceModuleEnum {
     /**
      * SMS发送记录
      */
-    SMS_SEND_RECORD("08");
+    SMS_SEND_RECORD("08"),
+
+    /**
+     * 用户属性记录
+     */
+    DISK_USER_ATTR("09");
 
     /**
      * 业务模块标识，固定为两位数字

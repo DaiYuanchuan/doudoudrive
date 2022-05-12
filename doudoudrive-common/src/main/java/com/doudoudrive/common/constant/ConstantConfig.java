@@ -212,6 +212,11 @@ public interface ConstantConfig {
          * 用户与角色关联表依据 user_id 平均分 50 个表
          */
         Integer SYS_USER_ROLE = 50;
+
+        /**
+         * 用户属性表依据 user_id 平均分 50 个表
+         */
+        Integer DISK_USER_ATTR = 50;
     }
 
     /**
