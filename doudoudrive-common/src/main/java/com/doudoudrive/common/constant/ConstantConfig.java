@@ -2,6 +2,11 @@ package com.doudoudrive.common.constant;
 
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * <p>基本常量配置</p>
  * <p>2020-10-12 15:50</p>
@@ -435,6 +440,55 @@ public interface ConstantConfig {
 
         SmsTypeEnum(String type) {
             this.type = type;
+        }
+    }
+
+    /**
+     * 用户属性枚举
+     */
+    enum UserAttrEnum {
+
+        /**
+         * 当前可用的磁盘总容量(单位:字节)，默认100GB
+         */
+        TOTAL_DISK_CAPACITY("totalDiskCapacity", "107374182400"),
+
+        /**
+         * 当前已经使用的磁盘容量(单位:字节)
+         */
+        USED_DISK_CAPACITY("usedDiskCapacity", "0"),
+
+        /**
+         * 当前可用总流量(单位:字节)，默认1GB
+         */
+        TOTAL_TRAFFIC("totalTraffic", "1073741824"),
+
+        /**
+         * 当前已经使用的流量(单位:字节)
+         */
+        USED_TRAFFIC("usedTraffic", "0");
+
+        /**
+         * 用户属性参数名称
+         */
+        public final String param;
+
+        /**
+         * 用户属性参数的默认值
+         */
+        public final String defaultValue;
+
+        UserAttrEnum(String param, String defaultValue) {
+            this.param = param;
+            this.defaultValue = defaultValue;
+        }
+
+        /**
+         * @return 构建初始化map
+         */
+        public static Map<String, String> builderMap() {
+            // 枚举值转换为TreeMap
+            return Stream.of(values()).collect(Collectors.toMap(value -> value.param, value -> value.defaultValue, (key1, key2) -> key2, TreeMap::new));
         }
     }
 
