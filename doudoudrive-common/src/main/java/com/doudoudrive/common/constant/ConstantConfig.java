@@ -1,7 +1,10 @@
 package com.doudoudrive.common.constant;
 
+import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -489,6 +492,24 @@ public interface ConstantConfig {
         public static Map<String, String> builderMap() {
             // 枚举值转换为TreeMap
             return Stream.of(values()).collect(Collectors.toMap(value -> value.param, value -> value.defaultValue, (key1, key2) -> key2, TreeMap::new));
+        }
+
+        /**
+         * 构建初始化List
+         *
+         * @param userId 用户标识
+         * @return 初始化用户属性List集合
+         */
+        public static List<DiskUserAttr> builderList(String userId) {
+            final List<DiskUserAttr> userAttrList = new ArrayList<>();
+            for (UserAttrEnum attrEnum : values()) {
+                userAttrList.add(DiskUserAttr.builder()
+                        .userId(userId)
+                        .attributeName(attrEnum.param)
+                        .attributeValue(attrEnum.defaultValue)
+                        .build());
+            }
+            return userAttrList;
         }
     }
 

@@ -1,6 +1,5 @@
 package com.doudoudrive.userinfo.controller;
 
-import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.ReUtil;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.common.annotation.OpLog;
@@ -16,7 +15,6 @@ import com.doudoudrive.userinfo.manager.UserInfoManager;
 import com.doudoudrive.userinfo.model.dto.request.ResetPasswordRequestDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -63,20 +61,22 @@ public class UserInfoController {
 
     @SneakyThrows
     @ResponseBody
-    @OpLog(title = "保存用户信息", businessType = "用户信息配置中心")
-    @PostMapping(value = "/save", produces = "application/json;charset=UTF-8")
-    public Result<?> saveElasticsearchUserInfo(@RequestBody @Valid SaveUserInfoRequestDTO requestDTO,
-                                               HttpServletRequest request, HttpServletResponse response) {
+    @OpLog(title = "用户注册", businessType = "用户信息配置中心")
+    @PostMapping(value = "/register", produces = "application/json;charset=UTF-8")
+    public Result<String> register(@RequestBody @Valid SaveUserInfoRequestDTO requestDTO,
+                                   HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");
-        // 手机号不为空，校验手机号格式是否正确
-        if (StringUtils.isNotBlank(requestDTO.getUserTel()) && !PhoneUtil.isMobile(requestDTO.getUserTel())) {
-            return Result.build(StatusCodeEnum.PARAM_INVALID).message("请输入正确的手机号");
+
+        // 判断用户账号类型，同时校验对应的验证码
+        Result<String> verifyCode = verifyCode(requestDTO.getUserEmail(), requestDTO.getCode());
+        if (Result.isNotSuccess(verifyCode)) {
+            return verifyCode;
         }
 
         // 查询用户关键信息是否存在
         Result<String> userInfoKeyExistsSearchResult = userInfoSearchFeignClient.userInfoKeyExistsSearch(requestDTO.getUserName(),
-                requestDTO.getUserEmail(), requestDTO.getUserTel());
+                requestDTO.getUserEmail(), null);
         if (Result.isNotSuccess(userInfoKeyExistsSearchResult)) {
             return userInfoKeyExistsSearchResult;
         }

@@ -25,37 +25,30 @@ public class SaveUserInfoRequestDTO {
     /**
      * 用户名
      */
-    @NotBlank(message = "用户名不能为空")
-    @Size(min = 1, max = 50, message = "用户名称长度错误")
+    @NotBlank(message = "请输入用户名")
+    @Size(min = 5, max = 25, message = "用户名称不符合要求，请重新设置")
     private String userName;
-
-    /**
-     * 用户头像
-     */
-    @NotBlank(message = "用户头像不能为空")
-    @Size(min = 1, max = 170, message = "url长度错误")
-    @Pattern(regexp = RegexConstant.URL_HTTP, message = "url格式错误")
-    private String userAvatar;
 
     /**
      * 用户邮箱
      */
-    @NotBlank(message = "用户邮箱不能为空")
-    @Size(min = 1, max = 50, message = "邮箱长度错误")
-    @Pattern(regexp = RegexConstant.EMAIL, message = "邮箱格式错误")
+    @NotBlank(message = "请输入邮箱地址")
+    @Size(max = 50, message = "邮箱格式有误")
+    @Pattern(regexp = RegexConstant.EMAIL, message = "邮箱格式有误")
     private String userEmail;
 
     /**
-     * 用户手机号
+     * 验证码
      */
-    @Size(max = 15, message = "手机号长度错误")
-    private String userTel;
+    @NotBlank(message = "请填写验证码")
+    @Size(max = 4, message = "验证码无效")
+    private String code;
 
     /**
      * 用户明文密码
      */
-    @NotBlank(message = "用户密码不能为空")
-    @Size(min = 1, max = 30, message = "密码长度错误")
+    @NotBlank(message = "请输入用户密码")
+    @Size(max = 30, message = "密码不符合要求，请重新设置")
     private String userPwd;
 
 }

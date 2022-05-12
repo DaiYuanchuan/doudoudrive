@@ -23,4 +23,9 @@ public interface DictionaryConstant {
      */
     String SMS_CONFIG = "smsConfig";
 
+    /**
+     * 默认的用户头像
+     */
+    String DEFAULT_AVATAR = "defaultAvatar";
+
 }

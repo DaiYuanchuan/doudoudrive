@@ -32,9 +32,11 @@ public interface DiskUserInfoConvert {
      *
      * @param requestDTO  保存用户信息时的请求数据模型
      * @param saltingInfo 密码加盐处理结果
+     * @param avatar      用户头像
      * @return 用户模块实体类
      */
     @Mappings({
+            @Mapping(target = "userAvatar", source = "avatar"),
             @Mapping(target = "userPwd", source = "saltingInfo.password"),
             @Mapping(target = "userSalt", source = "saltingInfo.salt"),
             @Mapping(target = "available", expression = "java(Boolean.TRUE)"),
@@ -43,7 +45,7 @@ public interface DiskUserInfoConvert {
             @Mapping(target = "createTime", expression = "java(new Date())"),
             @Mapping(target = "updateTime", expression = "java(new Date())")
     })
-    DiskUser saveUserInfoRequestConvert(SaveUserInfoRequestDTO requestDTO, SecretSaltingInfo saltingInfo);
+    DiskUser saveUserInfoRequestConvert(SaveUserInfoRequestDTO requestDTO, SecretSaltingInfo saltingInfo, String avatar);
 
     /**
      * 将DiskUser(用户模块实体类) 类型转换为 SaveElasticsearchUserInfoRequestDTO(保存es用户信息时的请求数据模型)

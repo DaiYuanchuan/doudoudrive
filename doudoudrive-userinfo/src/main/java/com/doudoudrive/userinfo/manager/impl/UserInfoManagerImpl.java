@@ -2,9 +2,7 @@ package com.doudoudrive.userinfo.manager.impl;
 
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.util.EncryptionUtil;
-import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.constant.NumberConstant;
-import com.doudoudrive.common.constant.SequenceModuleEnum;
+import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.SecretSaltingInfo;
@@ -14,7 +12,10 @@ import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
+import com.doudoudrive.commonservice.service.DiskDictionaryService;
+import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
+import com.doudoudrive.commonservice.service.SysUserRoleService;
 import com.doudoudrive.userinfo.manager.UserInfoManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,21 @@ public class UserInfoManagerImpl implements UserInfoManager {
 
     private DiskUserInfoConvert diskUserInfoConvert;
 
+    /**
+     * 数据字典模块服务
+     */
+    private DiskDictionaryService diskDictionaryService;
+
+    /**
+     * 用户属性模块
+     */
+    private DiskUserAttrService diskUserAttrService;
+
+    /**
+     * 用户、角色关联模块
+     */
+    private SysUserRoleService sysUserRoleService;
+
     @Autowired
     public void setDiskUserService(DiskUserService diskUserService) {
         this.diskUserService = diskUserService;
@@ -50,6 +66,21 @@ public class UserInfoManagerImpl implements UserInfoManager {
         this.diskUserInfoConvert = diskUserInfoConvert;
     }
 
+    @Autowired
+    public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
+        this.diskDictionaryService = diskDictionaryService;
+    }
+
+    @Autowired
+    public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
+        this.diskUserAttrService = diskUserAttrService;
+    }
+
+    @Autowired
+    public void setSysUserRoleService(SysUserRoleService sysUserRoleService) {
+        this.sysUserRoleService = sysUserRoleService;
+    }
+
     /**
      * 保存用户信息服务
      *
@@ -58,16 +89,26 @@ public class UserInfoManagerImpl implements UserInfoManager {
     @Override
     @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.USERINFO_TRANSACTION_MANAGER)
     public void insert(SaveUserInfoRequestDTO saveUserInfoRequestDTO) {
+        // 获取用户默认头像
+        String avatar = diskDictionaryService.getDictionary(DictionaryConstant.DEFAULT_AVATAR, String.class);
+
         // 对明文密码进行加盐加密
         SecretSaltingInfo saltingInfo = EncryptionUtil.secretSalting(saveUserInfoRequestDTO.getUserPwd());
         // 生成用户实体信息
-        DiskUser diskUserInfo = diskUserInfoConvert.saveUserInfoRequestConvert(saveUserInfoRequestDTO, saltingInfo);
-        // 先入库，然后入es
+        DiskUser diskUserInfo = diskUserInfoConvert.saveUserInfoRequestConvert(saveUserInfoRequestDTO, saltingInfo, avatar);
+        // 生成业务id
         diskUserInfo.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_USER));
+
+        // 保存用户实体信息
         diskUserService.insert(diskUserInfo);
+        // 为新用户绑定用户属性信息
+        diskUserAttrService.insertBatch(ConstantConfig.UserAttrEnum.builderList(diskUserInfo.getBusinessId()));
+        // 为新用户绑定默认权限信息
+        sysUserRoleService.insertBatch(RoleCodeEnum.builderList(diskUserInfo.getBusinessId(), Boolean.TRUE));
 
         // 获取表格后缀
         String tableSuffix = SequenceUtil.tableSuffix(diskUserInfo.getBusinessId(), ConstantConfig.TableSuffix.USERINFO);
+        // 用户信息先入库，然后入es
         Result<?> saveElasticsearchResult = userInfoSearchFeignClient.saveElasticsearchUserInfo(diskUserInfoConvert.diskUserInfoConvert(diskUserInfo, tableSuffix));
         if (Result.isNotSuccess(saveElasticsearchResult)) {
             BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
