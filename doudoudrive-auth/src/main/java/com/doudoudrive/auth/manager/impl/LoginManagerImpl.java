@@ -9,6 +9,7 @@ import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
+import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
@@ -31,6 +32,11 @@ public class LoginManagerImpl implements LoginManager {
 
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
 
+    /**
+     * 用户属性服务
+     */
+    private DiskUserAttrService diskUserAttrService;
+
     @Autowired(required = false)
     public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
         this.diskUserInfoConvert = diskUserInfoConvert;
@@ -44,6 +50,11 @@ public class LoginManagerImpl implements LoginManager {
     @Autowired
     public void setUserInfoSearchFeignClient(UserInfoSearchFeignClient userInfoSearchFeignClient) {
         this.userInfoSearchFeignClient = userInfoSearchFeignClient;
+    }
+
+    @Autowired
+    public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
+        this.diskUserAttrService = diskUserAttrService;
     }
 
     /**
@@ -67,8 +78,9 @@ public class LoginManagerImpl implements LoginManager {
                         return null;
                     }
                     userInfo = diskUserInfoConvert.usernameSearchResponseConvert(usernameSearchResult.getData());
-                    // 获取当前登录用户所有角色、权限信息
+                    // 获取当前登录用户所有角色、权限、属性等信息
                     userInfo.setRoleInfo(sysUserRoleManager.listSysUserRoleInfo(userInfo.getBusinessId()));
+                    userInfo.setUserAttr(diskUserAttrService.listDiskUserAttr(userInfo.getBusinessId()));
                     session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
                 }
 

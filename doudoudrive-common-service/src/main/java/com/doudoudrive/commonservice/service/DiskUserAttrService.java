@@ -3,6 +3,7 @@ package com.doudoudrive.commonservice.service;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>用户属性模块服务层接口</p>
@@ -46,8 +47,8 @@ public interface DiskUserAttrService {
      * 根据用户标识查询指定用户下所有属性信息
      *
      * @param userId 根据用户业务id查找
-     * @return 返回查找到的用户属性数据集合
+     * @return 返回查找到的用户属性数据Map对象
      */
-    List<DiskUserAttr> listDiskUserAttr(String userId);
+    Map<String, String> listDiskUserAttr(String userId);
 
 }

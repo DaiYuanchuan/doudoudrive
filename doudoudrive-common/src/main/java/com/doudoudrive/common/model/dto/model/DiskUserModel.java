@@ -12,6 +12,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>通用的用户信息数据模型</p>
@@ -78,5 +79,10 @@ public class DiskUserModel implements Serializable {
      * 当前用户所属的所有角色信息
      */
     private List<SysUserRoleModel> roleInfo;
+
+    /**
+     * 用户属性内容
+     */
+    private Map<String, String> userAttr;
 
 }

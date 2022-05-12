@@ -3,6 +3,8 @@ package com.doudoudrive.commonservice.service.impl;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
+import com.doudoudrive.common.global.BusinessExceptionUtil;
+import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
@@ -10,12 +12,14 @@ import com.doudoudrive.commonservice.annotation.DataSource;
 import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskUserAttrDao;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -118,15 +122,42 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
      * 根据用户标识查询指定用户下所有属性信息
      *
      * @param userId 根据用户业务id查找
-     * @return 返回查找到的用户属性数据集合
+     * @return 返回查找到的用户属性数据Map对象
      */
     @Override
-    public List<DiskUserAttr> listDiskUserAttr(String userId) {
+    public Map<String, String> listDiskUserAttr(@NonNull String userId) {
         if (StringUtils.isBlank(userId)) {
-            return new ArrayList<>();
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
         }
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
-        return diskUserAttrDao.listDiskUserAttr(userId, tableSuffix);
+        // 根据用户标识查询指定用户下所有属性信息
+        List<DiskUserAttr> attrList = diskUserAttrDao.listDiskUserAttr(userId, tableSuffix);
+
+        // 将属性信息转成Map对象
+        Map<String, String> attrMap = attrList.stream().collect(Collectors.toMap(DiskUserAttr::getAttributeName, DiskUserAttr::getAttributeValue, (key1, key2) -> key2));
+
+        // 用户属性枚举构建的Map
+        Map<String, String> defaultMap = ConstantConfig.UserAttrEnum.builderMap();
+
+        // 用来比较两个Map以获取所有不同点。该方法返回MapDifference对象
+        MapDifference<String, String> difference = Maps.difference(defaultMap, attrMap);
+        // 获取键只存在于左边Map而右边没有的映射项
+        Map<String, String> entriesOnlyOnLeft = difference.entriesOnlyOnLeft();
+
+        // 如果不存在差值时，直接返回属性对象Map
+        if (entriesOnlyOnLeft.isEmpty()) {
+            return attrMap;
+        }
+
+        // 将差值Map转为List对象，同时批量保存List对象
+        this.insertBatch(entriesOnlyOnLeft.entrySet().stream().map(map -> DiskUserAttr.builder()
+                .userId(userId)
+                .attributeName(map.getKey())
+                .attributeValue(map.getValue())
+                .build()).toList());
+        // 合并两个Map内容，同时返回合并后的内容
+        attrMap.putAll(entriesOnlyOnLeft);
+        return attrMap;
     }
 }
