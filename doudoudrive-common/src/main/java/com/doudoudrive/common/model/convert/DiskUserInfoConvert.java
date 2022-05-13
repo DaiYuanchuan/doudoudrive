@@ -4,9 +4,11 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.SecretSaltingInfo;
+import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
 import com.doudoudrive.common.model.dto.model.UserSimpleModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
+import com.doudoudrive.common.model.dto.request.UpdateElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import org.mapstruct.Mapper;
@@ -63,6 +65,22 @@ public interface DiskUserInfoConvert {
      * @return 通用的用户信息数据模型
      */
     DiskUserModel usernameSearchResponseConvert(UsernameSearchResponseDTO responseDTO);
+
+    /**
+     * 将UsernameSearchResponseDTO(通过用户名查询用户信息请求的响应数据模型) 类型转换为 UserConfidentialInfo(用户机密数据信息模型)
+     *
+     * @param responseDTO 通过用户名查询用户信息请求的响应数据模型
+     * @return 用户机密数据信息模型
+     */
+    UserConfidentialInfo usernameSearchResponseConvertUserConfidential(UsernameSearchResponseDTO responseDTO);
+
+    /**
+     * 将DiskUser(用户模块实体类) 类型转换为 UpdateElasticsearchUserInfoRequestDTO(更新es用户信息时的请求数据模型)
+     *
+     * @param userinfo 通过用户名查询用户信息请求的响应数据模型
+     * @return 用户模块实体类
+     */
+    UpdateElasticsearchUserInfoRequestDTO diskUserConvert(DiskUser userinfo);
 
     /**
      * 将UsernameSearchResponseDTO(通过用户名查询用户信息请求的响应数据模型) 类型转换为 UserSimpleModel(简单的用户信息数据模型)

@@ -34,10 +34,10 @@ public interface DiskUserService {
     Integer update(DiskUser diskUser);
 
     /**
-     * 查找用户模块
+     * 根据用户业务标识查找指定用户信息
      *
      * @param businessId 根据业务id(businessId)查找
-     * @return 返回查找到的用户模块实体
+     * @return 返回查找到的用户信息实体(实体中会返回一些涉密字段 ， 不可直接抛给前端)
      */
     DiskUser getDiskUser(String businessId);
 }

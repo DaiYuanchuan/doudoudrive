@@ -288,6 +288,11 @@ public interface ConstantConfig {
         String USERINFO_CACHE = "userInfo";
 
         /**
+         * 用户机密信息的缓存
+         */
+        String USER_CONFIDENTIAL = "userConfidential";
+
+        /**
          * 用户角色信息缓存
          */
         String USER_ROLE_CACHE = "AuthorizationInfo";

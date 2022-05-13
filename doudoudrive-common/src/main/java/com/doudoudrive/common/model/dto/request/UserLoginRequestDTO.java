@@ -31,7 +31,7 @@ public class UserLoginRequestDTO {
      * 密码
      */
     @NotBlank(message = "请输入密码")
-    @Size(min = 1, max = 45, message = "用户名或密码不正确")
+    @Size(min = 1, max = 30, message = "用户名或密码不正确")
     private String password;
 
 }

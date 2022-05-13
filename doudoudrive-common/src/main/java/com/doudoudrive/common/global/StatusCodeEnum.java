@@ -15,9 +15,16 @@ public enum StatusCodeEnum {
     SUCCESS(200, "请求成功"),
 
     /**
-     * 应用请求访问类:4xx
+     * 参数校验类:400
      */
     PARAM_INVALID(400, "入参无效"),
+    PHONE_NUMBER_FORMAT_ERROR(400, "手机号码格式不正确，请重新输入"),
+    URL_FORMAT_ERROR(400, "URL格式不正确，请重新输入"),
+    EMAIL_FORMAT_ERROR(400, "邮箱格式不正确，请重新输入"),
+
+    /**
+     * 应用请求访问类:4xx
+     */
     NOT_AUTHORIZED(401, "抱歉！您暂无访问权限"),
     USER_UN_LOGIN(403, "登录过期！请重新登录"),
     NOT_FOUND(404, "请求的资源不存在"),
@@ -27,6 +34,7 @@ public enum StatusCodeEnum {
     TOO_MANY_REQUESTS(429, "请求过于频繁"),
     VERIFY_CODE_NOT_EXIST(430, "验证码已过期，请重新获取"),
     VERIFY_CODE_INVALID(431, "验证码无效"),
+    ORIGINAL_PASSWORD_ERROR(432, "原始密码输入错误，请重新输入"),
 
     /**
      * 系统类:50x
@@ -50,11 +58,11 @@ public enum StatusCodeEnum {
     TOO_MANY_FAILURES(654, "当前登录失败次数过多"),
     USER_EMAIL_ALREADY_EXIST(655, "用户邮箱已存在"),
     USER_EMAIL_NOT_EXIST(656, "邮箱不存在，请重新输入"),
+    USER_TEL_NOT_EXIST(656, "用户手机号不存在，请重新输入"),
     USER_TEL_ALREADY_EXIST(657, "用户手机号码已存在"),
+    ACCOUNT_TYPE_EXCEPTION(657, "账号类型异常"),
     EXPIRED_CREDENTIALS(658, "用户凭证已过期"),
     AUTHENTICATION(659, "认证失败"),
-    USER_TEL_NOT_EXIST(656, "用户手机号不存在，请重新输入"),
-    ACCOUNT_TYPE_EXCEPTION(657, "账号类型异常"),
 
     /**
      * 接口类:8xx

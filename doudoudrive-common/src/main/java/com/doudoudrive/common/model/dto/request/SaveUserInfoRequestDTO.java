@@ -42,7 +42,19 @@ public class SaveUserInfoRequestDTO {
      */
     @NotBlank(message = "请填写验证码")
     @Size(max = 4, message = "验证码无效")
-    private String code;
+    private String mailCode;
+
+    /**
+     * 用户手机号
+     */
+    @Size(max = 11, message = "手机号码格式不正确，请重新输入")
+    private String userTel;
+
+    /**
+     * 手机验证码
+     */
+    @Size(max = 6, message = "验证码无效")
+    private String telCode;
 
     /**
      * 用户明文密码

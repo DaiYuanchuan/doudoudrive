@@ -17,6 +17,7 @@ import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
 import com.doudoudrive.commonservice.service.SysUserRoleService;
 import com.doudoudrive.userinfo.manager.UserInfoManager;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,6 +113,31 @@ public class UserInfoManagerImpl implements UserInfoManager {
         Result<?> saveElasticsearchResult = userInfoSearchFeignClient.saveElasticsearchUserInfo(diskUserInfoConvert.diskUserInfoConvert(diskUserInfo, tableSuffix));
         if (Result.isNotSuccess(saveElasticsearchResult)) {
             BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
+        }
+    }
+
+    /**
+     * 更新用户的基本信息，针对用户基础信息的更新(不包含用户权限、属性类的更新)
+     *
+     * @param userinfo 需要更新的用户信息
+     */
+    @Override
+    public void updateBasicsInfo(DiskUser userinfo) {
+        // 密码不为空时，需要对新密码加盐加密
+        if (StringUtils.isNotBlank(userinfo.getUserPwd())) {
+            SecretSaltingInfo saltingInfo = EncryptionUtil.secretSalting(userinfo.getUserPwd());
+            userinfo.setUserPwd(saltingInfo.getPassword());
+            userinfo.setUserSalt(saltingInfo.getSalt());
+        }
+
+        // 修改用户实体信息
+        Integer update = diskUserService.update(userinfo);
+        if (update > NumberConstant.INTEGER_ZERO) {
+            // 用户信息先入库，然后入es
+            Result<?> updateElasticsearchResult = userInfoSearchFeignClient.updateElasticsearchUserInfo(diskUserInfoConvert.diskUserConvert(userinfo));
+            if (Result.isNotSuccess(updateElasticsearchResult)) {
+                BusinessExceptionUtil.throwBusinessException(updateElasticsearchResult);
+            }
         }
     }
 
