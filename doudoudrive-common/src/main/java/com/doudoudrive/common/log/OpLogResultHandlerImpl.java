@@ -2,15 +2,19 @@ package com.doudoudrive.common.log;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.convert.LogOpInfoConvert;
 import com.doudoudrive.common.model.dto.model.OpLogInfo;
+import com.doudoudrive.common.model.dto.model.ShiroAuthenticationModel;
 import com.doudoudrive.common.model.pojo.LogOp;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
@@ -30,6 +34,8 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
 
     private LogOpInfoConvert logOpInfoConvert;
 
+    private CacheManagerConfig cacheManagerConfig;
+
     @Autowired
     public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
         this.rocketmqTemplate = rocketmqTemplate;
@@ -40,10 +46,10 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
         this.logOpInfoConvert = logOpInfoConvert;
     }
 
-    /**
-     * 异常字段的最大索引值
-     */
-    private static final Integer MAXIMUM_INDEX = 255;
+    @Autowired
+    public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
+        this.cacheManagerConfig = cacheManagerConfig;
+    }
 
     /**
      * 操作日志信息处理完成后自动回调该接口
@@ -62,24 +68,75 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
 
         // 避免 errorCause 为 null
         String errorCause = Optional.ofNullable(logOpInfo.getErrorCause()).orElse(CharSequenceUtil.EMPTY);
-        if (errorCause.length() > MAXIMUM_INDEX) {
-            logOpInfo.setErrorCause(errorCause.substring(NumberConstant.INTEGER_ZERO, MAXIMUM_INDEX));
+        if (errorCause.length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
+            logOpInfo.setErrorCause(errorCause.substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE));
         }
         // 避免 errorMsg 为 null
         String errorMsg = Optional.ofNullable(logOpInfo.getErrorMsg()).orElse(CharSequenceUtil.EMPTY);
-        if (errorMsg.length() > MAXIMUM_INDEX) {
-            logOpInfo.setErrorMsg(errorMsg.substring(NumberConstant.INTEGER_ZERO, MAXIMUM_INDEX));
+        if (errorMsg.length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
+            logOpInfo.setErrorMsg(errorMsg.substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE));
         }
 
         // 获取当前的请求体
         HttpServletRequest request = opLogInfo.getRequest();
         // 获取当前请求中的referer字段
         logOpInfo.setReferer(Optional.ofNullable(request.getHeader(ConstantConfig.HttpRequest.REFERER))
-                .map(referer -> referer.length() > MAXIMUM_INDEX ? referer.substring(0, MAXIMUM_INDEX) : referer)
+                .map(referer -> referer.length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE ?
+                        referer.substring(0, NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) : referer)
                 .orElse(CharSequenceUtil.EMPTY));
 
+        // 获取当前请求的sessionId
+        Optional.ofNullable(getSessionId(request)).ifPresent(sessionId -> {
+            // 构建缓存key
+            String cacheKey = ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + sessionId;
+            // 通过sessionId从缓存中获取到shiro鉴权对象
+            ShiroAuthenticationModel shiroAuthenticationModel = cacheManagerConfig.getCache(cacheKey);
+            Optional.ofNullable(shiroAuthenticationModel)
+                    .ifPresent(shiroAuthentication -> logOpInfo.setUsername(shiroAuthentication.getUsername()));
+        });
+
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.LOG_RECORD + ":" + ConstantConfig.Tag.ACCESS_LOG_RECORD;
+        String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.ACCESS_LOG_RECORD;
         rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(logOpInfo));
+    }
+
+    /**
+     * 获取请求体中的鉴权字段信息
+     *
+     * @param request 当前正在执行的http请求体
+     * @return 返回查找到的sessionId内容，没有找到时返回NULL
+     */
+    private static String getSessionId(HttpServletRequest request) {
+        // 从 cookie 中获取指定的鉴权字段
+        String cookies = getAuthCookie(request);
+        if (StringUtils.isNotBlank(cookies)) {
+            return cookies;
+        }
+
+        // 从请求头中获取指定的鉴权字段
+        String authorization = request.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
+        if (StringUtils.isNotBlank(authorization)) {
+            return authorization;
+        }
+
+        return null;
+    }
+
+    /**
+     * 返回请求中具有给定鉴权字段名称的cookie，如果没有改Cookie，则返回null
+     *
+     * @param request 当前正在执行的http请求。
+     * @return 返回请求中查找到的cookie
+     */
+    private static String getAuthCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (ConstantConfig.HttpRequest.TOKEN.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

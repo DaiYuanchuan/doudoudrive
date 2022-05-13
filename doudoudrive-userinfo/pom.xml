@@ -6,7 +6,7 @@
     <parent>
         <artifactId>doudoudrive</artifactId>
         <groupId>com.doudoudrive</groupId>
-        <version>0.0.1</version>
+        <version>0.0.3</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -35,18 +35,36 @@
 
     <!-- 项目依赖 -->
     <dependencies>
-        <!-- 公共模块 -->
+        <!-- 鉴权服务 -->
         <dependency>
-            <groupId>com.doudoudrive</groupId>
-            <artifactId>doudoudrive-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <!-- 公共的DB服务层 -->
-        <dependency>
-            <groupId>com.doudoudrive</groupId>
-            <artifactId>doudoudrive-common-service</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>doudoudrive-auth</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
+
+    <!-- 依赖的插件配置 -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 如果没有该配置，devtools不会生效 -->
+                    <fork>true</fork>
+                    <!-- 指定该Main Class为全局的唯一入口 -->
+                    <mainClass>com.doudoudrive.UserInfoApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!-- 可以把依赖的包都打包到生成的Jar包中 -->
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -9,9 +9,14 @@ package com.doudoudrive.common.constant;
 public enum SequenceModuleEnum {
 
     /**
-     * 用户模块
+     * 数据字典
      */
-    DISK_USER("01"),
+    DICTIONARY("00"),
+
+    /**
+     * API操作日志模块
+     */
+    LOG_OP("01"),
 
     /**
      * 登录日志模块
@@ -19,10 +24,44 @@ public enum SequenceModuleEnum {
     LOG_LOGIN("02"),
 
     /**
-     * API操作日志模块
+     * 用户模块
      */
-    LOG_OP("03");
+    DISK_USER("03"),
 
+    /**
+     * 系统权限
+     */
+    SYS_AUTH("04"),
+
+    /**
+     * 系统角色
+     */
+    SYS_ROLE("05"),
+
+    /**
+     * 系统角色与权限关联
+     */
+    SYS_ROLE_AUTH("06"),
+
+    /**
+     * 系统用户与角色关联
+     */
+    SYS_USER_ROLE("07"),
+
+    /**
+     * SMS发送记录
+     */
+    SMS_SEND_RECORD("08"),
+
+    /**
+     * 用户属性记录
+     */
+    DISK_USER_ATTR("09");
+
+    /**
+     * 业务模块标识，固定为两位数字
+     * 非特殊情况不支持修改，修改后对原有数据不兼容
+     */
     public final String code;
 
     SequenceModuleEnum(String code) {

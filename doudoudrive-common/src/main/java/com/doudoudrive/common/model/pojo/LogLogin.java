@@ -97,11 +97,6 @@ public class LogLogin implements Serializable {
     private Boolean success;
 
     /**
-     * 是否使用密码登录(0:false,1:true)
-     */
-    private Boolean password;
-
-    /**
      * 提示消息
      */
     private String msg;

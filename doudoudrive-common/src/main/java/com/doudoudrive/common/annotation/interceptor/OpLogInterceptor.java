@@ -12,21 +12,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.doudoudrive.common.annotation.OpLog;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.log.OpLogCompletionHandler;
 import com.doudoudrive.common.model.dto.model.OpLogInfo;
 import com.doudoudrive.common.model.dto.model.Region;
 import com.doudoudrive.common.util.ip.IpUtils;
 import com.doudoudrive.common.util.lang.SpiderUtil;
+import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -50,26 +48,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @Aspect
 @Component
-public class OpLogInterceptor implements ApplicationContextAware, InitializingBean {
+public class OpLogInterceptor implements InitializingBean {
 
     /**
      * 当前钩子挂载的所有插件
      */
     protected Map<String, OpLogCompletionHandler> plugins;
 
-    /**
-     * 应用程序上下文，通过Spring自动注入
-     */
-    private ApplicationContext applicationContext;
-
     @Override
     public void afterPropertiesSet() {
-        plugins = applicationContext.getBeansOfType(OpLogCompletionHandler.class);
-    }
-
-    @Override
-    public void setApplicationContext(@Nullable ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+        plugins = SpringBeanFactoryUtils.getBeansOfType(OpLogCompletionHandler.class);
     }
 
     /**
@@ -91,7 +79,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         // 打印请求类、方法、参数等信息
         String className = formatClassName(joinPoint.getTarget().getClass().getName());
         String requestParameter = (opLog != null && opLog.isSaveRequestData()) ? getRequestParameter(joinPoint) : CharSequenceUtil.EMPTY;
-        log.debug("开始调用--> {}.{} 参数:{}", className, joinPoint.getSignature().getName(), requestParameter);
+        log.info("开始调用--> {}.{} 参数:{}", className, joinPoint.getSignature().getName(), requestParameter);
     }
 
     /**
@@ -105,7 +93,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         try {
             handleLog(joinPoint, null, result);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -135,7 +123,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         // 获得注解信息
         OpLog opLog = getAnnotation(joinPoint);
         if (opLog == null) {
-            log.debug("Failed to get the annotation information correctly...");
+            log.info("Failed to get the annotation information correctly...");
             return;
         }
 
@@ -207,7 +195,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         } catch (Exception e) {
             responseParameter = CharSequenceUtil.EMPTY;
         }
-        log.debug("结束调用<-- {}.{} 返回值:{}", opLogInfo.getClassName(), opLogInfo.getMethodName(), responseParameter);
+        log.info("结束调用<-- {}.{} 返回值:{}", opLogInfo.getClassName(), opLogInfo.getMethodName(), responseParameter);
         ThreadUtil.execAsync(() -> {
             try {
                 // 异步回调所有实现了回调接口的类
@@ -257,7 +245,7 @@ public class OpLogInterceptor implements ApplicationContextAware, InitializingBe
         String userAgent = "无法获取User-Agent信息";
 
         if (requestAttributes != null) {
-            userAgent = requestAttributes.getRequest().getHeader("User-Agent");
+            userAgent = requestAttributes.getRequest().getHeader(ConstantConfig.HttpRequest.USER_AGENT);
             opLogInfo.setIp(ServletUtil.getClientIP(requestAttributes.getRequest()));
             opLogInfo.setRequestUri(requestAttributes.getRequest().getRequestURI());
             opLogInfo.setMethod(requestAttributes.getRequest().getMethod());

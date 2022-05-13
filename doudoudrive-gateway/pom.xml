@@ -6,7 +6,7 @@
     <parent>
         <artifactId>doudoudrive</artifactId>
         <groupId>com.doudoudrive</groupId>
-        <version>0.0.1</version>
+        <version>0.0.3</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -38,7 +38,7 @@
 
         <!-- 公共模块 -->
         <dependency>
-            <groupId>com.doudoudrive</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>doudoudrive-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -47,12 +47,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
-        </dependency>
-
-        <!-- loadbalancer -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
         <!-- alibaba 的限流、熔断降级服务 -->
@@ -72,5 +66,29 @@
         </dependency>
 
     </dependencies>
+
+    <!-- 依赖的插件配置 -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 如果没有该配置，devtools不会生效 -->
+                    <fork>true</fork>
+                    <!-- 指定该Main Class为全局的唯一入口 -->
+                    <mainClass>com.doudoudrive.GatewayApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!-- 可以把依赖的包都打包到生成的Jar包中 -->
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

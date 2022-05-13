@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -22,12 +23,13 @@ import java.lang.reflect.Method;
 @Slf4j
 @Aspect
 @Component
+@Order(value = 1)
 public class DataSourceAspect {
 
     /**
-     * 定义业务 Mapper 相关切点
+     * 定义方法、类的切点
      */
-    @Pointcut("execution(* com.doudoudrive.commonservice.dao.*Dao.*(..)))")
+    @Pointcut("@annotation(com.doudoudrive.commonservice.annotation.DataSource) || @within(com.doudoudrive.commonservice.annotation.DataSource)")
     public void pointCut() {
     }
 
@@ -39,7 +41,7 @@ public class DataSourceAspect {
     private Object process(ProceedingJoinPoint point) throws Throwable {
         DataSource dataSource = getDataSource(point);
         // 方法执行前开始设置当前线程数据源
-        DataSourceContextHolder.push(dataSource.value());
+        DataSourceContextHolder.push(dataSource.value().dataSource);
         Object object = point.proceed();
         // 方法执行后清空当前线程数据源
         DataSourceContextHolder.poll();

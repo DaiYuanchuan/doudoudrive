@@ -1,6 +1,8 @@
 package com.doudoudrive.commonservice.config;
 
 import com.doudoudrive.common.model.dto.model.DynamicDataSourceProperties;
+import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.google.common.collect.Maps;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
@@ -78,7 +80,7 @@ public class DataSourceConfiguration implements Closeable {
 
         DynamicRoutingDataSource dynamicRoutingDataSource = new DynamicRoutingDataSource();
         // 将第一个数据源作为默认数据源
-        dynamicRoutingDataSource.setDefaultTargetDataSource(getDefaultTargetDataSource());
+        dynamicRoutingDataSource.setDefaultTargetDataSource(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource));
         // 其余数据源作为指定的数据源
         dynamicRoutingDataSource.setTargetDataSources(targetDataSources);
         dynamicRoutingDataSource.afterPropertiesSet();
@@ -99,19 +101,33 @@ public class DataSourceConfiguration implements Closeable {
         Map<String, SqlSessionFactory> targetSqlSessionFactories = Maps.newLinkedHashMapWithExpectedSize(hikariDataSourceMap.size());
         hikariDataSourceMap.forEach((key, value) -> targetSqlSessionFactories.put(key, createSqlSessionFactory(value)));
 
-        MySqlSessionTemplate sqlSessionTemplate = new MySqlSessionTemplate(createSqlSessionFactory(getDefaultTargetDataSource()));
+        MySqlSessionTemplate sqlSessionTemplate = new MySqlSessionTemplate(createSqlSessionFactory(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource)));
         sqlSessionTemplate.setTargetSqlSessionFactories(targetSqlSessionFactories);
         return sqlSessionTemplate;
     }
 
     /**
      * 配置事务管理器
+     * 这里的事务只实现单库的本地事务，跨库事务可使用分布式事务如:Atomikos、Seata等
+     * 如果使用 Atomikos 需要将 Hikari 数据源替换为 AtomikosNonXADataSourceBean
      *
      * @return 平台事务管理程序
      */
     @Bean
     public PlatformTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dynamicDataSource());
+        // 获取数据源对象
+        Map<String, HikariDataSource> hikariDataSourceMap = getHikariDataSourceConfig();
+        hikariDataSourceMap.forEach((key, value) -> {
+            // 不获取默认数据源
+            if (!DataSourceEnum.DEFAULT.dataSource.equals(key)) {
+                // 配置事务管理器
+                PlatformTransactionManager transactionManager = new DataSourceTransactionManager(value);
+                // 向spring中动态的注册Bean
+                SpringBeanFactoryUtils.registerBean(DataSourceEnum.getTransactionValue(key), transactionManager);
+            }
+        });
+        // 响应一个默认数据源
+        return new DataSourceTransactionManager(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource));
     }
 
     /**
@@ -119,7 +135,7 @@ public class DataSourceConfiguration implements Closeable {
      */
     @Override
     public void close() {
-        log.warn("prepare to shut down all data sources");
+        log.warn("prepare to shutdown all data sources");
         // 循环关闭所有的数据源
         HIKARI_DATA_SOURCE.forEach((key, value) -> value.close());
     }
@@ -159,6 +175,12 @@ public class DataSourceConfiguration implements Closeable {
         List<DynamicDataSourceProperties> dynamicDataSourcePropertiesList = getDynamicDataSourceProperties();
         if (CollectionUtils.isEmpty(dynamicDataSourcePropertiesList)) {
             throw new IllegalArgumentException("No data source configuration entry found ! ! !");
+        }
+
+        // 查看默认数据源配置是否存在
+        if (HIKARI_DATA_SOURCE.get(DataSourceEnum.DEFAULT.dataSource) == null) {
+            // 初始化默认数据源
+            HIKARI_DATA_SOURCE.put(DataSourceEnum.DEFAULT.dataSource, getDefaultTargetDataSource());
         }
 
         // 构建 HikariDataSource 数据源配置

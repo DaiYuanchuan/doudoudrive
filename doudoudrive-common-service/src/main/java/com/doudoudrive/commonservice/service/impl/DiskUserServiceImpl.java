@@ -1,16 +1,18 @@
 package com.doudoudrive.commonservice.service.impl;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.lang.SequenceUtil;
+import com.doudoudrive.commonservice.annotation.DataSource;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskUserDao;
 import com.doudoudrive.commonservice.service.DiskUserService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>用户模块服务层实现</p>
@@ -19,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Dan
  **/
 @Service("diskUserService")
-@Transactional(rollbackFor = Exception.class)
+@DataSource(DataSourceEnum.USERINFO)
 public class DiskUserServiceImpl implements DiskUserService {
 
     private DiskUserDao diskUserDao;
@@ -42,7 +44,7 @@ public class DiskUserServiceImpl implements DiskUserService {
         if (StringUtils.isBlank(diskUser.getBusinessId())) {
             diskUser.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_USER));
         }
-        diskUserDao.insert(diskUser);
+        diskUserDao.insert(diskUser, SequenceUtil.tableSuffix(diskUser.getBusinessId(), ConstantConfig.TableSuffix.USERINFO));
     }
 
     /**
@@ -56,7 +58,7 @@ public class DiskUserServiceImpl implements DiskUserService {
         if (StringUtils.isBlank(businessId)) {
             return NumberConstant.INTEGER_ZERO;
         }
-        return diskUserDao.delete(businessId);
+        return diskUserDao.delete(businessId, SequenceUtil.tableSuffix(businessId, ConstantConfig.TableSuffix.USERINFO));
     }
 
     /**
@@ -70,17 +72,17 @@ public class DiskUserServiceImpl implements DiskUserService {
         if (ObjectUtils.isEmpty(diskUser) || StringUtils.isBlank(diskUser.getBusinessId())) {
             return NumberConstant.INTEGER_ZERO;
         }
-        return diskUserDao.update(diskUser);
+        return diskUserDao.update(diskUser, SequenceUtil.tableSuffix(diskUser.getBusinessId(), ConstantConfig.TableSuffix.USERINFO));
     }
 
     /**
-     * 查找用户模块
+     * 根据用户业务标识查找指定用户信息
      *
      * @param businessId 根据业务id(businessId)查找
-     * @return 返回查找到的用户模块实体
+     * @return 返回查找到的用户信息实体(实体中会返回一些涉密字段 ， 不可直接抛给前端)
      */
     @Override
     public DiskUser getDiskUser(String businessId) {
-        return diskUserDao.getDiskUser(businessId);
+        return diskUserDao.getDiskUser(businessId, SequenceUtil.tableSuffix(businessId, ConstantConfig.TableSuffix.USERINFO));
     }
 }

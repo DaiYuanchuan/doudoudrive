@@ -1,5 +1,5 @@
 server:
-  port: 88
+  port: 80
   servlet:
     context-path: /
   undertow:
@@ -20,23 +20,20 @@ spring:
     # 网关配置
     gateway:
       routes:
-        # 测试路由1 - www.baidu.com
-        - id: bd_route
-          uri: https://www.baidu.com
-          predicates:
-            - Query=url,baidu
-        # 测试路由2 - im.qq.com
-        - id: qq_route
-          uri: https://im.qq.com
-          predicates:
-            - Query=url,qq
         # 用户服务路由
         - id: user_route
           uri: lb://userInfoServer
           predicates:
-            - Path=/user/**
+            - Path=/userinfo/**
           filters:
-            - RewritePath=/user/(?<segment>.*),/$\{segment}
+            - RewritePath=/userinfo/(?<segment>.*),/userinfo/$\{segment}
+        # 鉴权路由
+        - id: auth_route
+          uri: lb://authServer
+          predicates:
+            - Path=/oauth/**
+          filters:
+            - RewritePath=/oauth/(?<segment>.*),/oauth/$\{segment}
     # 阿里巴巴sentinel流量卫兵配置
     sentinel:
       eager: true
@@ -44,7 +41,7 @@ spring:
         # 当前应用与Sentinel控制台交互的端口，应用本地会起一个该端口占用的HttpServer，通过此端口收发数据
         port: 8719
         # Sentinel控制台地址
-        dashboard: 192.168.0.108:8080
+        dashboard: 192.168.31.192:8080
       datasource:
         node1:
           nacos:

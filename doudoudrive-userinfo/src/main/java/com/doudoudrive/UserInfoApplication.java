@@ -14,10 +14,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  * @author Dan
  **/
 @EnableWebMvc
-@EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableTransactionManagement
+@EnableFeignClients(basePackages = {"com.doudoudrive.userinfo.client"})
 public class UserInfoApplication {
 
     public static void main(String[] args) {

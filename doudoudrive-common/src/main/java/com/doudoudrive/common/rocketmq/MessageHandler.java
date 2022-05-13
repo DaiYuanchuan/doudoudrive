@@ -42,7 +42,7 @@ public class MessageHandler {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return ConsumeStatusEnum.RETRY;
         }
         return ConsumeStatusEnum.SUCCESS;

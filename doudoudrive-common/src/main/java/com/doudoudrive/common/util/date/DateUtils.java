@@ -1,7 +1,8 @@
 package com.doudoudrive.common.util.date;
 
 import cn.hutool.core.date.*;
-import org.apache.commons.lang.StringUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -17,6 +18,7 @@ import java.util.List;
  *
  * @author Dan
  **/
+@Slf4j
 public class DateUtils {
 
     /**
@@ -153,7 +155,7 @@ public class DateUtils {
         if (timeDifference >= DateUnit.DAY.getMillis() && timeDifference < twentyDays) {
             return DateUtil.formatBetween(timeDifference, BetweenFormatter.Level.DAY) + "前";
         }
-        return DateUtil.format(time, "yyyy-MM-dd");
+        return DateUtil.format(time, DatePattern.NORM_DATE_PATTERN);
     }
 
     /**
@@ -230,7 +232,7 @@ public class DateUtils {
     public static String getBaiDuTime(String format) {
         try {
             // 取得资源对象
-            URL url = new URL("http://www.baidu.com");
+            URL url = new URL("https://www.baidu.com");
             // 生成连接对象
             URLConnection urlConnection = url.openConnection();
             // 发出连接
@@ -242,7 +244,7 @@ public class DateUtils {
             // 输出北京时间
             return format(date, format);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return "";
     }
@@ -321,6 +323,15 @@ public class DateUtils {
      */
     public static Date parse(String date, String format) {
         return DateUtil.parse(date, format);
+    }
+
+    /**
+     * 获取当前月份，格式 yyyyMM
+     *
+     * @return 当前月份日期的字符串
+     */
+    public static String toMonth() {
+        return DatePattern.SIMPLE_MONTH_FORMAT.format(new DateTime());
     }
 
     /**

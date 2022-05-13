@@ -167,7 +167,7 @@ public class IpUtils {
                 return new Region(intranetIp, intranetIp, intranetIp, intranetIp);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return new Region(intranetIp, intranetIp, intranetIp, intranetIp);
         }
     }

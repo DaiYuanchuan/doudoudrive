@@ -65,6 +65,15 @@ public class Result<T> implements Serializable {
     /**
      * 判断返回是否为成功
      *
+     * @return 是否成功(true : 成功的响应)
+     */
+    public boolean success() {
+        return ObjectUtils.nullSafeEquals(StatusCodeEnum.SUCCESS.statusCode, this.code);
+    }
+
+    /**
+     * 判断返回是否为成功
+     *
      * @param result Result
      * @return 是否成功
      */
@@ -100,12 +109,16 @@ public class Result<T> implements Serializable {
         return new Result<>(StatusCodeEnum.USER_UN_LOGIN);
     }
 
-    public static <T> Result<T> error(String message) {
+    public static <T> Result<T> error() {
         return new Result<>(StatusCodeEnum.SYSTEM_ERROR);
     }
 
     public static <T> Result<T> build(StatusCodeEnum statusCodeEnum) {
         return new Result<>(statusCodeEnum);
+    }
+
+    public static <T> Result<T> build(Integer code, String message) {
+        return new Result<>(code, message);
     }
 
     public Integer getCode() {
@@ -134,6 +147,4 @@ public class Result<T> implements Serializable {
         this.data = data;
         return this;
     }
-
-
 }

@@ -405,7 +405,7 @@ public class MySqlSessionTemplate extends SqlSessionTemplate {
                 Throwable unwrapped = unwrapThrowable(t);
                 if (MySqlSessionTemplate.this.exceptionTranslator != null && unwrapped instanceof PersistenceException) {
                     // release the connection to avoid a deadlock if the translator is no loaded. See issue #22
-                    closeSqlSession(sqlSession, MySqlSessionTemplate.this.sqlSessionFactory);
+                    closeSqlSession(sqlSession, MySqlSessionTemplate.this.getSqlSessionFactory());
                     sqlSession = null;
                     Throwable translated = MySqlSessionTemplate.this.exceptionTranslator
                             .translateExceptionIfPossible((PersistenceException) unwrapped);

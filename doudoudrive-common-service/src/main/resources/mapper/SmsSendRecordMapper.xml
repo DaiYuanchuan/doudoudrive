@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.SmsSendRecordDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.SmsSendRecord" id="smsSendRecordResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="smsRecipient" column="sms_recipient"/>
+        <result property="smsTitle" column="sms_title"/>
+        <result property="smsDataId" column="sms_data_id"/>
+        <result property="smsErrorReason" column="sms_error_reason"/>
+        <result property="username" column="username"/>
+        <result property="smsType" column="sms_type"/>
+        <result property="smsStatus" column="sms_status"/>
+        <result property="smsSendTime" column="sms_send_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="smsSendRecord">
+        `auto_id`
+        , `business_id`, `sms_recipient`, `sms_title`, `sms_data_id`, `sms_error_reason`,
+        `username`, `sms_type`, `sms_status`, `sms_send_time`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 新增SMS发送记录 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.SmsSendRecord" flushCache="true"
+            useGeneratedKeys="true" keyProperty="smsSendRecord.autoId">
+        INSERT INTO
+        `sms_send_record_${tableSuffix}` (
+        <trim suffixOverrides=",">
+            <if test="null != smsSendRecord.businessId and '' != smsSendRecord.businessId">
+                `business_id`,
+            </if>
+            <if test="null != smsSendRecord.smsRecipient and '' != smsSendRecord.smsRecipient">
+                `sms_recipient`,
+            </if>
+            <if test="null != smsSendRecord.smsTitle and '' != smsSendRecord.smsTitle">
+                `sms_title`,
+            </if>
+            <if test="null != smsSendRecord.smsDataId and '' != smsSendRecord.smsDataId">
+                `sms_data_id`,
+            </if>
+            <if test="null != smsSendRecord.smsErrorReason and '' != smsSendRecord.smsErrorReason">
+                `sms_error_reason`,
+            </if>
+            <if test="null != smsSendRecord.username and '' != smsSendRecord.username">
+                `username`,
+            </if>
+            <if test="null != smsSendRecord.smsType and '' != smsSendRecord.smsType">
+                `sms_type`,
+            </if>
+            <if test="null != smsSendRecord.smsStatus and '' != smsSendRecord.smsStatus">
+                `sms_status`,
+            </if>
+            <if test="null != smsSendRecord.smsSendTime">
+                `sms_send_time`,
+            </if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != smsSendRecord.businessId and '' != smsSendRecord.businessId">
+                #{smsSendRecord.businessId},
+            </if>
+            <if test="null != smsSendRecord.smsRecipient and '' != smsSendRecord.smsRecipient">
+                #{smsSendRecord.smsRecipient},
+            </if>
+            <if test="null != smsSendRecord.smsTitle and '' != smsSendRecord.smsTitle">
+                #{smsSendRecord.smsTitle},
+            </if>
+            <if test="null != smsSendRecord.smsDataId and '' != smsSendRecord.smsDataId">
+                #{smsSendRecord.smsDataId},
+            </if>
+            <if test="null != smsSendRecord.smsErrorReason and '' != smsSendRecord.smsErrorReason">
+                #{smsSendRecord.smsErrorReason},
+            </if>
+            <if test="null != smsSendRecord.username and '' != smsSendRecord.username">
+                #{smsSendRecord.username},
+            </if>
+            <if test="null != smsSendRecord.smsType and '' != smsSendRecord.smsType">
+                #{smsSendRecord.smsType},
+            </if>
+            <if test="null != smsSendRecord.smsStatus and '' != smsSendRecord.smsStatus">
+                #{smsSendRecord.smsStatus},
+            </if>
+            <if test="null != smsSendRecord.smsSendTime">
+                #{smsSendRecord.smsSendTime},
+            </if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 根据业务id(businessId)修改SMS发送记录 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.SmsSendRecord" flushCache="true">
+        UPDATE `sms_send_record_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != smsSendRecord.smsRecipient and '' != smsSendRecord.smsRecipient">
+                `sms_recipient` = #{smsSendRecord.smsRecipient},
+            </if>
+            <if test="null != smsSendRecord.smsTitle and '' != smsSendRecord.smsTitle">
+                `sms_title` = #{smsSendRecord.smsTitle},
+            </if>
+            <if test="null != smsSendRecord.smsDataId and '' != smsSendRecord.smsDataId">
+                `sms_data_id` = #{smsSendRecord.smsDataId},
+            </if>
+            <if test="null != smsSendRecord.smsErrorReason and '' != smsSendRecord.smsErrorReason">
+                `sms_error_reason` = #{smsSendRecord.smsErrorReason},
+            </if>
+            <if test="null != smsSendRecord.username and '' != smsSendRecord.username">
+                `username` = #{smsSendRecord.username},
+            </if>
+            <if test="null != smsSendRecord.smsType and '' != smsSendRecord.smsType">
+                `sms_type` = #{smsSendRecord.smsType},
+            </if>
+            <if test="null != smsSendRecord.smsStatus and '' != smsSendRecord.smsStatus">
+                `sms_status` = #{smsSendRecord.smsStatus},
+            </if>
+            <if test="null != smsSendRecord.smsSendTime">
+                `sms_send_time` = #{smsSendRecord.smsSendTime},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{smsSendRecord.businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找SMS发送记录 -->
+    <select id="getSmsSendRecord" resultType="com.doudoudrive.common.model.pojo.SmsSendRecord"
+            resultMap="smsSendRecordResultMap">
+        SELECT
+        <include refid="smsSendRecord"/>
+        FROM `sms_send_record_${tableSuffix}`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+</mapper>

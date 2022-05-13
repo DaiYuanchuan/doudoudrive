@@ -4,6 +4,7 @@ import cn.hutool.core.date.SystemClock;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -31,6 +32,7 @@ import java.util.Date;
  **/
 public class Snowflake implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 3371797854642681117L;
 
     /**

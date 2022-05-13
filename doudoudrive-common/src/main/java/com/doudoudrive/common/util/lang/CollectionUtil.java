@@ -5,6 +5,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,5 +51,46 @@ public class CollectionUtil extends CollectionUtils {
                         .parallel()
                         .collect(Collectors.toList()))
                 .collect(Collectors.toList());
+    }
+
+    // ==================================================== 数组相关 ====================================================
+
+    /**
+     * 数组是否为空
+     *
+     * @param <T>   数组元素类型
+     * @param array 数组
+     * @return 是否为空
+     */
+    public static <T> boolean isEmpty(T[] array) {
+        return array == null || array.length == 0;
+    }
+
+    /**
+     * 数组是否为非空
+     *
+     * @param <T>   数组元素类型
+     * @param array 数组
+     * @return 是否为非空
+     */
+    public static <T> boolean isNotEmpty(T[] array) {
+        return (null != array && array.length != 0);
+    }
+
+    /**
+     * 数组转为ArrayList
+     *
+     * @param <T>    集合元素类型
+     * @param values 数组
+     * @return ArrayList对象
+     */
+    @SafeVarargs
+    public static <T> List<T> toList(T... values) {
+        if (isEmpty(values)) {
+            return new ArrayList<>();
+        }
+        final List<T> arrayList = new ArrayList<>(values.length);
+        Collections.addAll(arrayList, values);
+        return arrayList;
     }
 }
