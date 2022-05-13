@@ -122,6 +122,7 @@ public class UserInfoManagerImpl implements UserInfoManager {
      * @param userinfo 需要更新的用户信息
      */
     @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.USERINFO_TRANSACTION_MANAGER)
     public void updateBasicsInfo(DiskUser userinfo) {
         // 密码不为空时，需要对新密码加盐加密
         if (StringUtils.isNotBlank(userinfo.getUserPwd())) {
