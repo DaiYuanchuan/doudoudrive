@@ -3,6 +3,7 @@ package com.doudoudrive.common.constant;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -511,7 +512,7 @@ public interface ConstantConfig {
                 userAttrList.add(DiskUserAttr.builder()
                         .userId(userId)
                         .attributeName(attrEnum.param)
-                        .attributeValue(attrEnum.defaultValue)
+                        .attributeValue(new BigDecimal(attrEnum.defaultValue))
                         .build());
             }
             return userAttrList;

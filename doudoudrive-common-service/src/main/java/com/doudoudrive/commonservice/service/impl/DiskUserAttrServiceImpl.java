@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -135,7 +136,8 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
         List<DiskUserAttr> attrList = diskUserAttrDao.listDiskUserAttr(userId, tableSuffix);
 
         // 将属性信息转成Map对象
-        Map<String, String> attrMap = attrList.stream().collect(Collectors.toMap(DiskUserAttr::getAttributeName, DiskUserAttr::getAttributeValue, (key1, key2) -> key2));
+        Map<String, String> attrMap = attrList.stream().collect(Collectors.toMap(DiskUserAttr::getAttributeName,
+                value -> value.getAttributeValue().toPlainString(), (key1, key2) -> key2));
 
         // 用户属性枚举构建的Map
         Map<String, String> defaultMap = ConstantConfig.UserAttrEnum.builderMap();
@@ -154,7 +156,7 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
         this.insertBatch(entriesOnlyOnLeft.entrySet().stream().map(map -> DiskUserAttr.builder()
                 .userId(userId)
                 .attributeName(map.getKey())
-                .attributeValue(map.getValue())
+                .attributeValue(new BigDecimal(map.getValue()))
                 .build()).toList());
         // 合并两个Map内容，同时返回合并后的内容
         attrMap.putAll(entriesOnlyOnLeft);
