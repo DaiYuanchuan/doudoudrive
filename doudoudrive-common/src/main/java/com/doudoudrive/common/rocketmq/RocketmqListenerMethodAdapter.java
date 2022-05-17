@@ -59,7 +59,7 @@ public class RocketmqListenerMethodAdapter implements RocketmqConsumerListener {
             if (ConstantConfig.SpecialSymbols.ASTERISK.equals(tag.trim())) {
                 invoker.invoke(delegate, this.subscriptionGroup.getAllMethods(), message, body, messageContext);
             } else {
-                throw new ConsumeException("未找到相应tag的方法");
+                throw new ConsumeException(String.format("未找到相应的tag(%s)方法", tag));
             }
         }
     }
