@@ -2,6 +2,7 @@ package com.doudoudrive.common.util.lang;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 
 import java.math.BigDecimal;
@@ -104,7 +105,18 @@ public class SequenceUtil {
      * @return 取余字符串形式的运算结果
      */
     public static BigDecimal complement(String sequenceId, Integer remainder) {
-        return new BigDecimal(sequenceId).divideAndRemainder(BigDecimal.valueOf(remainder))[1];
+        return complement(new BigDecimal(sequenceId), remainder);
+    }
+
+    /**
+     * 对指定的序列id进行取余运算
+     *
+     * @param sequenceId 序列id
+     * @param remainder  余数
+     * @return 取余字符串形式的运算结果
+     */
+    public static BigDecimal complement(BigDecimal sequenceId, Integer remainder) {
+        return sequenceId.divideAndRemainder(BigDecimal.valueOf(remainder))[1];
     }
 
     /**
@@ -121,5 +133,23 @@ public class SequenceUtil {
 
         // 对取余结果 +1 后补零
         return String.format("%02d", complement.add(BigDecimal.ONE).longValue());
+    }
+
+    /**
+     * 获取表名后缀(支持字符串序列)
+     * (对字符串序列id中每一个字符的 ASCII 码求和 % 余数) + 1，对结果补零
+     *
+     * @param sequenceId 字符串序列id
+     * @param remainder  余数
+     * @return 表名称后缀
+     */
+    public static String asciiSuffix(String sequenceId, Integer remainder) {
+        int sum = NumberConstant.INTEGER_FIFTY;
+        // 对字符串序列中的每一个字符的 ASCII 码求和
+        for (int i = NumberConstant.INTEGER_ZERO; i < sequenceId.length(); i++) {
+            sum = sum + sequenceId.charAt(i);
+        }
+        // 对取余结果 +1 后补零
+        return String.format("%02d", complement(new BigDecimal(sum), remainder).add(BigDecimal.ONE).longValue());
     }
 }

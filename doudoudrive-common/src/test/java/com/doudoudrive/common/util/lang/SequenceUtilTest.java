@@ -47,6 +47,13 @@ public class SequenceUtilTest {
         log.info("sequenceId:{} % {} = {} suffix: {}", sequenceId, remainder, SequenceUtil.complement(sequenceId, remainder).toPlainString(), SequenceUtil.tableSuffix(sequenceId, remainder));
     }
 
+    @Test
+    public void asciiSuffixTest(){
+        String sequenceId = "lq8AjBQSRIqkU_VGaQD2WQbtbvUla";
+        Integer remainder = 10;
+        log.info("sequenceId:{} % {} suffix: {}", sequenceId, remainder, SequenceUtil.asciiSuffix(sequenceId, remainder));
+    }
+
     /**
      * 序列id重复性测试
      */
