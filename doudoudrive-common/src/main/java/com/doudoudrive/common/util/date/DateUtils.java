@@ -22,8 +22,8 @@ import java.util.List;
 public class DateUtils {
 
     /**
-     * 传入任意 顺序 的日期 , 对日期进行 开始日期 > 结束日期 的排序
-     * 遵循 大的日期在前面[开始日期] 小的日期在后面[结束日期]
+     * 传入任意 顺序 的日期 , 对日期进行 开始日期 < 结束日期 的排序
+     * 遵循 小的日期在前面[开始日期] 大的日期在后面[结束日期]
      *
      * @param startTime 开始日期
      * @param endTime   结束日期
@@ -59,15 +59,15 @@ public class DateUtils {
 
         // 调整时间日期 判断 开始日期的毫秒数 是否小于 结束日期的毫秒数
         if (startTimeMillisecond < endTimeMillisecond) {
-            // 开始日期小于结束日期 两个 日期调换下位置 保证 开始日期 大于 结束日期
-            return new String[]{endTime, startTime};
+            return new String[]{startTime, endTime};
         }
-        return new String[]{startTime, endTime};
+        // 开始日期大于结束日期 两个 日期调换下位置 保证 开始日期 小于 结束日期
+        return new String[]{endTime, startTime};
     }
 
     /**
-     * 传入任意 顺序 的日期 , 对日期进行 开始日期 > 结束日期 的排序
-     * 遵循 大的日期在前面[开始日期] 小的日期在后面[结束日期]
+     * 传入任意 顺序 的日期 , 对日期进行 开始日期 < 结束日期 的排序
+     * 遵循 小的日期在前面[开始日期] 大的日期在后面[结束日期]
      *
      * @param startTime 开始日期
      * @param endTime   结束日期
@@ -86,10 +86,10 @@ public class DateUtils {
 
         // 调整时间日期 判断 开始日期的毫秒数 是否小于 结束日期的毫秒数
         if (startTime.getTime() < endTime.getTime()) {
-            // 开始日期小于结束日期 两个 日期调换下位置 保证 开始日期 大于 结束日期
-            return new Date[]{endTime, startTime};
+            return new Date[]{startTime, endTime};
         }
-        return new Date[]{startTime, endTime};
+        // 开始日期大于结束日期 两个 日期调换下位置 保证 开始日期 小于 结束日期
+        return new Date[]{endTime, startTime};
     }
 
     /**
@@ -332,6 +332,16 @@ public class DateUtils {
      */
     public static String toMonth() {
         return DatePattern.SIMPLE_MONTH_FORMAT.format(new DateTime());
+    }
+
+    /**
+     * 获取指定时间的月份，格式 yyyyMM
+     *
+     * @param date 指定时间
+     * @return 当前月份日期的字符串
+     */
+    public static String toMonth(Date date) {
+        return DatePattern.SIMPLE_MONTH_FORMAT.format(date);
     }
 
     /**

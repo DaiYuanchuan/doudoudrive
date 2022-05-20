@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.RocketmqConsumerRecordDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.RocketmqConsumerRecord" id="rocketmqConsumerRecordResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="msgId" column="msg_id"/>
+        <result property="offsetMsgId" column="offset_msg_id"/>
+        <result property="sendStatus" column="send_status"/>
+        <result property="topic" column="topic"/>
+        <result property="tag" column="tag"/>
+        <result property="brokerName" column="broker_name"/>
+        <result property="queueId" column="queue_id"/>
+        <result property="queueOffset" column="queue_offset"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="rocketmqConsumerRecord">
+        `auto_id`, `business_id`, `msg_id`, `offset_msg_id`, `send_status`, `topic`, `tag`,
+        `broker_name`, `queue_id`, `queue_offset`, `send_time`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 新增RocketMQ消费记录 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.RocketmqConsumerRecord" flushCache="true"
+            useGeneratedKeys="true" keyProperty="record.autoId">
+        INSERT INTO
+        `rocketmq_consumer_record_${tableSuffix}` (
+        <trim suffixOverrides=",">
+            <if test="null != record.businessId and '' != record.businessId">
+                `business_id`,
+            </if>
+            <if test="null != record.msgId and '' != record.msgId">
+                `msg_id`,
+            </if>
+            <if test="null != record.offsetMsgId and '' != record.offsetMsgId">
+                `offset_msg_id`,
+            </if>
+            <if test="null != record.sendStatus and '' != record.sendStatus">
+                `send_status`,
+            </if>
+            <if test="null != record.topic and '' != record.topic">
+                `topic`,
+            </if>
+            <if test="null != record.tag and '' != record.tag">
+                `tag`,
+            </if>
+            <if test="null != record.brokerName and '' != record.brokerName">
+                `broker_name`,
+            </if>
+            <if test="null != record.queueId and '' != record.queueId">
+                `queue_id`,
+            </if>
+            <if test="null != record.queueOffset and '' != record.queueOffset">
+                `queue_offset`,
+            </if>
+            <if test="null != record.sendTime">
+                `send_time`,
+            </if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != record.businessId and '' != record.businessId">
+                #{record.businessId},
+            </if>
+            <if test="null != record.msgId and '' != record.msgId">
+                #{record.msgId},
+            </if>
+            <if test="null != record.offsetMsgId and '' != record.offsetMsgId">
+                #{record.offsetMsgId},
+            </if>
+            <if test="null != record.sendStatus and '' != record.sendStatus">
+                #{record.sendStatus},
+            </if>
+            <if test="null != record.topic and '' != record.topic">
+                #{record.topic},
+            </if>
+            <if test="null != record.tag and '' != record.tag">
+                #{record.tag},
+            </if>
+            <if test="null != record.brokerName and '' != record.brokerName">
+                #{record.brokerName},
+            </if>
+            <if test="null != record.queueId and '' != record.queueId">
+                #{record.queueId},
+            </if>
+            <if test="null != record.queueOffset and '' != record.queueOffset">
+                #{record.queueOffset},
+            </if>
+            <if test="null != record.sendTime">
+                #{record.sendTime},
+            </if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 根据业务id(businessId)查找RocketMQ消费记录 -->
+    <select id="getRocketmqConsumerRecord" resultType="com.doudoudrive.common.model.pojo.RocketmqConsumerRecord"
+            resultMap="rocketmqConsumerRecordResultMap">
+        SELECT
+        <include refid="rocketmqConsumerRecord"/>
+        FROM `rocketmq_consumer_record_${tableSuffix}`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+</mapper>

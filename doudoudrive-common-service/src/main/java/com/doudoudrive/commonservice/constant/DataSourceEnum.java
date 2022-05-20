@@ -31,7 +31,12 @@ public enum DataSourceEnum {
     /**
      * 系统静默配置中心数据源
      */
-    CONFIG("config", TransactionManagerConstant.CONFIG_TRANSACTION_MANAGER);
+    CONFIG("config", TransactionManagerConstant.CONFIG_TRANSACTION_MANAGER),
+
+    /**
+     * 文件系统配置中心数据源
+     */
+    FILE("file", TransactionManagerConstant.FILE_TRANSACTION_MANAGER);
 
     /**
      * 数据源key

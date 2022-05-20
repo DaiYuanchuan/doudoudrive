@@ -38,8 +38,7 @@
             </if>
         </if>
         <if test="null != startTime and null != endTime">
-            STR_TO_DATE(`create_time`,'%Y-%m-%d') &lt;= STR_TO_DATE(#{startTime},'%Y-%m-%d') and
-            STR_TO_DATE(`create_time`,'%Y-%m-%d') >= STR_TO_DATE(#{endTime},'%Y-%m-%d') and
+            `create_time` BETWEEN #{startTime} AND #{endTime}
         </if>
     </sql>
 

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.DiskFileDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.DiskFile" id="diskFileResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileParentId" column="file_parent_id"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="fileMimeType" column="file_mime_type"/>
+        <result property="fileEtag" column="file_etag"/>
+        <result property="fileFolder" column="is_file_folder"/>
+        <result property="forbidden" column="is_forbidden"/>
+        <result property="collect" column="is_collect"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="diskFile">
+        `auto_id`
+        , `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+        `is_file_folder`, `is_forbidden`, `is_collect`, `status`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 搜索的参数块 -->
+    <sql id="searchCondition">
+        <if test="null != diskFile">
+            <if test="null != diskFile.autoId and 0 != diskFile.autoId">
+                `auto_id` = #{diskFile.autoId} AND
+            </if>
+            <if test="null != diskFile.businessId and '' != diskFile.businessId">
+                `business_id` = #{diskFile.businessId} AND
+            </if>
+            <if test="null != diskFile.userId and '' != diskFile.userId">
+                LOCATE(#{diskFile.userId}, `user_id`)>0 AND
+            </if>
+            <if test="null != diskFile.fileName and '' != diskFile.fileName">
+                LOCATE(#{diskFile.fileName}, `file_name`)>0 AND
+            </if>
+            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">
+                LOCATE(#{diskFile.fileParentId}, `file_parent_id`)>0 AND
+            </if>
+            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">
+                LOCATE(#{diskFile.fileSize}, `file_size`)>0 AND
+            </if>
+            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">
+                LOCATE(#{diskFile.fileMimeType}, `file_mime_type`)>0 AND
+            </if>
+            <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">
+                LOCATE(#{diskFile.fileEtag}, `file_etag`)>0 AND
+            </if>
+            <if test="null != diskFile.fileFolder">
+                `is_file_folder` = #{diskFile.fileFolder} AND
+            </if>
+            <if test="null != diskFile.forbidden">
+                `is_forbidden` = #{diskFile.forbidden} AND
+            </if>
+            <if test="null != diskFile.collect">
+                `is_collect` = #{diskFile.collect} AND
+            </if>
+            <if test="null != diskFile.status and '' != diskFile.status">
+                `status` = #{diskFile.status} AND
+            </if>
+        </if>
+        <if test="null != startTime and null != endTime">
+            `create_time` BETWEEN #{startTime} AND #{endTime}
+        </if>
+    </sql>
+
+    <!-- 新增用户文件模块 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.DiskFile" flushCache="true"
+            useGeneratedKeys="true" keyProperty="diskFile.autoId">
+        INSERT INTO
+        `disk_file_${tableSuffix}` (
+        <trim suffixOverrides=",">
+            <if test="null != diskFile.businessId and '' != diskFile.businessId">`business_id`,</if>
+            <if test="null != diskFile.userId and '' != diskFile.userId">`user_id`,</if>
+            <if test="null != diskFile.fileName and '' != diskFile.fileName">`file_name`,</if>
+            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">`file_parent_id`,</if>
+            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">`file_size`,</if>
+            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">`file_mime_type`,</if>
+            <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">`file_etag`,</if>
+            <if test="null != diskFile.fileFolder">`is_file_folder`,</if>
+            <if test="null != diskFile.forbidden">`is_forbidden`,</if>
+            <if test="null != diskFile.collect">`is_collect`,</if>
+            <if test="null != diskFile.status and '' != diskFile.status">`status`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
+            <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
+            <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
+            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
+            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
+            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
+            <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
+            <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
+            <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
+            <if test="null != diskFile.collect">#{diskFile.collect},</if>
+            <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 批量新增用户文件模块 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `disk_file_${tableSuffix}` (
+        `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+        `is_file_folder`, `is_forbidden`, `is_collect`, `status`
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.businessId}, #{item.userId}, #{item.fileName}, #{item.fileParentId}, #{item.fileSize},
+            #{item.fileMimeType}, #{item.fileEtag}, #{item.fileFolder}, #{item.forbidden}, #{item.collect},
+            #{item.status}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据业务id(businessId)删除用户文件模块 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `disk_file_${tableSuffix}`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)批量删除用户文件模块 -->
+    <delete id="deleteBatch" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `disk_file_${tableSuffix}`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改用户文件模块 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.DiskFile" flushCache="true">
+        UPDATE `disk_file_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != diskFile.userId and '' != diskFile.userId">
+                `user_id` = #{diskFile.userId},
+            </if>
+            <if test="null != diskFile.fileName and '' != diskFile.fileName">
+                `file_name` = #{diskFile.fileName},
+            </if>
+            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">
+                `file_parent_id` = #{diskFile.fileParentId},
+            </if>
+            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">
+                `file_size` = #{diskFile.fileSize},
+            </if>
+            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">
+                `file_mime_type` = #{diskFile.fileMimeType},
+            </if>
+            <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">
+                `file_etag` = #{diskFile.fileEtag},
+            </if>
+            <if test="null != diskFile.fileFolder">
+                `is_file_folder` = #{diskFile.fileFolder},
+            </if>
+            <if test="null != diskFile.forbidden">
+                `is_forbidden` = #{diskFile.forbidden},
+            </if>
+            <if test="null != diskFile.collect">
+                `is_collect` = #{diskFile.collect},
+            </if>
+            <if test="null != diskFile.status and '' != diskFile.status">
+                `status` = #{diskFile.status},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{diskFile.businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)批量修改用户文件模块 -->
+    <update id="updateBatch" parameterType="java.util.List" flushCache="true">
+        UPDATE `disk_file_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="`user_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.userId and '' != item.userId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.userId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_name` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileName and '' != item.fileName">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_parent_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileParentId and '' != item.fileParentId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileParentId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_size` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileSize and '' != item.fileSize">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileSize}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_mime_type` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileMimeType and '' != item.fileMimeType">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileMimeType}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_etag` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileEtag and '' != item.fileEtag">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileEtag}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`is_file_folder` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileFolder">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileFolder}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`is_forbidden` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.forbidden">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.forbidden}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`is_collect` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.collect">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.collect}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`status` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.status and '' != item.status">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.status}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+                #{item.businessId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 指定条件查找用户文件模块 -->
+    <select id="listDiskFileToKey" resultType="com.doudoudrive.common.model.pojo.DiskFile"
+            resultMap="diskFileResultMap">
+        SELECT
+        <include refid="diskFile"/>
+        FROM `disk_file`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+        ${limit};
+    </select>
+
+    <!-- 返回搜索的总数 -->
+    <select id="countSearch" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `disk_file`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+    </select>
+
+</mapper>

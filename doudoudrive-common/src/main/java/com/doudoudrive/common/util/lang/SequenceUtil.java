@@ -50,6 +50,11 @@ public class SequenceUtil {
      */
     private static final AtomicLong LAST_TIMESTAMP = new AtomicLong(Instant.now().toEpochMilli());
 
+    /**
+     * 两位数补零填充
+     */
+    private static final String DOUBLE_DIGIT_ZERO_FILLING = "%02d";
+
     private SequenceUtil() {
     }
 
@@ -132,7 +137,7 @@ public class SequenceUtil {
         BigDecimal complement = complement(sequenceId, remainder);
 
         // 对取余结果 +1 后补零
-        return String.format("%02d", complement.add(BigDecimal.ONE).longValue());
+        return String.format(DOUBLE_DIGIT_ZERO_FILLING, complement.add(BigDecimal.ONE).longValue());
     }
 
     /**
@@ -150,6 +155,6 @@ public class SequenceUtil {
             sum = sum + sequenceId.charAt(i);
         }
         // 对取余结果 +1 后补零
-        return String.format("%02d", complement(new BigDecimal(sum), remainder).add(BigDecimal.ONE).longValue());
+        return String.format(DOUBLE_DIGIT_ZERO_FILLING, complement(new BigDecimal(sum), remainder).add(BigDecimal.ONE).longValue());
     }
 }

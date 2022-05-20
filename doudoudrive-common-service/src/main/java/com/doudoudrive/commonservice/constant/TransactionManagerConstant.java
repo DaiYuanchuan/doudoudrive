@@ -28,4 +28,9 @@ public class TransactionManagerConstant {
      */
     public static final String CONFIG_TRANSACTION_MANAGER = "configTransactionManager";
 
+    /**
+     * 文件系统配置中心的事务管理器
+     */
+    public static final String FILE_TRANSACTION_MANAGER = "fileTransactionManager";
+
 }

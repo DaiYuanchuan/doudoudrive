@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.OssFileDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.OssFile" id="ossFileResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="etag" column="etag"/>
+        <result property="size" column="size"/>
+        <result property="mimeType" column="mime_type"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="ossFile">
+        `auto_id`
+        , `business_id`, `etag`, `size`, `mime_type`, `status`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 新增OSS文件对象存储 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.OssFile" flushCache="true"
+            useGeneratedKeys="true" keyProperty="ossFile.autoId">
+        INSERT INTO
+        `oss_file_${tableSuffix}` (
+        <trim suffixOverrides=",">
+            <if test="null != ossFile.businessId and '' != ossFile.businessId">`business_id`,</if>
+            <if test="null != ossFile.etag and '' != ossFile.etag">`etag`,</if>
+            <if test="null != ossFile.size and '' != ossFile.size">`size`,</if>
+            <if test="null != ossFile.mimeType and '' != ossFile.mimeType">`mime_type`,</if>
+            <if test="null != ossFile.status and '' != ossFile.status">`status`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != ossFile.businessId and '' != ossFile.businessId">#{ossFile.businessId},</if>
+            <if test="null != ossFile.etag and '' != ossFile.etag">#{ossFile.etag},</if>
+            <if test="null != ossFile.size and '' != ossFile.size">#{ossFile.size},</if>
+            <if test="null != ossFile.mimeType and '' != ossFile.mimeType">#{ossFile.mimeType},</if>
+            <if test="null != ossFile.status and '' != ossFile.status">#{ossFile.status},</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 根据文件的ETag(资源的唯一标识)删除OSS文件对象存储 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `oss_file_${tableSuffix}`
+        <where>
+            `etag` = #{etag}
+        </where>
+    </delete>
+
+    <!-- 根据文件的ETag(资源的唯一标识)修改OSS文件对象存储 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.OssFile" flushCache="true">
+        UPDATE `oss_file_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != ossFile.size and '' != ossFile.size">
+                `size` = #{ossFile.size},
+            </if>
+            <if test="null != ossFile.mimeType and '' != ossFile.mimeType">
+                `mime_type` = #{ossFile.mimeType},
+            </if>
+            <if test="null != ossFile.status and '' != ossFile.status">
+                `status` = #{ossFile.status},
+            </if>
+        </trim>
+        <where>
+            `etag` = #{ossFile.etag}
+        </where>
+    </update>
+
+    <!-- 根据文件的ETag(资源的唯一标识)查找OSS文件对象存储 -->
+    <select id="getOssFile" resultType="com.doudoudrive.common.model.pojo.OssFile" resultMap="ossFileResultMap">
+        SELECT
+        <include refid="ossFile"/>
+        FROM `oss_file_${tableSuffix}`
+        <where>
+            `etag` = #{etag};
+        </where>
+    </select>
+
+</mapper>

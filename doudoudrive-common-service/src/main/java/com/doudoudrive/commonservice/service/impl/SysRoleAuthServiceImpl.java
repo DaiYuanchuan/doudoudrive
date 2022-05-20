@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
+import com.doudoudrive.common.global.BusinessExceptionUtil;
+import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.response.PageResponse;
 import com.doudoudrive.common.model.pojo.SysRoleAuth;
 import com.doudoudrive.common.util.date.DateUtils;
@@ -216,7 +218,7 @@ public class SysRoleAuthServiceImpl implements SysRoleAuthService {
         // 获取到正确的时间顺序
         String[] str = DateUtils.sortByDate(startTime, endTime, DatePattern.NORM_DATE_PATTERN);
         if (str == null) {
-            throw new IllegalArgumentException("日期格式错误");
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
         }
 
         // 构建返回数据

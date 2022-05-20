@@ -226,6 +226,16 @@ public interface ConstantConfig {
          * 用户属性表依据 user_id 平均分 50 个表
          */
         Integer DISK_USER_ATTR = 50;
+
+        /**
+         * 用户文件模块依据 user_id 分 500 个表
+         */
+        Integer DISK_FILE = 500;
+
+        /**
+         * OSS文件对象存储模块依据 file_etag 平均分 300 个表
+         */
+        Integer OSS_FILE = 300;
     }
 
     /**

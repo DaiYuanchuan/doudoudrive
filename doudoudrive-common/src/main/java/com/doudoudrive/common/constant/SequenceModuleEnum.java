@@ -56,7 +56,22 @@ public enum SequenceModuleEnum {
     /**
      * 用户属性记录
      */
-    DISK_USER_ATTR("09");
+    DISK_USER_ATTR("09"),
+
+    /**
+     * RocketMQ消费记录
+     */
+    ROCKETMQ_CONSUMER_RECORD("10"),
+
+    /**
+     * 用户文件模块
+     */
+    DISK_FILE("11"),
+
+    /**
+     * OSS文件对象存储
+     */
+    OSS_FILE("12");
 
     /**
      * 业务模块标识，固定为两位数字
