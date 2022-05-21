@@ -15,7 +15,8 @@
 
     <!-- sql字段信息 -->
     <sql id="diskUserAttr">
-        `auto_id`, `business_id`, `user_id`, `attribute_name`, `attribute_value`, `create_time`, `update_time`
+        `auto_id`
+        , `business_id`, `user_id`, `attribute_name`, `attribute_value`, `create_time`, `update_time`
     </sql>
 
     <!-- 新增用户属性模块 -->
@@ -77,22 +78,25 @@
         </where>
     </delete>
 
-    <!-- 根据业务id(businessId)修改用户属性模块 -->
-    <update id="update" parameterType="com.doudoudrive.common.model.pojo.DiskUserAttr" flushCache="true">
+    <!-- 原子性服务，扣除指定字段的数量 -->
+    <update id="deducted" flushCache="true">
         UPDATE `disk_user_attr_${tableSuffix}`
-        <trim prefix="SET" suffixOverrides=",">
-            <if test="null != diskUserAttr.userId and '' != diskUserAttr.userId">
-                `user_id` = #{diskUserAttr.userId},
-            </if>
-            <if test="null != diskUserAttr.attributeName and '' != diskUserAttr.attributeName">
-                `attribute_name` = #{diskUserAttr.attributeName},
-            </if>
-            <if test="null != diskUserAttr.attributeValue and '' != diskUserAttr.attributeValue">
-                `attribute_value` = #{diskUserAttr.attributeValue},
-            </if>
-        </trim>
+        <set>
+            `attribute_value` = `attribute_value` - #{number}
+        </set>
         <where>
-            `business_id` = #{diskUserAttr.businessId}
+            `user_id` = #{userId} AND `attribute_name` = #{attrName} AND `attribute_value` >= 0;
+        </where>
+    </update>
+
+    <!-- 原子性服务，增加指定字段的数量 -->
+    <update id="increase" flushCache="true">
+        UPDATE `disk_user_attr_${tableSuffix}`
+        <set>
+            `attribute_value` = `attribute_value` + #{number}
+        </set>
+        <where>
+            `user_id` = #{userId} AND `attribute_name` = #{attrName};
         </where>
     </update>
 

@@ -103,20 +103,43 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
     }
 
     /**
-     * 修改用户属性模块
+     * 原子性服务，扣除指定字段的数量
      *
-     * @param diskUserAttr 需要进行修改的用户属性模块实体
-     * @return 返回修改的条数
+     * @param userId       需要进行操作的用户标识
+     * @param userAttrEnum 需要扣除的字段属性枚举值
+     * @param size         需要扣除的数量
+     * @return 返回修改的条数，根据返回值判断是否修改成功
      */
     @Override
-    public Integer update(DiskUserAttr diskUserAttr) {
-        if (ObjectUtils.isEmpty(diskUserAttr) || StringUtils.isBlank(diskUserAttr.getBusinessId())
-                || StringUtils.isBlank(diskUserAttr.getUserId())) {
+    public Integer deducted(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
+        try {
+            // 获取更新结果
+            return diskUserAttrDao.deducted(userId, userAttrEnum.param, size, tableSuffix);
+        } catch (Exception e) {
             return NumberConstant.INTEGER_ZERO;
         }
+    }
+
+    /**
+     * 原子性服务，增加指定字段的数量
+     *
+     * @param userId       需要进行操作的用户标识
+     * @param userAttrEnum 需要扣除的字段属性枚举值
+     * @param size         需要扣除的数量
+     * @return 返回修改的条数，根据返回值判断是否修改成功
+     */
+    @Override
+    public Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size) {
         // 获取表后缀
-        String tableSuffix = SequenceUtil.tableSuffix(diskUserAttr.getUserId(), ConstantConfig.TableSuffix.DISK_USER_ATTR);
-        return diskUserAttrDao.update(diskUserAttr, tableSuffix);
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
+        try {
+            // 获取更新结果
+            return diskUserAttrDao.increase(userId, userAttrEnum.param, size, tableSuffix);
+        } catch (Exception e) {
+            return NumberConstant.INTEGER_ZERO;
+        }
     }
 
     /**

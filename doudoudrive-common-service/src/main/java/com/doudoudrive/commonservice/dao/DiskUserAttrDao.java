@@ -43,13 +43,26 @@ public interface DiskUserAttrDao {
     Integer deleteUserAttr(@Param("userId") String userId, @Param("tableSuffix") String tableSuffix);
 
     /**
-     * 修改用户属性
+     * 原子性服务，扣除指定字段的数量
      *
-     * @param diskUserAttr 需要进行修改的用户属性实体
-     * @param tableSuffix  表后缀
-     * @return 返回修改的条数
+     * @param userId      需要进行操作的用户标识
+     * @param attrName    需要扣除的字段属性
+     * @param number      需要扣除的数量
+     * @param tableSuffix 表后缀
+     * @return 返回修改的条数，根据返回值判断是否修改成功
      */
-    Integer update(@Param("diskUserAttr") DiskUserAttr diskUserAttr, @Param("tableSuffix") String tableSuffix);
+    Integer deducted(@Param("userId") String userId, @Param("attrName") String attrName, @Param("number") String number, @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 原子性服务，增加指定字段的数量
+     *
+     * @param userId      需要进行操作的用户标识
+     * @param attrName    需要扣除的字段属性
+     * @param number      需要扣除的数量
+     * @param tableSuffix 表后缀
+     * @return 返回修改的条数，根据返回值判断是否修改成功
+     */
+    Integer increase(@Param("userId") String userId, @Param("attrName") String attrName, @Param("number") String number, @Param("tableSuffix") String tableSuffix);
 
     /**
      * 根据用户标识查询指定用户下所有属性信息

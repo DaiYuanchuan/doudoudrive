@@ -1,5 +1,6 @@
 package com.doudoudrive.commonservice.service;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 
 import java.util.List;
@@ -36,12 +37,24 @@ public interface DiskUserAttrService {
     Integer deleteUserAttr(String userId);
 
     /**
-     * 修改用户属性模块
+     * 原子性服务，扣除指定字段的数量
      *
-     * @param diskUserAttr 需要进行修改的用户属性模块实体
-     * @return 返回修改的条数
+     * @param userId       需要进行操作的用户标识
+     * @param userAttrEnum 需要扣除的字段属性枚举值
+     * @param size         需要扣除的数量
+     * @return 返回修改的条数，根据返回值判断是否修改成功
      */
-    Integer update(DiskUserAttr diskUserAttr);
+    Integer deducted(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size);
+
+    /**
+     * 原子性服务，增加指定字段的数量
+     *
+     * @param userId       需要进行操作的用户标识
+     * @param userAttrEnum 需要扣除的字段属性枚举值
+     * @param size         需要扣除的数量
+     * @return 返回修改的条数，根据返回值判断是否修改成功
+     */
+    Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size);
 
     /**
      * 根据用户标识查询指定用户下所有属性信息
