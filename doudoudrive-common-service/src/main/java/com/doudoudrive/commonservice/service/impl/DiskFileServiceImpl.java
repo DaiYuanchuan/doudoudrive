@@ -166,6 +166,36 @@ public class DiskFileServiceImpl implements DiskFileService {
     }
 
     /**
+     * 根据业务标识查找指定用户下的文件信息
+     *
+     * @param userId     指定的用户标识
+     * @param businessId 需要查询的文件标识
+     * @return 用户文件模块信息
+     */
+    @Override
+    public DiskFile getDiskFile(String userId, String businessId) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        return diskFileDao.getDiskFile(userId, businessId, tableSuffix);
+    }
+
+    /**
+     * 根据parentId查询指定目录下是否存在指定的文件名
+     *
+     * @param parentId   文件的父级标识
+     * @param fileName   文件、文件夹名称
+     * @param userId     指定的用户标识
+     * @param fileFolder 是否为文件夹
+     * @return 在指定目录下存在相同的文件名时返回
+     */
+    @Override
+    public DiskFile getRepeatFileName(String parentId, String fileName, String userId, Boolean fileFolder) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        return diskFileDao.getRepeatFileName(parentId, fileName, userId, fileFolder, tableSuffix);
+    }
+
+    /**
      * 指定条件查找用户文件模块
      *
      * @param diskFile  需要查询的用户文件模块实体(这里不能为NULL，且必须包含用户id)

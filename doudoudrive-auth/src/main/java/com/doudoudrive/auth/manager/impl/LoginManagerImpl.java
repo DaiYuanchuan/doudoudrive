@@ -3,11 +3,13 @@ package com.doudoudrive.auth.manager.impl;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.manager.SysUserRoleManager;
+import com.doudoudrive.common.cache.RedisTemplateClient;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.global.BusinessException;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
+import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
@@ -17,6 +19,7 @@ import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
+import org.apache.shiro.session.mgt.DefaultSessionKey;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,11 @@ public class LoginManagerImpl implements LoginManager {
      */
     private DiskUserAttrService diskUserAttrService;
 
+    /**
+     * Redis客户端操作相关工具类
+     */
+    private RedisTemplateClient redisTemplateClient;
+
     @Autowired(required = false)
     public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
         this.diskUserInfoConvert = diskUserInfoConvert;
@@ -59,6 +67,11 @@ public class LoginManagerImpl implements LoginManager {
     @Autowired
     public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
         this.diskUserAttrService = diskUserAttrService;
+    }
+
+    @Autowired
+    public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
+        this.redisTemplateClient = redisTemplateClient;
     }
 
     /**
@@ -140,5 +153,26 @@ public class LoginManagerImpl implements LoginManager {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_USERINFO);
         }
         return userLoginResponseDTO.getUserInfo();
+    }
+
+    /**
+     * 尝试去更新指定用户的会话缓存信息
+     *
+     * @param token    需要更新的用户token
+     * @param userInfo 当前需要更新缓存的用户数据
+     */
+    @Override
+    public void attemptUpdateUserSession(String token, DiskUserModel userInfo) {
+        try {
+            // 通过token尝试获取用户的session对象
+            Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
+            // 更新指定用户缓存信息
+            session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
+            // 更新完本地缓存后，需要通知到其他服务同步更新
+            redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
+                    .cacheKey(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + token)
+                    .build());
+        } catch (UnknownSessionException ignored) {
+        }
     }
 }

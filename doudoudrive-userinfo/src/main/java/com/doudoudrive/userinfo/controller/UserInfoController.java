@@ -7,7 +7,6 @@ import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.util.EncryptionUtil;
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.RegexConstant;
-import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
 import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
@@ -137,7 +136,7 @@ public class UserInfoController {
         // 获取当前用户信息
         Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(requestDTO.getUsername());
         if (Result.isNotSuccess(usernameSearchResult)) {
-            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.USER_NO_EXIST);
+            return Result.build(StatusCodeEnum.USER_NO_EXIST);
         }
 
         // 修改用户信息

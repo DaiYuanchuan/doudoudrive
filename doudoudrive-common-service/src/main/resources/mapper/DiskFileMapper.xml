@@ -68,7 +68,7 @@
             </if>
         </if>
         <if test="null != startTime and null != endTime">
-            `create_time` BETWEEN #{startTime} AND #{endTime}
+            `create_time` BETWEEN #{startTime} AND #{endTime} AND
         </if>
     </sql>
 
@@ -268,23 +268,47 @@
         </where>
     </update>
 
+    <!-- 根据业务标识查找指定用户下的文件信息 -->
+    <select id="getDiskFile" resultType="com.doudoudrive.common.model.pojo.DiskFile" resultMap="diskFileResultMap">
+        SELECT
+        <include refid="diskFile"/>
+        FROM `disk_file_${tableSuffix}`
+        <where>
+            `business_id` = #{businessId} AND `user_id` = #{userId} AND `status` = '1';
+        </where>
+    </select>
+
+    <!-- 根据parentId查询指定目录下是否存在指定的文件名 -->
+    <select id="getRepeatFileName" resultType="com.doudoudrive.common.model.pojo.DiskFile"
+            resultMap="diskFileResultMap">
+        SELECT
+        <include refid="diskFile"/>
+        FROM `disk_file_${tableSuffix}`
+        <where>
+            `file_parent_id` = #{parentId} AND `file_name` = #{fileName} AND
+            `user_id` = #{userId} AND `is_file_folder` = #{fileFolder} LIMIT 1;
+        </where>
+    </select>
+
     <!-- 指定条件查找用户文件模块 -->
     <select id="listDiskFileToKey" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
         SELECT
         <include refid="diskFile"/>
-        FROM `disk_file`
+        FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <include refid="searchCondition"/>
+            `status` = '1';
         </trim>
         ${limit};
     </select>
 
     <!-- 返回搜索的总数 -->
     <select id="countSearch" resultType="java.lang.Long">
-        SELECT COUNT(*) FROM `disk_file`
+        SELECT COUNT(*) FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <include refid="searchCondition"/>
+            `status` = '1';
         </trim>
     </select>
 

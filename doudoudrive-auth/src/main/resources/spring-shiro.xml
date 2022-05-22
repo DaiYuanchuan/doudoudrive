@@ -70,6 +70,9 @@
                 /userinfo/register = anon
                 /userinfo/reset-password = anon
 
+                <!-- 文件相关 -->
+                /file/cdn-auth = anon
+
                 /favicon.ico = anon
 
                 /** = oauth

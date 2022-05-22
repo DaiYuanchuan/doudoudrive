@@ -56,7 +56,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
      */
     @Override
     public void saveUserInfo(UserInfoDTO userInfoDTO) {
-        // 构建查询请求
+        // 构建保存请求
         restTemplate.save(userInfoDTO);
     }
 

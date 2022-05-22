@@ -38,7 +38,7 @@
             </if>
         </if>
         <if test="null != startTime and null != endTime">
-            `create_time` BETWEEN #{startTime} AND #{endTime}
+            `create_time` BETWEEN #{startTime} AND #{endTime} AND
         </if>
     </sql>
 

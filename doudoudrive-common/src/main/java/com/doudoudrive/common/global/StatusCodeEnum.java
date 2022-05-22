@@ -65,6 +65,14 @@ public enum StatusCodeEnum {
     AUTHENTICATION(659, "认证失败"),
 
     /**
+     * 文件类:7xx
+     */
+    FILE_NOT_FOUND(700, "未找到指定文件"),
+    PARENT_ID_NOT_FOUND(701, "未找到指定文件夹"),
+    NOT_FOLDER(702, "关联对象非文件夹"),
+    FILE_NAME_REPEAT(703, "此目录下已存在同名文件，请修改名称"),
+
+    /**
      * 接口类:8xx
      */
     INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常");

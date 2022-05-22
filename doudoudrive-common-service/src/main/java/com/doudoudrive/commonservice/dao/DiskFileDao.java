@@ -70,6 +70,34 @@ public interface DiskFileDao {
     Integer updateBatch(@Param("list") List<DiskFile> list, @Param("tableSuffix") String tableSuffix);
 
     /**
+     * 根据业务标识查找指定用户下的文件信息
+     *
+     * @param userId      指定的用户标识
+     * @param businessId  需要查询的文件标识
+     * @param tableSuffix 表后缀
+     * @return 用户文件模块信息
+     */
+    DiskFile getDiskFile(@Param("userId") String userId,
+                         @Param("businessId") String businessId,
+                         @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 根据parentId查询指定目录下是否存在指定的文件名
+     *
+     * @param parentId    文件的父级标识
+     * @param fileName    文件、文件夹名称
+     * @param userId      指定的用户标识
+     * @param fileFolder  是否为文件夹
+     * @param tableSuffix 表后缀
+     * @return 在指定目录下存在相同的文件名时返回
+     */
+    DiskFile getRepeatFileName(@Param("parentId") String parentId,
+                               @Param("fileName") String fileName,
+                               @Param("userId") String userId,
+                               @Param("fileFolder") Boolean fileFolder,
+                               @Param("tableSuffix") String tableSuffix);
+
+    /**
      * 指定条件查找用户文件模块
      *
      * @param diskFile    需要查询的用户文件模块实体

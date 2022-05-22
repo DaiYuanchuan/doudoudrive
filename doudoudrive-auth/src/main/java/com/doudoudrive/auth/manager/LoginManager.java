@@ -33,4 +33,12 @@ public interface LoginManager {
      */
     DiskUserModel getUserInfoToSessionException();
 
+    /**
+     * 尝试去更新指定用户的会话缓存信息
+     *
+     * @param token    需要更新的用户token
+     * @param userInfo 当前需要更新缓存的用户数据
+     */
+    void attemptUpdateUserSession(String token, DiskUserModel userInfo);
+
 }

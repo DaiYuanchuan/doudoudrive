@@ -194,7 +194,7 @@ public interface ConstantConfig {
      * 特殊符号
      */
     interface SpecialSymbols {
-
+        String DOT = ".";
         String ASTERISK = "*";
         String OR = "||";
         String QUESTION_MARK = "?";
@@ -205,6 +205,7 @@ public interface ConstantConfig {
         String PLUS_SIGN = "+";
         String TILDE = "~";
         String ENGLISH_COLON = ":";
+        String COMMENT_SIGN = "#";
     }
 
     /**
@@ -319,7 +320,7 @@ public interface ConstantConfig {
         String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
 
         /**
-         * session内容缓存默认失效时间(10小时):秒
+         * 缓存内容默认失效时间(10小时):秒
          */
         Long DEFAULT_EXPIRE = 36000L;
 
@@ -327,6 +328,11 @@ public interface ConstantConfig {
          * 邮箱验证码缓存前缀
          */
         String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
+
+        /**
+         * 用户文件信息缓存
+         */
+        String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
 
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
@@ -388,6 +394,8 @@ public interface ConstantConfig {
      */
     interface IndexName {
         String USERINFO = "userinfo";
+
+        String DISK_FILE = "disk_file";
     }
 
     /**
