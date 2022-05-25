@@ -118,7 +118,7 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
             // 获取更新结果
             return diskUserAttrDao.deducted(userId, userAttrEnum.param, size, tableSuffix);
         } catch (Exception e) {
-            return NumberConstant.INTEGER_ZERO;
+            return NumberConstant.INTEGER_MINUS_ONE;
         }
     }
 
@@ -128,18 +128,33 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
      * @param userId       需要进行操作的用户标识
      * @param userAttrEnum 需要扣除的字段属性枚举值
      * @param size         需要扣除的数量
+     * @param upperLimit   扣除上限
      * @return 返回修改的条数，根据返回值判断是否修改成功
      */
     @Override
-    public Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size) {
+    public Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size, String upperLimit) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
         try {
             // 获取更新结果
-            return diskUserAttrDao.increase(userId, userAttrEnum.param, size, tableSuffix);
+            return diskUserAttrDao.increase(userId, userAttrEnum.param, size, upperLimit, tableSuffix);
         } catch (Exception e) {
-            return NumberConstant.INTEGER_ZERO;
+            return NumberConstant.INTEGER_MINUS_ONE;
         }
+    }
+
+    /**
+     * 查找指定用户的指定属性的值
+     *
+     * @param userId   根据用户业务id查找
+     * @param attrName 属性名
+     * @return 返回查找到的用户属性值
+     */
+    @Override
+    public BigDecimal getDiskUserAttrValue(String userId, ConstantConfig.UserAttrEnum attrName) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
+        return diskUserAttrDao.getDiskUserAttrValue(userId, attrName.param, tableSuffix);
     }
 
     /**

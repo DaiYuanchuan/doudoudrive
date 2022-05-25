@@ -71,6 +71,7 @@
                 /userinfo/reset-password = anon
 
                 <!-- 文件相关 -->
+                /file/create-file = anon
                 /file/cdn-auth = anon
 
                 /favicon.ico = anon

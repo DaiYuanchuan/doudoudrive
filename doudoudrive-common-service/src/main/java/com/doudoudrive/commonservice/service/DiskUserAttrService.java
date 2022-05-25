@@ -3,6 +3,7 @@ package com.doudoudrive.commonservice.service;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -52,9 +53,19 @@ public interface DiskUserAttrService {
      * @param userId       需要进行操作的用户标识
      * @param userAttrEnum 需要扣除的字段属性枚举值
      * @param size         需要扣除的数量
+     * @param upperLimit   扣除上限
      * @return 返回修改的条数，根据返回值判断是否修改成功
      */
-    Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size);
+    Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size, String upperLimit);
+
+    /**
+     * 查找指定用户的指定属性的值
+     *
+     * @param userId   根据用户业务id查找
+     * @param attrName 属性名
+     * @return 返回查找到的用户属性值
+     */
+    BigDecimal getDiskUserAttrValue(String userId, ConstantConfig.UserAttrEnum attrName);
 
     /**
      * 根据用户标识查询指定用户下所有属性信息

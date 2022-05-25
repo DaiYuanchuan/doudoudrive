@@ -96,9 +96,19 @@
             `attribute_value` = `attribute_value` + #{number}
         </set>
         <where>
-            `user_id` = #{userId} AND `attribute_name` = #{attrName};
+            `user_id` = #{userId} AND `attribute_name` = #{attrName} AND `attribute_value` + #{number} &lt;=
+            #{upperLimit};
         </where>
     </update>
+
+    <!-- 查找指定用户的指定属性的值 -->
+    <select id="getDiskUserAttrValue" resultType="java.math.BigDecimal">
+        SELECT `attribute_value`
+        FROM `disk_user_attr_${tableSuffix}`
+        <where>
+            `user_id` = #{userId} AND `attribute_name` = #{attrName};
+        </where>
+    </select>
 
     <!-- 根据用户标识查询指定用户下所有属性信息 -->
     <select id="listDiskUserAttr" resultType="com.doudoudrive.common.model.pojo.DiskUserAttr"

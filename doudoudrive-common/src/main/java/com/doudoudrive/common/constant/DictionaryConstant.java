@@ -28,4 +28,9 @@ public interface DictionaryConstant {
      */
     String DEFAULT_AVATAR = "defaultAvatar";
 
+    /**
+     * 全局对称加密密钥配置
+     */
+    String CIPHER = "cipher";
+
 }

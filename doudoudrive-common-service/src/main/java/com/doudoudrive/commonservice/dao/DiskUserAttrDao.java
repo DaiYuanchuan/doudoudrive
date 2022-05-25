@@ -4,6 +4,7 @@ import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -51,7 +52,10 @@ public interface DiskUserAttrDao {
      * @param tableSuffix 表后缀
      * @return 返回修改的条数，根据返回值判断是否修改成功
      */
-    Integer deducted(@Param("userId") String userId, @Param("attrName") String attrName, @Param("number") String number, @Param("tableSuffix") String tableSuffix);
+    Integer deducted(@Param("userId") String userId,
+                     @Param("attrName") String attrName,
+                     @Param("number") String number,
+                     @Param("tableSuffix") String tableSuffix);
 
     /**
      * 原子性服务，增加指定字段的数量
@@ -59,10 +63,25 @@ public interface DiskUserAttrDao {
      * @param userId      需要进行操作的用户标识
      * @param attrName    需要扣除的字段属性
      * @param number      需要扣除的数量
+     * @param upperLimit  扣除上限
      * @param tableSuffix 表后缀
      * @return 返回修改的条数，根据返回值判断是否修改成功
      */
-    Integer increase(@Param("userId") String userId, @Param("attrName") String attrName, @Param("number") String number, @Param("tableSuffix") String tableSuffix);
+    Integer increase(@Param("userId") String userId,
+                     @Param("attrName") String attrName,
+                     @Param("number") String number,
+                     @Param("upperLimit") String upperLimit,
+                     @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 查找指定用户的指定属性的值
+     *
+     * @param userId      根据用户业务id查找
+     * @param attrName    属性名
+     * @param tableSuffix 表后缀
+     * @return 返回查找到的用户属性值
+     */
+    BigDecimal getDiskUserAttrValue(@Param("userId") String userId, @Param("attrName") String attrName, @Param("tableSuffix") String tableSuffix);
 
     /**
      * 根据用户标识查询指定用户下所有属性信息

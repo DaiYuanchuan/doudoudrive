@@ -2,25 +2,36 @@ package com.doudoudrive.file.manager.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
+import cn.hutool.crypto.symmetric.SymmetricCrypto;
+import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
+import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.SequenceUtil;
+import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
+import com.doudoudrive.file.model.dto.request.CreateFileRequestDTO;
+import io.netty.util.concurrent.FastThreadLocal;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -29,6 +40,7 @@ import java.util.Optional;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("fileManager")
 public class FileManagerImpl implements FileManager {
 
@@ -39,6 +51,11 @@ public class FileManagerImpl implements FileManager {
     private DiskFileConvert diskFileConvert;
 
     private DiskFileSearchFeignClient diskFileSearchFeignClient;
+
+    /**
+     * 数据字典模块服务
+     */
+    private DiskDictionaryService diskDictionaryService;
 
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
@@ -60,6 +77,11 @@ public class FileManagerImpl implements FileManager {
         this.diskFileSearchFeignClient = diskFileSearchFeignClient;
     }
 
+    @Autowired
+    public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
+        this.diskDictionaryService = diskDictionaryService;
+    }
+
     /**
      * 重置文件名时需要使用到的日期格式
      */
@@ -69,6 +91,16 @@ public class FileManagerImpl implements FileManager {
      * 文件名字段长度
      */
     private static final Integer FILE_NAME_LENGTH = NumberConstant.INTEGER_EIGHT * NumberConstant.INTEGER_TEN;
+
+    /**
+     * 当前
+     */
+    private static final byte[] CIPHER = "VP+EcBOmZHGkTT0vZfeSHg==".getBytes(StandardCharsets.UTF_8);
+
+    /**
+     * 对称加密对象本地缓存线程
+     */
+    private static final FastThreadLocal<SymmetricCrypto> SYMMETRIC_CRYPTO_CACHE = new FastThreadLocal<>();
 
     /**
      * 创建文件夹
@@ -98,6 +130,17 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
+     * 创建文件
+     *
+     * @param createFileRequest 创建文件时请求数据模型
+     * @return 用户文件模块信息
+     */
+    @Override
+    public DiskFile createFile(CreateFileRequestDTO createFileRequest) {
+        return null;
+    }
+
+    /**
      * 根据业务标识查找指定用户下的文件信息，优先从缓存中查找
      *
      * @param userId     指定的用户标识
@@ -106,6 +149,14 @@ public class FileManagerImpl implements FileManager {
      */
     @Override
     public DiskFile getDiskFile(String userId, String businessId) {
+        if (true){
+            return DiskFile.builder()
+                    .fileSize("1024")
+                    .fileFolder(false)
+                    .forbidden(false)
+                    .status(ConstantConfig.BooleanType.TRUE)
+                    .build();
+        }
         // 构建的缓存key
         String cacheKey = ConstantConfig.Cache.DISK_FILE_CACHE + businessId;
         // 从缓存中获取用户文件信息
@@ -156,6 +207,57 @@ public class FileManagerImpl implements FileManager {
     @Override
     public Boolean verifyRepeat(String fileName, String userId, String parentId, boolean fileFolder) {
         return diskFileService.getRepeatFileName(parentId, fileName, userId, fileFolder) != null;
+    }
+
+    /**
+     * 文件鉴权参数加密
+     *
+     * @param fileAuthModel 文件鉴权参数对象
+     * @return 加密后的签名
+     */
+    @Override
+    public String encrypt(FileAuthModel fileAuthModel) {
+        // 获取对称加密SymmetricCrypto对象
+        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
+        return symmetricCrypto.encryptBase64(JSON.toJSONString(fileAuthModel));
+    }
+
+    /**
+     * 文件访问签名解密
+     *
+     * @param sign 签名
+     * @return 解密后的对象串
+     */
+    @Override
+    public FileAuthModel decrypt(String sign) {
+        // 获取对称加密SymmetricCrypto对象
+        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
+        try {
+            // 获取解密后的内容
+            String content = symmetricCrypto.decryptStr(sign, CharsetUtil.CHARSET_UTF_8);
+            return JSON.parseObject(content, FileAuthModel.class);
+        } catch (Exception e) {
+            // 出现异常响应null值
+            return null;
+        }
+    }
+
+    /**
+     * 获取对称加密SymmetricCrypto对象
+     *
+     * @return SymmetricCrypto对象
+     */
+    @Override
+    public SymmetricCrypto getSymmetricCrypto() {
+        // 获取本地缓存对象
+        SymmetricCrypto symmetricCrypto = SYMMETRIC_CRYPTO_CACHE.get();
+        if (symmetricCrypto == null) {
+            // 获取全局对称加密密钥
+            String cipher = diskDictionaryService.getDictionary(DictionaryConstant.CIPHER, String.class);
+            symmetricCrypto = new SymmetricCrypto(SymmetricAlgorithm.AES, cipher.getBytes(StandardCharsets.UTF_8));
+            SYMMETRIC_CRYPTO_CACHE.set(symmetricCrypto);
+        }
+        return symmetricCrypto;
     }
 
     // ==================================================== private ====================================================

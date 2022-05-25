@@ -1,6 +1,9 @@
 package com.doudoudrive.file.manager;
 
+import cn.hutool.crypto.symmetric.SymmetricCrypto;
+import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.file.model.dto.request.CreateFileRequestDTO;
 
 /**
  * <p>用户文件信息服务的通用业务处理层接口</p>
@@ -19,6 +22,14 @@ public interface FileManager {
      * @return 用户文件模块信息
      */
     DiskFile createFolder(String userId, String name, String parentId);
+
+    /**
+     * 创建文件
+     *
+     * @param createFileRequest 创建文件时请求数据模型
+     * @return 用户文件模块信息
+     */
+    DiskFile createFile(CreateFileRequestDTO createFileRequest);
 
     /**
      * 根据业务标识查找指定用户下的文件信息，优先从缓存中查找
@@ -47,4 +58,27 @@ public interface FileManager {
      * @return true:目录下存在相同的文件 false:不存在相同的文件
      */
     Boolean verifyRepeat(String fileName, String userId, String parentId, boolean fileFolder);
+
+    /**
+     * 文件鉴权参数加密
+     *
+     * @param fileAuthModel 文件鉴权参数对象
+     * @return 加密后的签名
+     */
+    String encrypt(FileAuthModel fileAuthModel);
+
+    /**
+     * 文件访问签名解密
+     *
+     * @param sign 签名
+     * @return 解密后的对象串
+     */
+    FileAuthModel decrypt(String sign);
+
+    /**
+     * 获取对称加密SymmetricCrypto对象
+     *
+     * @return SymmetricCrypto对象
+     */
+    SymmetricCrypto getSymmetricCrypto();
 }
