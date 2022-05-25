@@ -7,7 +7,6 @@ import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.ConvertUtil;
 import com.doudoudrive.common.util.lang.RedisSerializerUtil;
-import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,14 +38,14 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
     }
 
     /**
-     * 当前jvm的本地缓存线程
-     */
-    private static final FastThreadLocal<TimedCache<String, Object>> LOCAL_CACHE = new FastThreadLocal<>();
-
-    /**
      * 定义本地缓存超时时间(1小时)(毫秒)
      */
     private static final long CACHE_TIMEOUT = 3600000L;
+
+    /**
+     * 当前jvm的本地缓存Map
+     */
+    private static TimedCache<String, Object> TIMED_LOCAL_CACHE = null;
 
     /**
      * 序列化工具
@@ -275,14 +274,12 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
      * @return 本地缓存中的Map对象
      */
     private static TimedCache<String, Object> getLocalCacheMap() {
-        TimedCache<String, Object> localCacheMap = LOCAL_CACHE.get();
-        if (localCacheMap == null) {
+        if (TIMED_LOCAL_CACHE == null) {
             // 创建超时缓存
-            localCacheMap = new TimedCache<>(CACHE_TIMEOUT);
+            TIMED_LOCAL_CACHE = new TimedCache<>(CACHE_TIMEOUT);
             // 启动一个定时任务，每5秒清理一次过期条目
-            localCacheMap.schedulePrune(NumberConstant.LONG_FIVE * NumberConstant.LONG_ONE_THOUSAND);
-            LOCAL_CACHE.set(localCacheMap);
+            TIMED_LOCAL_CACHE.schedulePrune(NumberConstant.LONG_FIVE * NumberConstant.LONG_ONE_THOUSAND);
         }
-        return localCacheMap;
+        return TIMED_LOCAL_CACHE;
     }
 }
