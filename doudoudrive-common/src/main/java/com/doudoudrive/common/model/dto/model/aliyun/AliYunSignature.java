@@ -1,4 +1,4 @@
-package com.doudoudrive.common.model.dto.model;
+package com.doudoudrive.common.model.dto.model.aliyun;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

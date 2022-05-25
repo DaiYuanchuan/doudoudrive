@@ -93,11 +93,6 @@ public class FileManagerImpl implements FileManager {
     private static final Integer FILE_NAME_LENGTH = NumberConstant.INTEGER_EIGHT * NumberConstant.INTEGER_TEN;
 
     /**
-     * 当前
-     */
-    private static final byte[] CIPHER = "VP+EcBOmZHGkTT0vZfeSHg==".getBytes(StandardCharsets.UTF_8);
-
-    /**
      * 对称加密对象本地缓存线程
      */
     private static final FastThreadLocal<SymmetricCrypto> SYMMETRIC_CRYPTO_CACHE = new FastThreadLocal<>();
@@ -149,14 +144,6 @@ public class FileManagerImpl implements FileManager {
      */
     @Override
     public DiskFile getDiskFile(String userId, String businessId) {
-        if (true){
-            return DiskFile.builder()
-                    .fileSize("1024")
-                    .fileFolder(false)
-                    .forbidden(false)
-                    .status(ConstantConfig.BooleanType.TRUE)
-                    .build();
-        }
         // 构建的缓存key
         String cacheKey = ConstantConfig.Cache.DISK_FILE_CACHE + businessId;
         // 从缓存中获取用户文件信息
