@@ -71,6 +71,7 @@ public enum StatusCodeEnum {
     PARENT_ID_NOT_FOUND(701, "未找到指定文件夹"),
     NOT_FOLDER(702, "关联对象非文件夹"),
     FILE_NAME_REPEAT(703, "此目录下已存在同名文件，请修改名称"),
+    FILE_AUTHENTICATION_FAILED(704, "文件鉴权失败"),
 
     /**
      * 接口类:8xx

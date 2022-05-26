@@ -2,9 +2,12 @@ package com.doudoudrive.file.model.convert;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.common.model.pojo.FileRecord;
+import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.lang.MimeTypes;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -30,6 +33,22 @@ public interface DiskFileConvert {
      * @return 网盘文件数据模型
      */
     DiskFileModel diskFileConvertDiskFileModel(DiskFile diskFile);
+
+    /**
+     * 将 createFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 DiskFileModel(网盘文件数据模型)
+     *
+     * @param createFileAuthModel 创建文件时的鉴权参数模型
+     * @param businessId          创建文件时的文件业务标识
+     * @return 网盘文件数据模型
+     */
+    @Mappings({
+            @Mapping(target = "fileFolder", expression = "java(Boolean.FALSE)"),
+            @Mapping(target = "forbidden", expression = "java(Boolean.FALSE)"),
+            @Mapping(target = "collect", expression = "java(Boolean.FALSE)"),
+            @Mapping(target = "createTime", expression = "java(new Date())"),
+            @Mapping(target = "updateTime", expression = "java(new Date())")
+    })
+    DiskFileModel createFileAuthConvertDiskFileModel(CreateFileAuthModel createFileAuthModel, String businessId);
 
     /**
      * 创建文件夹时的转换
@@ -61,5 +80,45 @@ public interface DiskFileConvert {
      * @return 保存es用户文件信息时的请求数据模型
      */
     SaveElasticsearchDiskFileRequestDTO diskFileConvertSaveElasticsearchDiskFileRequest(DiskFile diskFile);
+
+    /**
+     * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 FileRecord(文件临时操作记录)
+     *
+     * @param createFileAuthModel 创建文件时的鉴权参数模型
+     * @param fileId              文件标识
+     * @param action              动作
+     * @param actionType          动作对应的动作类型
+     * @return 文件临时操作记录
+     */
+    FileRecord createFileAuthModelConvertFileRecord(CreateFileAuthModel createFileAuthModel, String fileId, String action, String actionType);
+
+    /**
+     * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 OssFile(OSS文件对象存储实体类)
+     *
+     * @param fileInfo 创建文件时的鉴权参数模型
+     * @return OSS文件对象存储实体类
+     */
+    @Mappings({
+            @Mapping(target = "etag", source = "fileEtag"),
+            @Mapping(target = "size", source = "fileSize"),
+            @Mapping(target = "mimeType", source = "fileMimeType"),
+            @Mapping(target = "status", constant = NumberConstant.STRING_ZERO)
+    })
+    OssFile createFileAuthModelConvertOssFile(CreateFileAuthModel fileInfo);
+
+    /**
+     * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 DiskFile(用户文件模块实体类)
+     *
+     * @param fileInfo 创建文件时的鉴权参数模型
+     * @return 用户文件模块实体类
+     */
+    @Mappings({
+            @Mapping(target = "fileName", source = "fileInfo.name"),
+            @Mapping(target = "fileFolder", expression = "java(Boolean.FALSE)"),
+            @Mapping(target = "forbidden", expression = "java(Boolean.FALSE)"),
+            @Mapping(target = "collect", expression = "java(Boolean.FALSE)"),
+            @Mapping(target = "status", constant = NumberConstant.STRING_ONE)
+    })
+    DiskFile createFileAuthModelConvertDiskFile(CreateFileAuthModel fileInfo, String businessId);
 
 }

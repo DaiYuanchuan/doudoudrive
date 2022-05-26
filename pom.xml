@@ -79,13 +79,15 @@
         <mapstruct.version>1.5.0.Beta2</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
-        <hutool.version>5.8.0.M4</hutool.version>
+        <hutool.version>5.8.1</hutool.version>
         <!-- fastjson 版本号 -->
-        <fastjson.version>1.2.80</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <!-- es搜索 版本号 -->
         <elasticsearch.version>7.17.1</elasticsearch.version>
         <!-- 发送邮件依赖包 版本号 -->
         <mail.version>1.6.2</mail.version>
+        <!-- 七牛云SDK依赖 -->
+        <qiniu-java-sdk.version>7.10.3</qiniu-java-sdk.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -110,7 +112,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.6</version>
+        <version>2.7.0</version>
     </parent>
     <!-- 设置spring boot的依赖版本 end -->
 
@@ -126,7 +128,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>3.1.1</version>
+            <version>3.1.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -424,6 +426,14 @@
                 <version>${mail.version}</version>
             </dependency>
             <!-- 发送邮件依赖包 end -->
+
+            <!-- 七牛云SDK依赖 start -->
+            <dependency>
+                <groupId>com.qiniu</groupId>
+                <artifactId>qiniu-java-sdk</artifactId>
+                <version>${qiniu-java-sdk.version}</version>
+            </dependency>
+            <!-- 七牛云SDK依赖 start -->
 
         </dependencies>
     </dependencyManagement>

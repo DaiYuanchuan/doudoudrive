@@ -71,7 +71,12 @@ public enum SequenceModuleEnum {
     /**
      * OSS文件对象存储
      */
-    OSS_FILE("12");
+    OSS_FILE("12"),
+
+    /**
+     * 文件临时操作记录模块
+     */
+    FILE_RECORD("13");
 
     /**
      * 业务模块标识，固定为两位数字

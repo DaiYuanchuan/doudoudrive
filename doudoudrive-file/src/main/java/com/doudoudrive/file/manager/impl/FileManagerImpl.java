@@ -14,23 +14,28 @@ import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
+import com.doudoudrive.commonservice.service.DiskUserAttrService;
+import com.doudoudrive.commonservice.service.FileRecordService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
+import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
-import com.doudoudrive.file.model.dto.request.CreateFileRequestDTO;
+import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import io.netty.util.concurrent.FastThreadLocal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -40,6 +45,7 @@ import java.util.Optional;
  *
  * @author Dan
  **/
+@Slf4j
 @Scope("singleton")
 @Service("fileManager")
 public class FileManagerImpl implements FileManager {
@@ -47,6 +53,8 @@ public class FileManagerImpl implements FileManager {
     private CacheManagerConfig cacheManagerConfig;
 
     private DiskFileService diskFileService;
+
+    private OssFileManager ossFileManager;
 
     private DiskFileConvert diskFileConvert;
 
@@ -57,6 +65,10 @@ public class FileManagerImpl implements FileManager {
      */
     private DiskDictionaryService diskDictionaryService;
 
+    private FileRecordService fileRecordService;
+
+    private DiskUserAttrService diskUserAttrService;
+
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
         this.cacheManagerConfig = cacheManagerConfig;
@@ -65,6 +77,11 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setDiskFileService(DiskFileService diskFileService) {
         this.diskFileService = diskFileService;
+    }
+
+    @Autowired
+    public void setOssFileManager(OssFileManager ossFileManager) {
+        this.ossFileManager = ossFileManager;
     }
 
     @Autowired(required = false)
@@ -80,6 +97,16 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
         this.diskDictionaryService = diskDictionaryService;
+    }
+
+    @Autowired
+    public void setFileRecordService(FileRecordService fileRecordService) {
+        this.fileRecordService = fileRecordService;
+    }
+
+    @Autowired
+    public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
+        this.diskUserAttrService = diskUserAttrService;
     }
 
     /**
@@ -111,13 +138,8 @@ public class FileManagerImpl implements FileManager {
         DiskFile diskFile = diskFileConvert.createFolderConvertDiskFile(userId, name, parentId);
         // 保存用户文件夹
         diskFileService.insert(diskFile);
-        // 文件数据类型转换
-        SaveElasticsearchDiskFileRequestDTO requestDTO = diskFileConvert.diskFileConvertSaveElasticsearchDiskFileRequest(diskFile);
-        // 获取表后缀
-        String tableSuffix = SequenceUtil.tableSuffix(diskFile.getUserId(), ConstantConfig.TableSuffix.DISK_FILE);
-        requestDTO.setTableSuffix(tableSuffix);
         // 用户文件信息先入库，然后入es
-        Result<String> saveElasticsearchResult = diskFileSearchFeignClient.saveElasticsearchDiskFile(requestDTO);
+        Result<String> saveElasticsearchResult = this.saveElasticsearchDiskFile(diskFile);
         if (Result.isNotSuccess(saveElasticsearchResult)) {
             BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
         }
@@ -128,11 +150,55 @@ public class FileManagerImpl implements FileManager {
      * 创建文件
      *
      * @param createFileRequest 创建文件时请求数据模型
-     * @return 用户文件模块信息
      */
     @Override
-    public DiskFile createFile(CreateFileRequestDTO createFileRequest) {
-        return null;
+    public void createFile(CreateFileConsumerRequestDTO createFileRequest) {
+        // 根据文件标识尝试获取指定文件
+        DiskFile diskFile = this.getDiskFile(createFileRequest.getFileInfo().getUserId(), createFileRequest.getFileId());
+        // 如果能获取到文件，则证明消息已被消费
+        if (diskFile != null) {
+            return;
+        }
+
+        // 根据etag查找oss文件信息
+        OssFile ossFile = ossFileManager.getOssFile(createFileRequest.getFileInfo().getFileEtag());
+        if (ossFile == null) {
+            return;
+        }
+
+        // 构建用户文件模块
+        DiskFile userFile = diskFileConvert.createFileAuthModelConvertDiskFile(createFileRequest.getFileInfo(), createFileRequest.getFileId());
+        // 如果当前上传的文件是被禁止的，则在添加时直接设置为禁止访问
+        userFile.setForbidden(ConstantConfig.OssFileStatusEnum.forbidden(ossFile.getStatus()));
+
+        // 文件名重复校验机制，针对同一个目录下的文件名称重复性校验
+        if (this.verifyRepeat(userFile.getFileName(), userFile.getUserId(), userFile.getFileParentId(), Boolean.FALSE)) {
+            userFile.setFileName(this.resetFileName(userFile.getFileName()));
+        }
+
+        // 查找用户当前总容量、已经使用的磁盘容量
+        BigDecimal totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        BigDecimal usedDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY);
+
+        // 已经使用的磁盘容量 + 文件大小 与 用户当前总容量比较
+        if (usedDiskCapacity.add(new BigDecimal(ossFile.getSize())).compareTo(totalDiskCapacity) > NumberConstant.INTEGER_ZERO) {
+            // 用户存储空间不足，不能入库
+            return;
+        }
+
+        try {
+            // 将文件存入用户文件表中，忽略抛出的异常
+            diskFileService.insert(userFile);
+            // 原子性服务增加用户已用磁盘容量属性
+            diskUserAttrService.increase(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
+                    ossFile.getSize(), totalDiskCapacity.stripTrailingZeros().toPlainString());
+            // 删除文件记录表中状态为被删除的数据
+            fileRecordService.deleteAction(ConstantConfig.FileRecordAction.ActionEnum.FILE.status, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status);
+            // 用户文件信息先入库，然后入es
+            this.saveElasticsearchDiskFile(userFile);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -199,30 +265,31 @@ public class FileManagerImpl implements FileManager {
     /**
      * 文件鉴权参数加密
      *
-     * @param fileAuthModel 文件鉴权参数对象
+     * @param object 需要鉴权的参数对象
      * @return 加密后的签名
      */
     @Override
-    public String encrypt(FileAuthModel fileAuthModel) {
+    public String encrypt(Object object) {
         // 获取对称加密SymmetricCrypto对象
         SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
-        return symmetricCrypto.encryptBase64(JSON.toJSONString(fileAuthModel));
+        return symmetricCrypto.encryptBase64(JSON.toJSONString(object));
     }
 
     /**
      * 文件访问签名解密
      *
-     * @param sign 签名
+     * @param sign  签名
+     * @param clazz 签名解密后需要转换的对象类
      * @return 解密后的对象串
      */
     @Override
-    public FileAuthModel decrypt(String sign) {
+    public <T> T decrypt(String sign, Class<T> clazz) {
         // 获取对称加密SymmetricCrypto对象
         SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
         try {
             // 获取解密后的内容
             String content = symmetricCrypto.decryptStr(sign, CharsetUtil.CHARSET_UTF_8);
-            return JSON.parseObject(content, FileAuthModel.class);
+            return JSON.parseObject(content, clazz);
         } catch (Exception e) {
             // 出现异常响应null值
             return null;
@@ -283,5 +350,21 @@ public class FileManagerImpl implements FileManager {
             finalFilename = StrUtil.reverse(StrUtil.reverse(filename).substring(differenceValue)) + specificCharacter;
         }
         return finalFilename;
+    }
+
+    /**
+     * 在es中保存用户文件信息
+     *
+     * @param diskFile 用户文件模块实体类
+     * @return 保存es请求结果
+     */
+    private Result<String> saveElasticsearchDiskFile(DiskFile diskFile) {
+        // 文件数据类型转换
+        SaveElasticsearchDiskFileRequestDTO requestDTO = diskFileConvert.diskFileConvertSaveElasticsearchDiskFileRequest(diskFile);
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(diskFile.getUserId(), ConstantConfig.TableSuffix.DISK_FILE);
+        requestDTO.setTableSuffix(tableSuffix);
+        // 用户文件信息先入库，然后入es
+        return diskFileSearchFeignClient.saveElasticsearchDiskFile(requestDTO);
     }
 }

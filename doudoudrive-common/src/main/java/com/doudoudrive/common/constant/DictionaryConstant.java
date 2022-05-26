@@ -33,4 +33,14 @@ public interface DictionaryConstant {
      */
     String CIPHER = "cipher";
 
+    /**
+     * 七牛云对象存储相关配置
+     */
+    String QI_NIU_CONFIG = "qiNiuConfig";
+
+    /**
+     * 文件内容审核相关配置
+     */
+    String FILE_REVIEW_CONFIG = "fileReviewConfig";
+
 }

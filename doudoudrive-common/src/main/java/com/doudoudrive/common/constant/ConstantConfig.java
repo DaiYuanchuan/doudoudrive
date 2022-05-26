@@ -1,13 +1,12 @@
 package com.doudoudrive.common.constant;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -139,6 +138,11 @@ public interface ConstantConfig {
          * SMS服务
          */
         String SMS_SERVICE = "SMS_SERVICE";
+
+        /**
+         * 文件服务
+         */
+        String FILE_SERVICE = "FILE_SERVICE";
     }
 
     /**
@@ -160,6 +164,11 @@ public interface ConstantConfig {
          * 邮件发送
          */
         String SEND_MAIL = "SEND_MAIL";
+
+        /**
+         * 创建文件服务
+         */
+        String CREATE_FILE = "CREATE_FILE";
     }
 
     /**
@@ -176,6 +185,11 @@ public interface ConstantConfig {
          * SMS服务所属消费者组
          */
         String SMS = "SMS_CONSUMER_GROUP";
+
+        /**
+         * FILE服务所属消费者组
+         */
+        String FILE = "FILE_CONSUMER_GROUP";
     }
 
     /**
@@ -188,6 +202,59 @@ public interface ConstantConfig {
          */
         String LOG = "DOUDOU_MQ_PRODUCER_GROUP";
 
+    }
+
+    /**
+     * MQ消息发送状态类型枚举
+     */
+    enum MqMessageSendStatus {
+
+        /**
+         * 发送成功
+         */
+        SEND_OK(SendStatus.SEND_OK, "1"),
+
+        /**
+         * 刷新磁盘超时
+         */
+        FLUSH_DISK_TIMEOUT(SendStatus.FLUSH_DISK_TIMEOUT, "2"),
+
+        /**
+         * 刷新从属超时
+         */
+        FLUSH_SLAVE_TIMEOUT(SendStatus.FLUSH_SLAVE_TIMEOUT, "3"),
+
+        /**
+         * 从属服务器不可用
+         */
+        SLAVE_NOT_AVAILABLE(SendStatus.SLAVE_NOT_AVAILABLE, "4");
+
+        /**
+         * 消息发送状态枚举值
+         */
+        public final SendStatus sendStatus;
+
+        /**
+         * 消息发送状态枚举映射
+         */
+        public final String status;
+
+        MqMessageSendStatus(SendStatus sendStatus, String status) {
+            this.sendStatus = sendStatus;
+            this.status = status;
+        }
+
+        /**
+         * 通过消息发送状态枚举值获取到枚举值的映射
+         *
+         * @param sendStatus 消息发送状态枚举值
+         * @return 消息发送状态枚举映射
+         */
+        public static String getStatusValue(SendStatus sendStatus) {
+            return Stream.of(MqMessageSendStatus.values())
+                    .filter(anEnum -> anEnum.sendStatus.equals(sendStatus))
+                    .map(anEnum -> anEnum.status).findFirst().orElse(CharSequenceUtil.EMPTY);
+        }
     }
 
     /**
@@ -333,6 +400,11 @@ public interface ConstantConfig {
          * 用户文件信息缓存
          */
         String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
+
+        /**
+         * OSS文件信息缓存
+         */
+        String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
 
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
@@ -534,6 +606,115 @@ public interface ConstantConfig {
                         .build());
             }
             return userAttrList;
+        }
+    }
+
+    /**
+     * 文件记录动作相关常量
+     */
+    interface FileRecordAction {
+
+        /**
+         * 文件记录-动作
+         */
+        enum ActionEnum {
+
+            /**
+             * 文件状态
+             */
+            FILE("0"),
+
+            /**
+             * 文件内容
+             */
+            FILE_CONTENT("1");
+
+            /**
+             * 状态标识
+             */
+            public final String status;
+
+            ActionEnum(String status) {
+                this.status = status;
+            }
+        }
+
+        /**
+         * 文件记录-动作类型
+         */
+        enum ActionTypeEnum {
+
+            // Action为0时对应的动作类型
+
+            /**
+             * 被删除
+             */
+            BE_DELETED("0"),
+
+            // Action为1时对应的动作类型
+
+            /**
+             * 待审核
+             */
+            REVIEWED("0"),
+
+            /**
+             * 待删除
+             */
+            TO_DELETE("1");
+
+            /**
+             * 状态标识
+             */
+            public final String status;
+
+            ActionTypeEnum(String status) {
+                this.status = status;
+            }
+        }
+    }
+
+    /**
+     * oss文件当前状态枚举类型
+     */
+    enum OssFileStatusEnum {
+
+        /**
+         * 正常，默认值
+         */
+        NORMAL("0"),
+
+        /**
+         * 待审核，图片、视频增量审查
+         */
+        PENDING_REVIEW("1"),
+
+        /**
+         * 审核失败，同步的用户文件被禁止访问，源文件待删除
+         */
+        AUDIT_FAILURE("2"),
+
+        /**
+         * 源文件已删除
+         */
+        SOURCE_FILE_DELETED("3");
+
+        public final String status;
+
+        OssFileStatusEnum(String status) {
+            this.status = status;
+        }
+
+        /**
+         * 判断文件当前状态是否是被禁止的
+         *
+         * @param fileStatus 文件状态
+         * @return true:文件被禁止访问 false:文件是正常的
+         */
+        public static boolean forbidden(String fileStatus) {
+            // 规定不可操作类型
+            List<String> inoperableType = Arrays.asList(AUDIT_FAILURE.status, SOURCE_FILE_DELETED.status);
+            return inoperableType.contains(fileStatus);
         }
     }
 

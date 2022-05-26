@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.FileRecordDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.FileRecord" id="fileRecordResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="fileId" column="file_id"/>
+        <result property="fileEtag" column="file_etag"/>
+        <result property="action" column="action"/>
+        <result property="actionType" column="action_type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="fileRecord">
+        `auto_id`
+        , `business_id`, `user_id`, `file_id`, `file_etag`, `action`, `action_type`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 搜索的参数块 -->
+    <sql id="searchCondition">
+        <if test="null != fileRecord">
+            <if test="null != fileRecord.autoId and 0 != fileRecord.autoId">
+                `auto_id` = #{fileRecord.autoId} AND
+            </if>
+            <if test="null != fileRecord.businessId and '' != fileRecord.businessId">
+                `business_id` = #{fileRecord.businessId} AND
+            </if>
+            <if test="null != fileRecord.userId and '' != fileRecord.userId">
+                LOCATE(#{fileRecord.userId}, `user_id`)>0 AND
+            </if>
+            <if test="null != fileRecord.fileId and '' != fileRecord.fileId">
+                LOCATE(#{fileRecord.fileId}, `file_id`)>0 AND
+            </if>
+            <if test="null != fileRecord.fileEtag and '' != fileRecord.fileEtag">
+                LOCATE(#{fileRecord.fileEtag}, `file_etag`)>0 AND
+            </if>
+            <if test="null != fileRecord.action and '' != fileRecord.action">
+                `action` = #{fileRecord.action} AND
+            </if>
+            <if test="null != fileRecord.actionType and '' != fileRecord.actionType">
+                `action_type` = #{fileRecord.actionType} AND
+            </if>
+        </if>
+        <if test="null != startTime and null != endTime">
+            `create_time` BETWEEN #{startTime} AND #{endTime} AND
+        </if>
+    </sql>
+
+
+    <!-- 新增文件操作记录 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.FileRecord" flushCache="true"
+            useGeneratedKeys="true" keyProperty="fileRecord.autoId">
+        INSERT INTO
+        `file_record` (
+        <trim suffixOverrides=",">
+            <if test="null != fileRecord.businessId and '' != fileRecord.businessId">`business_id`,</if>
+            <if test="null != fileRecord.userId and '' != fileRecord.userId">`user_id`,</if>
+            <if test="null != fileRecord.fileId and '' != fileRecord.fileId">`file_id`,</if>
+            <if test="null != fileRecord.fileEtag and '' != fileRecord.fileEtag">`file_etag`,</if>
+            <if test="null != fileRecord.action and '' != fileRecord.action">`action`,</if>
+            <if test="null != fileRecord.actionType and '' != fileRecord.actionType">`action_type`,</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != fileRecord.businessId and '' != fileRecord.businessId">#{fileRecord.businessId},</if>
+            <if test="null != fileRecord.userId and '' != fileRecord.userId">#{fileRecord.userId},</if>
+            <if test="null != fileRecord.fileId and '' != fileRecord.fileId">#{fileRecord.fileId},</if>
+            <if test="null != fileRecord.fileEtag and '' != fileRecord.fileEtag">#{fileRecord.fileEtag},</if>
+            <if test="null != fileRecord.action and '' != fileRecord.action">#{fileRecord.action},</if>
+            <if test="null != fileRecord.actionType and '' != fileRecord.actionType">#{fileRecord.actionType},</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 批量新增文件操作记录 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `file_record` (
+        `business_id`,
+        `user_id`,
+        `file_id`,
+        `file_etag`,
+        `action`,
+        `action_type`
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.businessId},
+            #{item.userId},
+            #{item.fileId},
+            #{item.fileEtag},
+            #{item.action},
+            #{item.actionType}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据业务id(businessId)删除文件操作记录 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `file_record`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)批量删除文件操作记录 -->
+    <delete id="deleteBatch" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `file_record`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改文件操作记录 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.FileRecord" flushCache="true">
+        UPDATE `file_record`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != fileRecord.userId and '' != fileRecord.userId">
+                `user_id` = #{fileRecord.userId},
+            </if>
+            <if test="null != fileRecord.fileId and '' != fileRecord.fileId">
+                `file_id` = #{fileRecord.fileId},
+            </if>
+            <if test="null != fileRecord.fileEtag and '' != fileRecord.fileEtag">
+                `file_etag` = #{fileRecord.fileEtag},
+            </if>
+            <if test="null != fileRecord.action and '' != fileRecord.action">
+                `action` = #{fileRecord.action},
+            </if>
+            <if test="null != fileRecord.actionType and '' != fileRecord.actionType">
+                `action_type` = #{fileRecord.actionType},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{fileRecord.businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)批量修改文件操作记录 -->
+    <update id="updateBatch" parameterType="java.util.List" flushCache="true">
+        UPDATE `file_record`
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="`user_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.userId and '' != item.userId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.userId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileId and '' != item.fileId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`file_etag` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.fileEtag and '' != item.fileEtag">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.fileEtag}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`action` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.action and '' != item.action">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.action}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`action_type` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.actionType and '' != item.actionType">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.actionType}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+                #{item.businessId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找文件操作记录 -->
+    <select id="getFileRecord" resultType="com.doudoudrive.common.model.pojo.FileRecord"
+            resultMap="fileRecordResultMap">
+        SELECT
+        <include refid="fileRecord"/>
+        FROM `file_record`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+    <!-- 根据Model中某个成员变量名称(非数据表中column的名称)查找(value需符合unique约束) -->
+    <select id="getFileRecordToModel" resultType="com.doudoudrive.common.model.pojo.FileRecord"
+            resultMap="fileRecordResultMap">
+        SELECT
+        <include refid="fileRecord"/>
+        FROM `file_record`
+        <where>
+            `${modelName}` = #{value};
+        </where>
+    </select>
+
+    <!-- 根据业务id(businessId)批量查找文件操作记录 -->
+    <select id="listFileRecord" resultType="com.doudoudrive.common.model.pojo.FileRecord"
+            resultMap="fileRecordResultMap">
+        SELECT
+        <include refid="fileRecord"/>
+        FROM `file_record`
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <!-- 指定条件查找文件操作记录 -->
+    <select id="listFileRecordToKey" resultType="com.doudoudrive.common.model.pojo.FileRecord"
+            resultMap="fileRecordResultMap">
+        SELECT
+        <include refid="fileRecord"/>
+        FROM `file_record`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+        ${limit};
+    </select>
+
+    <!-- 返回搜索的总数 -->
+    <select id="countSearch" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `file_record`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <include refid="searchCondition"/>
+        </trim>
+    </select>
+
+    <!-- 删除指定状态的文件操作记录 -->
+    <delete id="deleteAction" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `file_record`
+        <where>
+            `action` = #{action} AND `action_type` = #{actionType}
+        </where>
+    </delete>
+
+    <!-- 获取指定状态的文件操作记录，只会获取1条 -->
+    <select id="getFileRecordByAction" resultType="com.doudoudrive.common.model.pojo.FileRecord"
+            resultMap="fileRecordResultMap">
+        SELECT
+        `business_id`, `user_id`, `file_id`, `file_etag`
+        FROM `file_record`
+        <where>
+            `action` = #{action} AND `action_type` = #{actionType}
+        </where>
+        LIMIT 1
+    </select>
+
+</mapper>

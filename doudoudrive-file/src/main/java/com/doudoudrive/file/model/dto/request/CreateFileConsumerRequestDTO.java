@@ -1,5 +1,6 @@
 package com.doudoudrive.file.model.dto.request;
 
+import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +11,8 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * <p>创建文件时请求数据模型</p>
- * <p>2022-05-22 21:27</p>
+ * <p>创建文件时的消费者请求数据模型</p>
+ * <p>2022-05-25 20:13</p>
  *
  * @author Dan
  **/
@@ -20,14 +21,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CreateFileRequestDTO implements Serializable {
+public class CreateFileConsumerRequestDTO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 参数加密后的签名字符串
+     * 当前文件标识，确保消息幂等
      */
-    private String sign;
+    private String fileId;
+
+    /**
+     * 创建文件时的鉴权参数模型
+     */
+    private CreateFileAuthModel fileInfo;
 
 }
