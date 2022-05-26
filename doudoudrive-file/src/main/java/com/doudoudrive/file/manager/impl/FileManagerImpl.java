@@ -178,25 +178,26 @@ public class FileManagerImpl implements FileManager {
 
         // 查找用户当前总容量、已经使用的磁盘容量
         BigDecimal totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
-        BigDecimal usedDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY);
 
-        // 已经使用的磁盘容量 + 文件大小 与 用户当前总容量比较
-        if (usedDiskCapacity.add(new BigDecimal(ossFile.getSize())).compareTo(totalDiskCapacity) > NumberConstant.INTEGER_ZERO) {
-            // 用户存储空间不足，不能入库
+        // 原子性服务增加用户已用磁盘容量属性
+        Integer increase = diskUserAttrService.increase(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
+                ossFile.getSize(), totalDiskCapacity.stripTrailingZeros().toPlainString());
+        if (increase <= NumberConstant.INTEGER_ZERO) {
             return;
         }
 
         try {
             // 将文件存入用户文件表中，忽略抛出的异常
             diskFileService.insert(userFile);
-            // 原子性服务增加用户已用磁盘容量属性
-            diskUserAttrService.increase(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
-                    ossFile.getSize(), totalDiskCapacity.stripTrailingZeros().toPlainString());
             // 删除文件记录表中状态为被删除的数据
             fileRecordService.deleteAction(ConstantConfig.FileRecordAction.ActionEnum.FILE.status, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(userFile);
         } catch (Exception e) {
+            // 出现异常时手动减去用户已用磁盘容量
+            diskUserAttrService.deducted(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, ossFile.getSize());
+            // 手动删除用户文件
+            diskFileService.delete(userFile.getBusinessId(), userFile.getUserId());
             log.error(e.getMessage(), e);
         }
     }

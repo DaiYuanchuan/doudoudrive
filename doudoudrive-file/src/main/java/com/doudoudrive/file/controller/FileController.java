@@ -233,6 +233,16 @@ public class FileController {
         // 文件的parentId校验机制
         fileManager.verifyParentId(createFile.getUserId(), createFile.getFileParentId());
 
+        // 查找用户当前总容量、已经使用的磁盘容量
+        BigDecimal totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(createFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        BigDecimal usedDiskCapacity = diskUserAttrService.getDiskUserAttrValue(createFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY);
+
+        // 已经使用的磁盘容量 + 文件大小 与 用户当前总容量比较
+        if (usedDiskCapacity.add(new BigDecimal(createFile.getFileSize())).compareTo(totalDiskCapacity) > NumberConstant.INTEGER_ZERO) {
+            // 用户存储空间不足，不能入库
+            return Result.build(StatusCodeEnum.SPACE_INSUFFICIENT);
+        }
+
         // 使用sync模式同步发送消息，在消息完全发送完成之后返回结果
         String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
         SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(consumerRequest));
