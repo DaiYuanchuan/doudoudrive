@@ -34,6 +34,14 @@ public interface LoginManager {
     DiskUserModel getUserInfoToSessionException();
 
     /**
+     * 尝试根据token去获取指定的会话信息，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 通用的用户信息数据模型
+     */
+    DiskUserModel getUserInfoToToken(String token);
+
+    /**
      * 尝试去更新指定用户的会话缓存信息
      *
      * @param token    需要更新的用户token

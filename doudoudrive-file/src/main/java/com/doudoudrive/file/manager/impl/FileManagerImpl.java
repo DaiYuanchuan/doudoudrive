@@ -8,12 +8,14 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.alibaba.fastjson.JSON;
+import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
@@ -31,6 +33,7 @@ import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,8 @@ public class FileManagerImpl implements FileManager {
     private FileRecordService fileRecordService;
 
     private DiskUserAttrService diskUserAttrService;
+
+    private LoginManager loginManager;
 
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
@@ -109,6 +114,11 @@ public class FileManagerImpl implements FileManager {
         this.diskUserAttrService = diskUserAttrService;
     }
 
+    @Autowired
+    public void setLoginManager(LoginManager loginManager) {
+        this.loginManager = loginManager;
+    }
+
     /**
      * 重置文件名时需要使用到的日期格式
      */
@@ -135,7 +145,7 @@ public class FileManagerImpl implements FileManager {
     @Override
     public DiskFile createFolder(String userId, String name, String parentId) {
         // 构建一个文件夹实体信息
-        DiskFile diskFile = diskFileConvert.createFolderConvertDiskFile(userId, name, parentId);
+        DiskFile diskFile = diskFileConvert.createFileConvert(userId, name, parentId);
         // 保存用户文件夹
         diskFileService.insert(diskFile);
         // 用户文件信息先入库，然后入es
@@ -176,8 +186,19 @@ public class FileManagerImpl implements FileManager {
             userFile.setFileName(this.resetFileName(userFile.getFileName()));
         }
 
-        // 查找用户当前总容量、已经使用的磁盘容量
-        BigDecimal totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        // 查找用户当前总容量
+        BigDecimal totalDiskCapacity;
+
+        // 尝试通过token获取用户信息
+        DiskUserModel userModel = loginManager.getUserInfoToToken(createFileRequest.getToken());
+        if (userModel != null) {
+            // 获取用户属性缓存Map
+            totalDiskCapacity = new BigDecimal(userModel.getUserAttr().get(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.param));
+            BigDecimal usedDiskCapacity = new BigDecimal(userModel.getUserAttr().get(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param));
+            userModel.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param, usedDiskCapacity.add(new BigDecimal(userFile.getFileSize())).stripTrailingZeros().toPlainString());
+        } else {
+            totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        }
 
         // 原子性服务增加用户已用磁盘容量属性
         Integer increase = diskUserAttrService.increase(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
@@ -193,6 +214,10 @@ public class FileManagerImpl implements FileManager {
             fileRecordService.deleteAction(ConstantConfig.FileRecordAction.ActionEnum.FILE.status, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(userFile);
+            if (StringUtils.isNotBlank(createFileRequest.getToken())) {
+                // 尝试更新用户缓存信息
+                loginManager.attemptUpdateUserSession(createFileRequest.getToken(), userModel);
+            }
         } catch (Exception e) {
             // 出现异常时手动减去用户已用磁盘容量
             diskUserAttrService.deducted(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, ossFile.getSize());

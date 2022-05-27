@@ -16,6 +16,7 @@ import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
@@ -153,6 +154,26 @@ public class LoginManagerImpl implements LoginManager {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_USERINFO);
         }
         return userLoginResponseDTO.getUserInfo();
+    }
+
+    /**
+     * 尝试根据token去获取指定的会话信息，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 通用的用户信息数据模型
+     */
+    @Override
+    public DiskUserModel getUserInfoToToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            return null;
+        }
+        try {
+            // 通过token尝试获取用户的session对象
+            Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
+            return (DiskUserModel) session.getAttribute(ConstantConfig.Cache.USERINFO_CACHE);
+        } catch (UnknownSessionException e) {
+            return null;
+        }
     }
 
     /**

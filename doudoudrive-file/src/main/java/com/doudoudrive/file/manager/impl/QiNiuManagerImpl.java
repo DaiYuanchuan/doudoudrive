@@ -1,11 +1,18 @@
 package com.doudoudrive.file.manager.impl;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
+import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.global.BusinessExceptionUtil;
+import com.doudoudrive.common.global.StatusCodeEnum;
+import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.FileUploadModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.file.manager.QiNiuManager;
+import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,16 +79,15 @@ public class QiNiuManagerImpl implements QiNiuManager {
     /**
      * 生成HTTP七牛请求签名字符串
      *
-     * @param urlString   url请求字符串
      * @param body        请求内容
      * @param contentType 请求类型
      * @return 签名字符串
      */
     @Override
-    public String signRequest(String urlString, byte[] body, String contentType) {
+    public String signRequest(byte[] body, String contentType) {
         // 获取七牛云配置信息
         QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
-        URI uri = URI.create(urlString);
+        URI uri = URI.create(config.getCallback());
         Mac mac = this.createMac(config.getSecretKey());
         if (mac == null) {
             return CharSequenceUtil.EMPTY;
@@ -101,6 +107,59 @@ public class QiNiuManagerImpl implements QiNiuManager {
         // 组装请求签名
         String digest = new String(Base64.getUrlEncoder().encode(signData), StandardCharsets.US_ASCII);
         return config.getAccessKey() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + digest;
+    }
+
+    /**
+     * 生成七牛上传token
+     *
+     * @param createFileAuthModel 创建文件时的鉴权参数模型
+     * @param etag                文件etag
+     * @return 返回文件上传token时响应数据模型
+     */
+    @Override
+    public FileUploadTokenResponseDTO uploadToken(CreateFileAuthModel createFileAuthModel, String etag) {
+        // 获取七牛云配置信息
+        QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
+
+        // 请求时间戳，取当前时间 UNIX 时间戳，精确到秒
+        long timestamp = System.currentTimeMillis() / NumberConstant.LONG_ONE_THOUSAND;
+
+        // 文件上传时对象存储中的路径
+        String key = String.format(config.getPath(), etag);
+
+        // 所支持的范围
+        String scope = config.getBucket() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + key;
+
+        // 构建文件上传模型
+        FileUploadModel uploadModel = FileUploadModel.builder()
+                .callbackUrl(config.getCallback())
+                .callbackBody(JSON.toJSONString(createFileAuthModel))
+                .callbackBodyType(JSON_MIME)
+                .sizeLimit(config.getSize())
+                .fileType(config.getFileType())
+                .scope(scope)
+                .deadline(timestamp + config.getExpires())
+                .build();
+
+        // 构建文件上传模型的json字符串
+        String json = JSON.toJSONString(uploadModel);
+        // 组装请求签名
+        String digest = new String(Base64.getUrlEncoder().encode(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.US_ASCII);
+
+        // 获取签名对象
+        Mac mac = this.createMac(config.getSecretKey());
+        if (mac == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SIGNATURE_EXCEPTION);
+        }
+        // 获取签名数据
+        String encodedSign = new String(Base64.getUrlEncoder().encode(mac.doFinal(digest.getBytes(StandardCharsets.UTF_8))), StandardCharsets.US_ASCII);
+        String token = config.getAccessKey() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + encodedSign + ConstantConfig.SpecialSymbols.ENGLISH_COLON + digest;
+
+        // 构建响应参数
+        return FileUploadTokenResponseDTO.builder()
+                .token(token)
+                .key(key)
+                .build();
     }
 
     /**

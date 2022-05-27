@@ -32,6 +32,11 @@ public class CreateFileConsumerRequestDTO implements Serializable {
     private String fileId;
 
     /**
+     * 用户当前token，会尝试使用token去更新
+     */
+    private String token;
+
+    /**
      * 创建文件时的鉴权参数模型
      */
     private CreateFileAuthModel fileInfo;

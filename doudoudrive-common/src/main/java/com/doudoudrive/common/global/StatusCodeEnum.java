@@ -47,6 +47,7 @@ public enum StatusCodeEnum {
     CACHE_MANAGER_PRINCIPAL_ID_NOT_ASSIGNED_EXCEPTION(506, "CacheManager没有分配主体Id"),
     SMS_SIGNATURE_EXCEPTION(507, "短信签名异常"),
     ABNORMAL_SMS_SENDING(508, "短信发送失败"),
+    SIGNATURE_EXCEPTION(509, "签名异常"),
 
     /**
      * 用户(账号)类:65x

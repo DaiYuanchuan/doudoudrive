@@ -17,9 +17,9 @@ import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.util.http.Result;
-import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
@@ -30,8 +30,9 @@ import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.manager.QiNiuManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
-import com.doudoudrive.file.model.dto.request.CreateFileRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFolderRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileUploadTokenRequestDTO;
+import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,13 +45,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * <p>用户文件模块控制层接口</p>
@@ -152,6 +149,26 @@ public class FileController {
      */
     private static final String QBOX_AUTHORIZATION_PREFIX = "QBox ";
 
+    /**
+     * 七牛云上传回调-文件名
+     */
+    private static final String QI_NIU_CALLBACK_FILE_NAME = "$(fname)";
+
+    /**
+     * 七牛云上传回调-文件大小
+     */
+    private static final String QI_NIU_CALLBACK_FILE_SIZE = "$(fsize)";
+
+    /**
+     * 七牛云上传回调-文件mime type
+     */
+    private static final String QI_NIU_CALLBACK_FILE_MIME_TYPE = "$(mimeType)";
+
+    /**
+     * 七牛云上传回调-文件etag
+     */
+    private static final String QI_NIU_CALLBACK_FILE_ETAG = "$(etag)";
+
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "文件夹", businessType = "新建")
@@ -181,7 +198,7 @@ public class FileController {
     /**
      * 创建文件接口作为对七牛云的回调接口，不对外开放
      *
-     * @param requestDTO 创建文件时请求数据模型
+     * @param createFile 创建文件时请求数据模型
      * @param request    请求对象
      * @param response   响应对象
      * @return 网盘文件数据模型
@@ -190,35 +207,36 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "文件", businessType = "新建")
     @PostMapping(value = "/create-file", produces = "application/json;charset=UTF-8")
-    public Result<DiskFileModel> createFile(@RequestBody @Valid CreateFileRequestDTO requestDTO,
+    public Result<DiskFileModel> createFile(@RequestBody @Valid CreateFileAuthModel createFile,
                                             HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");
 
         // 获取原始签名字符串，以 "QBox "作为起始字符
         String originAuthorization = request.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
-        if (StringUtils.isBlank(originAuthorization) || StringUtils.isBlank(requestDTO.getSign())) {
+        if (StringUtils.isBlank(originAuthorization)) {
             return Result.build(StatusCodeEnum.FILE_AUTHENTICATION_FAILED);
         }
 
-        // 解密签名字符串
-        CreateFileAuthModel createFile = fileManager.decrypt(requestDTO.getSign(), CreateFileAuthModel.class);
+        // 获取七牛请求签名字符串
+        String authorization = QBOX_AUTHORIZATION_PREFIX + qiNiuManager.signRequest(null, request.getContentType());
+        if (!authorization.equals(originAuthorization)) {
+            return Result.build(StatusCodeEnum.FILE_AUTHENTICATION_FAILED);
+        }
 
         // 获取七牛云配置信息
         QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
 
-        // 获取七牛请求签名字符串
-        String authorization = QBOX_AUTHORIZATION_PREFIX + qiNiuManager.signRequest(config.getCallback(), null, request.getContentType());
-        if (!authorization.equals(originAuthorization) || createFile == null) {
+        // 获取回调时的浏览器UA标识
+        String userAgent = request.getHeader(ConstantConfig.HttpRequest.USER_AGENT);
+        if (StringUtils.isNotBlank(config.getQiNiuCallback()) && !config.getQiNiuCallback().equals(userAgent)) {
             return Result.build(StatusCodeEnum.FILE_AUTHENTICATION_FAILED);
         }
-
-        // 对文件创建时参数进行校验，校验失败时抛出异常
-        this.createFileParamVerify(createFile);
 
         // 构建创建文件时的消费者请求数据模型
         CreateFileConsumerRequestDTO consumerRequest = CreateFileConsumerRequestDTO.builder()
                 .fileId(SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE))
+                .token(createFile.getToken())
                 .fileInfo(createFile)
                 .build();
 
@@ -234,8 +252,21 @@ public class FileController {
         fileManager.verifyParentId(createFile.getUserId(), createFile.getFileParentId());
 
         // 查找用户当前总容量、已经使用的磁盘容量
-        BigDecimal totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(createFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
-        BigDecimal usedDiskCapacity = diskUserAttrService.getDiskUserAttrValue(createFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY);
+        BigDecimal totalDiskCapacity, usedDiskCapacity;
+
+        // 尝试通过token获取用户信息
+        DiskUserModel diskUserModel = loginManager.getUserInfoToToken(createFile.getToken());
+        if (diskUserModel != null) {
+            // 获取用户属性缓存Map
+            Map<String, String> userAttr = diskUserModel.getUserAttr();
+            // 查找用户当前总容量、已经使用的磁盘容量
+            totalDiskCapacity = new BigDecimal(userAttr.get(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.param));
+            usedDiskCapacity = new BigDecimal(userAttr.get(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param));
+        } else {
+            // 无法从缓存中获取时，从数据库中查询
+            totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(createFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+            usedDiskCapacity = diskUserAttrService.getDiskUserAttrValue(createFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY);
+        }
 
         // 已经使用的磁盘容量 + 文件大小 与 用户当前总容量比较
         if (usedDiskCapacity.add(new BigDecimal(createFile.getFileSize())).compareTo(totalDiskCapacity) > NumberConstant.INTEGER_ZERO) {
@@ -253,6 +284,86 @@ public class FileController {
 
         // TODO: 2022/5/25 需要拼接资源文件的访问地址
         return Result.ok(diskFileConvert.createFileAuthConvertDiskFileModel(createFile, consumerRequest.getFileId()));
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "获取上传Token", businessType = "文件系统")
+    @PostMapping(value = "/token", produces = "application/json;charset=UTF-8")
+    public Result<FileUploadTokenResponseDTO> getUploadToken(@RequestBody @Valid FileUploadTokenRequestDTO tokenRequest,
+                                                             HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("application/json;charset=UTF-8");
+
+        // 从缓存中获取当前登录的用户信息
+        UserLoginResponseDTO userLoginResponse = loginManager.getUserInfoToSession();
+        // 无法获取用户信息时
+        if (userLoginResponse == null || userLoginResponse.getUserInfo() == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_USERINFO);
+        }
+
+        // 获取用户属性缓存Map
+        Map<String, String> userAttr = userLoginResponse.getUserInfo().getUserAttr();
+
+        // 查找用户当前总容量、已经使用的磁盘容量
+        BigDecimal totalDiskCapacity = new BigDecimal(userAttr.get(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.param));
+        BigDecimal usedDiskCapacity = new BigDecimal(userAttr.get(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param));
+
+        // 已经使用的磁盘容量 + 文件大小 与 用户当前总容量比较
+        if (usedDiskCapacity.add(new BigDecimal(tokenRequest.getFileSize())).compareTo(totalDiskCapacity) > NumberConstant.INTEGER_ZERO) {
+            // 用户存储空间不足，不能入库
+            return Result.build(StatusCodeEnum.SPACE_INSUFFICIENT);
+        }
+
+        // 文件的parentId校验机制
+        fileManager.verifyParentId(userLoginResponse.getUserInfo().getBusinessId(), tokenRequest.getFileParentId());
+
+        // 根据传入的etag查找是否存在对应的文件信息
+        OssFile ossFile = ossFileManager.getOssFile(tokenRequest.getFileEtag());
+        if (ossFile != null) {
+            // 构建一个文件实体信息
+            DiskFile diskFile = diskFileConvert.ossFileConvertDiskFile(ossFile, userLoginResponse.getUserInfo().getBusinessId(),
+                    tokenRequest.getName(), tokenRequest.getFileParentId());
+
+            // 文件名重复校验机制，针对同一个目录下的文件名称重复性校验
+            if (fileManager.verifyRepeat(diskFile.getFileName(), diskFile.getUserId(), diskFile.getFileParentId(), Boolean.FALSE)) {
+                return Result.build(StatusCodeEnum.FILE_NAME_REPEAT);
+            }
+
+            // 构建创建文件时的消费者请求数据模型
+            CreateFileConsumerRequestDTO consumerRequest = CreateFileConsumerRequestDTO.builder()
+                    .fileId(SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE))
+                    .token(userLoginResponse.getToken())
+                    .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile))
+                    .build();
+
+            // 使用sync模式同步发送消息，在消息完全发送完成之后返回结果
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(consumerRequest));
+
+            // 构建RocketMQ消费记录
+            RocketmqConsumerRecord consumerRecord = consumerRecordConvert.sendResultConvertConsumerRecord(sendResult, sendResult.getMessageQueue(), ConstantConfig.Tag.CREATE_FILE);
+            rocketmqConsumerRecordService.insert(consumerRecord);
+
+            // TODO: 2022/5/26 需要拼接资源文件的访问地址
+            return Result.ok(FileUploadTokenResponseDTO.builder()
+                    .fileInfo(diskFileConvert.diskFileConvertDiskFileModel(diskFile))
+                    .build());
+        }
+
+        // 构建创建文件时的鉴权参数模型
+        CreateFileAuthModel createFileAuthModel = CreateFileAuthModel.builder()
+                .userId(userLoginResponse.getUserInfo().getBusinessId())
+                .name(QI_NIU_CALLBACK_FILE_NAME)
+                .fileParentId(tokenRequest.getFileParentId())
+                .fileSize(QI_NIU_CALLBACK_FILE_SIZE)
+                .fileMimeType(QI_NIU_CALLBACK_FILE_MIME_TYPE)
+                .fileEtag(QI_NIU_CALLBACK_FILE_ETAG)
+                .token(userLoginResponse.getToken())
+                .build();
+
+        // 生成七牛上传token
+        return Result.ok(qiNiuManager.uploadToken(createFileAuthModel, tokenRequest.getFileEtag()));
     }
 
     /**
@@ -345,21 +456,5 @@ public class FileController {
 
         // 响应成功的状态码
         response.setStatus(HttpStatus.NO_CONTENT.value());
-    }
-
-    /**
-     * 对文件创建时参数进行校验，校验失败时抛出异常
-     *
-     * @param createFileAuthModel 创建文件时的鉴权参数模型
-     */
-    private void createFileParamVerify(CreateFileAuthModel createFileAuthModel) {
-        try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
-            Set<ConstraintViolation<CreateFileAuthModel>> validateResult = validatorFactory.getValidator().validate(createFileAuthModel);
-            if (CollectionUtil.isNotEmpty(validateResult)) {
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.PARAM_INVALID, validateResult.stream()
-                        .map(ConstraintViolation::getMessage)
-                        .findAny().orElse(StatusCodeEnum.PARAM_INVALID.message));
-            }
-        }
     }
 }

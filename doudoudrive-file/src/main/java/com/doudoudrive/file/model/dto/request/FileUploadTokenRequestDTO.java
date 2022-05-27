@@ -1,6 +1,5 @@
-package com.doudoudrive.common.model.dto.model;
+package com.doudoudrive.file.model.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,12 +7,10 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.io.Serial;
-import java.io.Serializable;
 
 /**
- * <p>创建文件时的鉴权参数模型</p>
- * <p>2022-05-25 18:38</p>
+ * <p>获取文件上传token时请求数据模型</p>
+ * <p>2022-05-26 15:48</p>
  *
  * @author Dan
  **/
@@ -21,18 +18,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CreateFileAuthModel implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * 用户系统内唯一标识
-     */
-    @NotBlank(message = "用户标识不能为空")
-    @Size(max = 35, message = "用户标识长度错误")
-    private String userId;
+public class FileUploadTokenRequestDTO {
 
     /**
      * 文件名称
@@ -56,22 +42,10 @@ public class CreateFileAuthModel implements Serializable {
     private String fileSize;
 
     /**
-     * 文件的mime类型
-     */
-    @NotBlank(message = "mime类型不能为空")
-    @Size(max = 100, message = "mime类型数据过长")
-    private String fileMimeType;
-
-    /**
      * 文件的ETag(资源的唯一标识)
      */
     @NotBlank(message = "etag不能为空")
     @Size(max = 50, message = "etag数据过长")
     private String fileEtag;
-
-    /**
-     * 用户当前token，会尝试使用token去更新
-     */
-    private String token;
 
 }
