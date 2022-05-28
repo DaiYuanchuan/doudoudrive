@@ -157,6 +157,22 @@ public class LoginManagerImpl implements LoginManager {
     }
 
     /**
+     * 从session中获取当前登录的用户token信息
+     *
+     * @return 用户token字符串
+     */
+    @Override
+    public String getUserToken() {
+        // 从缓存中获取用户信息对象
+        UserLoginResponseDTO userLoginResponseDTO = this.getUserInfoToSession();
+        // 无法获取用户信息时
+        if (userLoginResponseDTO == null || userLoginResponseDTO.getUserInfo() == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_USERINFO);
+        }
+        return userLoginResponseDTO.getToken();
+    }
+
+    /**
      * 尝试根据token去获取指定的会话信息，无法获取时返回null
      *
      * @param token 用户token
@@ -184,16 +200,18 @@ public class LoginManagerImpl implements LoginManager {
      */
     @Override
     public void attemptUpdateUserSession(String token, DiskUserModel userInfo) {
-        try {
-            // 通过token尝试获取用户的session对象
-            Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
-            // 更新指定用户缓存信息
-            session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
-            // 更新完本地缓存后，需要通知到其他服务同步更新
-            redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
-                    .cacheKey(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + token)
-                    .build());
-        } catch (UnknownSessionException ignored) {
+        if (StringUtils.isNotBlank(token)) {
+            try {
+                // 通过token尝试获取用户的session对象
+                Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
+                // 更新指定用户缓存信息
+                session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
+                // 更新完本地缓存后，需要通知到其他服务同步更新
+                redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
+                        .cacheKey(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + token)
+                        .build());
+            } catch (UnknownSessionException ignored) {
+            }
         }
     }
 }

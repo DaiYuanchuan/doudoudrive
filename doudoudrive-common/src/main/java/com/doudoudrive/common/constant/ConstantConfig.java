@@ -104,6 +104,11 @@ public interface ConstantConfig {
         String USER_AGENT = "User-Agent";
 
         /**
+         * 请求头中的 host 字段
+         */
+        String HOST = "host";
+
+        /**
          * 微信浏览器请求头中的userAgent标识
          */
         String[] WECHAT_BROWSER_USER_AGENT = {"MicroMessenger/", "WeChat", "Weixin"};
@@ -716,6 +721,81 @@ public interface ConstantConfig {
             List<String> inoperableType = Arrays.asList(AUDIT_FAILURE.status, SOURCE_FILE_DELETED.status);
             return inoperableType.contains(fileStatus);
         }
+    }
+
+    /**
+     * 七牛云相关常量配置
+     */
+    interface QiNiuConstant {
+        /**
+         * 七牛云请求鉴权的前缀(QBox)
+         */
+        String QBOX_AUTHORIZATION_PREFIX = "QBox ";
+
+        /**
+         * 七牛云上传回调时请求头中的请求id
+         */
+        String QI_NIU_CALLBACK_REQUEST_ID = "X-Reqid";
+
+        /**
+         * 七牛云上传回调-获得上传的目标空间名
+         */
+        String QI_NIU_CALLBACK_BUCKET = "$(bucket)";
+
+        /**
+         * 七牛云上传回调-获得文件保存在空间中的资源名
+         */
+        String QI_NIU_CALLBACK_KEY = "$(key)";
+
+        /**
+         * 七牛云上传回调-上传的原始文件名
+         */
+        String QI_NIU_CALLBACK_FILE_NAME = "$(fname)";
+
+        /**
+         * 七牛云上传回调-资源尺寸，单位为字节
+         */
+        String QI_NIU_CALLBACK_FILE_SIZE = "$(fsize)";
+
+        /**
+         * 七牛云上传回调-资源类型，例如JPG图片的资源类型为image/jpg
+         */
+        String QI_NIU_CALLBACK_FILE_MIME_TYPE = "$(mimeType)";
+
+        /**
+         * 七牛云上传回调-上传时指定的endUser字段，通常用于区分不同终端用户的请求
+         */
+        String QI_NIU_CALLBACK_END_USER = "$(endUser)";
+
+        /**
+         * 七牛云上传回调-音视频转码持久化的进度查询ID
+         */
+        String QI_NIU_CALLBACK_PERSISTENT_ID = "$(persistentId)";
+
+        /**
+         * 七牛云上传回调-获取上传图片的Exif信息，该变量包含子字段
+         */
+        String QI_NIU_CALLBACK_EXIF = "$(exif)";
+
+        /**
+         * 获取所上传图片的基本信息，该变量包含子字段，例如对$(imageInfo.width)取值将得到该图片的宽度
+         */
+        String QI_NIU_CALLBACK_IMAGE_INFO = "$(imageInfo)";
+
+        /**
+         * 音视频资源的元信息
+         */
+        String QI_NIU_CALLBACK_AV_INFO = "$(avinfo)";
+
+        /**
+         * 图片主色调
+         */
+        String QI_NIU_CALLBACK_IMAGE_AVE = "$(imageAve)";
+
+        /**
+         * 七牛云上传回调-文件etag
+         */
+        String QI_NIU_CALLBACK_FILE_ETAG = "$(etag)";
     }
 
     /**

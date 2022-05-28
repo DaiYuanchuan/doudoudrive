@@ -48,4 +48,9 @@ public class FileUploadTokenRequestDTO {
     @Size(max = 50, message = "etag数据过长")
     private String fileEtag;
 
+    /**
+     * 回调Url，文件上传成功后的回调地址，对接第三方使用
+     */
+    private String callbackUrl;
+
 }

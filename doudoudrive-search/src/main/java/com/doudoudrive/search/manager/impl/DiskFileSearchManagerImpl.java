@@ -65,7 +65,7 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
     @Override
     public void updateDiskFile(String id, DiskFileDTO diskFileDTO) {
         // 将用户文件信息转为map
-        Map<String, Object> diskFileMap = BeanUtil.beanToMap(diskFileDTO, false, true);
+        Map<String, Object> diskFileMap = BeanUtil.beanToMap(diskFileDTO, Boolean.FALSE, Boolean.TRUE);
         // 构建更新的es请求
         restTemplate.update(UpdateQuery
                 .builder(id)

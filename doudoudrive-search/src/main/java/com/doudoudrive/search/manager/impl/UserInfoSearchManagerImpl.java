@@ -82,7 +82,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
     @Override
     public void updateUserInfo(String id, UserInfoDTO userInfoDTO) {
         // 将用户信息转为map
-        Map<String, Object> userInfoMap = BeanUtil.beanToMap(userInfoDTO, false, true);
+        Map<String, Object> userInfoMap = BeanUtil.beanToMap(userInfoDTO, Boolean.FALSE, Boolean.TRUE);
         // 构建更新的es请求
         restTemplate.update(UpdateQuery
                 .builder(id)

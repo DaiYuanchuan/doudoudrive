@@ -1,5 +1,6 @@
 package com.doudoudrive.file.manager.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.constant.ConstantConfig;
@@ -10,6 +11,7 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileUploadModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.file.manager.QiNiuManager;
 import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
@@ -24,6 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 
 /**
  * <p>七牛云相关服务通用业务处理层接口实现</p>
@@ -130,19 +133,21 @@ public class QiNiuManagerImpl implements QiNiuManager {
         // 所支持的范围
         String scope = config.getBucket() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + key;
 
-        // 构建文件上传模型
-        FileUploadModel uploadModel = FileUploadModel.builder()
+        // 将文件的鉴权参数模型信息转为map
+        Map<String, Object> createFileAuthMap = BeanUtil.beanToMap(createFileAuthModel, Boolean.FALSE, Boolean.TRUE);
+        // 通过map构建url查询字符串
+        String urlQueryParam = UrlQueryUtil.buildUrlQueryParams(createFileAuthMap, Boolean.FALSE);
+
+        // 构建文件上传模型的json字符串
+        String json = JSON.toJSONString(FileUploadModel.builder()
                 .callbackUrl(config.getCallback())
-                .callbackBody(JSON.toJSONString(createFileAuthModel))
-                .callbackBodyType(JSON_MIME)
+                .callbackBody(urlQueryParam)
+                .callbackBodyType(FORM_MIME)
                 .sizeLimit(config.getSize())
                 .fileType(config.getFileType())
                 .scope(scope)
                 .deadline(timestamp + config.getExpires())
-                .build();
-
-        // 构建文件上传模型的json字符串
-        String json = JSON.toJSONString(uploadModel);
+                .build());
         // 组装请求签名
         String digest = new String(Base64.getUrlEncoder().encode(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.US_ASCII);
 

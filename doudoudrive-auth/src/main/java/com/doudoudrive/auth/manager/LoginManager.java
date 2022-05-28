@@ -34,6 +34,13 @@ public interface LoginManager {
     DiskUserModel getUserInfoToSessionException();
 
     /**
+     * 从session中获取当前登录的用户token信息
+     *
+     * @return 用户token字符串
+     */
+    String getUserToken();
+
+    /**
      * 尝试根据token去获取指定的会话信息，无法获取时返回null
      *
      * @param token 用户token

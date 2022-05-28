@@ -27,14 +27,14 @@ public class CreateFileConsumerRequestDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 当前文件标识，确保消息幂等
+     * 当前文件标识
      */
     private String fileId;
 
     /**
-     * 用户当前token，会尝试使用token去更新
+     * 请求id，16位随机字符串，包含大小写
      */
-    private String token;
+    private String requestId;
 
     /**
      * 创建文件时的鉴权参数模型

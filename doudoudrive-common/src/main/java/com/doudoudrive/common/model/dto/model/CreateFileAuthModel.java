@@ -74,4 +74,14 @@ public class CreateFileAuthModel implements Serializable {
      */
     private String token;
 
+    /**
+     * 回调Url，文件上传成功后的回调地址，对接第三方使用
+     */
+    private String callbackUrl;
+
+    /**
+     * 时间戳，记录文件上传时间，也能保证后续生成的签名不断变换
+     */
+    private Long timestamp;
+
 }

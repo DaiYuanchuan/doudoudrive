@@ -1,8 +1,10 @@
 package com.doudoudrive.file.manager;
 
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
+import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.pojo.DiskFile;
-import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
+
+import java.math.BigDecimal;
 
 /**
  * <p>用户文件信息服务的通用业务处理层接口</p>
@@ -25,9 +27,13 @@ public interface FileManager {
     /**
      * 创建文件
      *
-     * @param createFileRequest 创建文件时请求数据模型
+     * @param fileInfo          创建文件时的鉴权参数模型
+     * @param fileId            文件标识
+     * @param totalDiskCapacity 用户当前总容量
+     * @param usedDiskCapacity  用户当前已经使用的磁盘容量
+     * @return 返回构建入库时的用户文件模块
      */
-    void createFile(CreateFileConsumerRequestDTO createFileRequest);
+    DiskFile createFile(CreateFileAuthModel fileInfo, String fileId, BigDecimal totalDiskCapacity, BigDecimal usedDiskCapacity);
 
     /**
      * 根据业务标识查找指定用户下的文件信息，优先从缓存中查找

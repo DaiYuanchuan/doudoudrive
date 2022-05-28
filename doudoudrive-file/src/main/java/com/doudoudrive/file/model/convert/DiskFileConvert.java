@@ -10,6 +10,7 @@ import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.lang.MimeTypes;
+import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -152,9 +153,46 @@ public interface DiskFileConvert {
      * @param diskFile 用户文件模块实体类
      * @return 创建文件时的鉴权参数模型
      */
-    @Mappings({
-            @Mapping(target = "name", source = "fileName")
-    })
+    @Mapping(target = "name", source = "fileName")
     CreateFileAuthModel diskFileConvertCreateFileAuthModel(DiskFile diskFile);
+
+    /**
+     * 将 OssFile(OSS文件对象存储实体类) 类型转换为 CreateFileAuthModel(创建文件时的鉴权参数模型)
+     *
+     * @param ossFile OSS文件对象存储实体类
+     * @return 创建文件时的鉴权参数模型
+     */
+    @Mappings({
+            @Mapping(target = "fileSize", source = "size"),
+            @Mapping(target = "fileMimeType", source = "mimeType"),
+            @Mapping(target = "fileEtag", source = "etag")
+    })
+    CreateFileAuthModel ossFileConvertCreateFileAuthModel(OssFile ossFile, String userId, String name, String fileParentId);
+
+    /**
+     * 获取上传Token时需要的 CreateFileAuthModel(创建文件时的鉴权参数模型)
+     *
+     * @param userId       用户系统内唯一标识
+     * @param fileParentId 文件父级标识
+     * @param token        用户当前token
+     * @return 创建文件时的鉴权参数模型
+     */
+    @Mappings({
+            @Mapping(target = "name", constant = ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_FILE_NAME),
+            @Mapping(target = "fileSize", constant = ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_FILE_SIZE),
+            @Mapping(target = "fileMimeType", constant = ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_FILE_MIME_TYPE),
+            @Mapping(target = "fileEtag", constant = ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_FILE_ETAG),
+            @Mapping(target = "timestamp", expression = "java(System.currentTimeMillis())")
+    })
+    CreateFileAuthModel uploadTokenConvert(String userId, String fileParentId, String token, String callbackUrl);
+
+    /**
+     * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 CreateFileCallbackRequestDTO(创建文件时消费者回调请求数据模型)
+     *
+     * @param createFileAuthModel 创建文件时的鉴权参数模型
+     * @param fileId              文件标识
+     * @return 创建文件时消费者回调请求数据模型
+     */
+    CreateFileCallbackRequestDTO ossFileConvertCreateFileCallbackRequest(CreateFileAuthModel createFileAuthModel, String fileId);
 
 }

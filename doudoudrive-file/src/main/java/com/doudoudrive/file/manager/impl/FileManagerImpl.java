@@ -15,7 +15,7 @@ import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
@@ -30,10 +30,8 @@ import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
-import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -159,25 +157,19 @@ public class FileManagerImpl implements FileManager {
     /**
      * 创建文件
      *
-     * @param createFileRequest 创建文件时请求数据模型
+     * @param fileInfo          创建文件时的鉴权参数模型
+     * @param fileId            文件标识
+     * @param totalDiskCapacity 用户当前总容量
+     * @param usedDiskCapacity  用户当前已经使用的磁盘容量
+     * @return 返回构建入库时的用户文件模块
      */
     @Override
-    public void createFile(CreateFileConsumerRequestDTO createFileRequest) {
-        // 根据文件标识尝试获取指定文件
-        DiskFile diskFile = this.getDiskFile(createFileRequest.getFileInfo().getUserId(), createFileRequest.getFileId());
-        // 如果能获取到文件，则证明消息已被消费
-        if (diskFile != null) {
-            return;
-        }
-
+    public DiskFile createFile(CreateFileAuthModel fileInfo, String fileId, BigDecimal totalDiskCapacity, BigDecimal usedDiskCapacity) {
         // 根据etag查找oss文件信息
-        OssFile ossFile = ossFileManager.getOssFile(createFileRequest.getFileInfo().getFileEtag());
-        if (ossFile == null) {
-            return;
-        }
+        OssFile ossFile = ossFileManager.getOssFile(fileInfo.getFileEtag());
 
         // 构建用户文件模块
-        DiskFile userFile = diskFileConvert.createFileAuthModelConvertDiskFile(createFileRequest.getFileInfo(), createFileRequest.getFileId());
+        DiskFile userFile = diskFileConvert.createFileAuthModelConvertDiskFile(fileInfo, fileId);
         // 如果当前上传的文件是被禁止的，则在添加时直接设置为禁止访问
         userFile.setForbidden(ConstantConfig.OssFileStatusEnum.forbidden(ossFile.getStatus()));
 
@@ -186,25 +178,11 @@ public class FileManagerImpl implements FileManager {
             userFile.setFileName(this.resetFileName(userFile.getFileName()));
         }
 
-        // 查找用户当前总容量
-        BigDecimal totalDiskCapacity;
-
-        // 尝试通过token获取用户信息
-        DiskUserModel userModel = loginManager.getUserInfoToToken(createFileRequest.getToken());
-        if (userModel != null) {
-            // 获取用户属性缓存Map
-            totalDiskCapacity = new BigDecimal(userModel.getUserAttr().get(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.param));
-            BigDecimal usedDiskCapacity = new BigDecimal(userModel.getUserAttr().get(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param));
-            userModel.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param, usedDiskCapacity.add(new BigDecimal(userFile.getFileSize())).stripTrailingZeros().toPlainString());
-        } else {
-            totalDiskCapacity = diskUserAttrService.getDiskUserAttrValue(userFile.getUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
-        }
-
         // 原子性服务增加用户已用磁盘容量属性
         Integer increase = diskUserAttrService.increase(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
                 ossFile.getSize(), totalDiskCapacity.stripTrailingZeros().toPlainString());
         if (increase <= NumberConstant.INTEGER_ZERO) {
-            return;
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SPACE_INSUFFICIENT);
         }
 
         try {
@@ -214,16 +192,22 @@ public class FileManagerImpl implements FileManager {
             fileRecordService.deleteAction(ConstantConfig.FileRecordAction.ActionEnum.FILE.status, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(userFile);
-            if (StringUtils.isNotBlank(createFileRequest.getToken())) {
+            // 尝试通过token获取用户信息
+            Optional.ofNullable(loginManager.getUserInfoToToken(fileInfo.getToken())).ifPresent(userInfo -> {
+                // 更新已用容量
+                String usedCapacity = usedDiskCapacity.add(new BigDecimal(ossFile.getSize())).stripTrailingZeros().toPlainString();
+                userInfo.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param, usedCapacity);
                 // 尝试更新用户缓存信息
-                loginManager.attemptUpdateUserSession(createFileRequest.getToken(), userModel);
-            }
+                loginManager.attemptUpdateUserSession(fileInfo.getToken(), userInfo);
+            });
+            return userFile;
         } catch (Exception e) {
             // 出现异常时手动减去用户已用磁盘容量
             diskUserAttrService.deducted(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, ossFile.getSize());
             // 手动删除用户文件
             diskFileService.delete(userFile.getBusinessId(), userFile.getUserId());
             log.error(e.getMessage(), e);
+            return null;
         }
     }
 

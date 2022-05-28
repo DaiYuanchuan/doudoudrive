@@ -3,10 +3,7 @@ package com.doudoudrive.common.util.lang;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +23,16 @@ public class CollectionUtil extends CollectionUtils {
      */
     public static boolean isNotEmpty(@Nullable Collection<?> collection) {
         return !isEmpty(collection);
+    }
+
+    /**
+     * Map是否为非空
+     *
+     * @param map map数据
+     * @return 是否为非空
+     */
+    public static boolean isNotEmpty(@Nullable Map<?, ?> map) {
+        return !isEmpty(map);
     }
 
     /**
@@ -64,6 +71,16 @@ public class CollectionUtil extends CollectionUtils {
      */
     public static <T> boolean isEmpty(T[] array) {
         return array == null || array.length == 0;
+    }
+
+    /**
+     * 字节数组是否为空
+     *
+     * @param bytes 字节数组
+     * @return 是否为空
+     */
+    public static boolean isEmpty(byte[] bytes) {
+        return bytes == null || bytes.length == 0;
     }
 
     /**
