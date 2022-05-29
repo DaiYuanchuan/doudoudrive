@@ -86,6 +86,8 @@
         <elasticsearch.version>7.17.1</elasticsearch.version>
         <!-- 发送邮件依赖包 版本号 -->
         <mail.version>1.6.2</mail.version>
+        <!-- spring-data-commons 版本号 -->
+        <springdata.commons.version>2.7.0</springdata.commons.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -352,6 +354,12 @@
                 <artifactId>spring-data-elasticsearch</artifactId>
                 <version>4.4.0</version>
                 <scope>compile</scope>
+            </dependency>
+            <!-- 4.x 版本的spring-data-elasticsearch需要携带2.7.0版本的spring-data-commons -->
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-commons</artifactId>
+                <version>${springdata.commons.version}</version>
             </dependency>
             <!-- 分布式依赖包 -->
 
