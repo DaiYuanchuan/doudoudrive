@@ -163,9 +163,9 @@ public interface DiskFileConvert {
      * @return 创建文件时的鉴权参数模型
      */
     @Mappings({
-            @Mapping(target = "fileSize", source = "size"),
-            @Mapping(target = "fileMimeType", source = "mimeType"),
-            @Mapping(target = "fileEtag", source = "etag")
+            @Mapping(target = "fileSize", source = "ossFile.size"),
+            @Mapping(target = "fileMimeType", source = "ossFile.mimeType"),
+            @Mapping(target = "fileEtag", source = "ossFile.etag")
     })
     CreateFileAuthModel ossFileConvertCreateFileAuthModel(OssFile ossFile, String userId, String name, String fileParentId);
 
@@ -175,6 +175,8 @@ public interface DiskFileConvert {
      * @param userId       用户系统内唯一标识
      * @param fileParentId 文件父级标识
      * @param token        用户当前token
+     * @param callbackUrl  回调Url，文件上传成功后的回调地址，对接第三方使用
+     * @param originalEtag 用户原始etag，用户获取上传token时由前端生成的etag
      * @return 创建文件时的鉴权参数模型
      */
     @Mappings({
@@ -184,7 +186,7 @@ public interface DiskFileConvert {
             @Mapping(target = "fileEtag", constant = ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_FILE_ETAG),
             @Mapping(target = "timestamp", expression = "java(System.currentTimeMillis())")
     })
-    CreateFileAuthModel uploadTokenConvert(String userId, String fileParentId, String token, String callbackUrl);
+    CreateFileAuthModel uploadTokenConvert(String userId, String fileParentId, String token, String callbackUrl, String originalEtag);
 
     /**
      * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 CreateFileCallbackRequestDTO(创建文件时消费者回调请求数据模型)

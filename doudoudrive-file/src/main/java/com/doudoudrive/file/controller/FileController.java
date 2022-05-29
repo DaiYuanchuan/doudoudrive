@@ -243,6 +243,11 @@ public class FileController {
         // 添加OSS文件对象存储(这个操作要放在前面)
         ossFileManager.insert(createFile, fileId);
 
+        if (!createFile.getFileEtag().equals(createFile.getOriginalEtag())) {
+            // 用户计算的etag和实际的etag不一致时，将云端文件重命名为正确的etag
+            qiNiuManager.rename(createFile.getOriginalEtag(), createFile.getFileEtag());
+        }
+
         // 校验用户id是否存在
         if (diskUserService.getDiskUser(createFile.getUserId()) == null) {
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
@@ -333,7 +338,7 @@ public class FileController {
 
         // 生成七牛上传token
         return Result.ok(qiNiuManager.uploadToken(diskFileConvert.uploadTokenConvert(userInfo.getBusinessId(),
-                tokenRequest.getFileParentId(), userToken, tokenRequest.getCallbackUrl()), tokenRequest.getFileEtag()));
+                tokenRequest.getFileParentId(), userToken, tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag()), tokenRequest.getFileEtag()));
     }
 
     /**

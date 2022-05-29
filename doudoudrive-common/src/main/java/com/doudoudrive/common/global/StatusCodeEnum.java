@@ -78,7 +78,8 @@ public enum StatusCodeEnum {
     /**
      * 接口类:8xx
      */
-    INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常");
+    INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常"),
+    INTERFACE_EXTERNAL_EXCEPTION(801, "系统外部接口调用异常");
 
     public final Integer statusCode;
     public final String message;

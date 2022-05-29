@@ -41,13 +41,6 @@
             <artifactId>doudoudrive-auth</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-
-        <!-- 七牛云SDK依赖 start -->
-        <dependency>
-            <groupId>com.qiniu</groupId>
-            <artifactId>qiniu-java-sdk</artifactId>
-        </dependency>
-        <!-- 七牛云SDK依赖 start -->
     </dependencies>
 
     <!-- 依赖的插件配置 -->

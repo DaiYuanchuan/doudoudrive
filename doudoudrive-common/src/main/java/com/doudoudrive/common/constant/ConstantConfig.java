@@ -733,6 +733,11 @@ public interface ConstantConfig {
         String QBOX_AUTHORIZATION_PREFIX = "QBox ";
 
         /**
+         * 七牛云请求鉴权的前缀(Qiniu)
+         */
+        String QI_NIU_AUTHORIZATION_PREFIX = "Qiniu ";
+
+        /**
          * 七牛云上传回调时请求头中的请求id
          */
         String QI_NIU_CALLBACK_REQUEST_ID = "X-Reqid";

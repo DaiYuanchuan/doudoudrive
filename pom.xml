@@ -86,8 +86,6 @@
         <elasticsearch.version>7.17.1</elasticsearch.version>
         <!-- 发送邮件依赖包 版本号 -->
         <mail.version>1.6.2</mail.version>
-        <!-- 七牛云SDK依赖 -->
-        <qiniu-java-sdk.version>7.10.3</qiniu-java-sdk.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -426,14 +424,6 @@
                 <version>${mail.version}</version>
             </dependency>
             <!-- 发送邮件依赖包 end -->
-
-            <!-- 七牛云SDK依赖 start -->
-            <dependency>
-                <groupId>com.qiniu</groupId>
-                <artifactId>qiniu-java-sdk</artifactId>
-                <version>${qiniu-java-sdk.version}</version>
-            </dependency>
-            <!-- 七牛云SDK依赖 start -->
 
         </dependencies>
     </dependencyManagement>

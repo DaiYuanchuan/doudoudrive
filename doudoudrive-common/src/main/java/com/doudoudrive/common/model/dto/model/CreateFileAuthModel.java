@@ -80,6 +80,11 @@ public class CreateFileAuthModel implements Serializable {
     private String callbackUrl;
 
     /**
+     * 用户原始etag，用户获取上传token时由前端生成的etag
+     */
+    private String originalEtag;
+
+    /**
      * 时间戳，记录文件上传时间，也能保证后续生成的签名不断变换
      */
     private Long timestamp;
