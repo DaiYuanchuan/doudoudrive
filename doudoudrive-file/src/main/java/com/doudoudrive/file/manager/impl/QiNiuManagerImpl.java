@@ -210,7 +210,7 @@ public class QiNiuManagerImpl implements QiNiuManager {
         String signRequest = this.signRequestV2(path, POST, FORM_MIME, null);
         // 执行请求
         try (cn.hutool.http.HttpResponse execute = HttpRequest.post(url)
-                .header(ConstantConfig.HttpRequest.AUTHORIZATION, ConstantConfig.QiNiuConstant.QBOX_AUTHORIZATION_PREFIX + signRequest)
+                .header(ConstantConfig.HttpRequest.AUTHORIZATION, ConstantConfig.QiNiuConstant.QI_NIU_AUTHORIZATION_PREFIX + signRequest)
                 .contentType(FORM_MIME)
                 .timeout(NumberConstant.INTEGER_MINUS_ONE)
                 .execute()) {
