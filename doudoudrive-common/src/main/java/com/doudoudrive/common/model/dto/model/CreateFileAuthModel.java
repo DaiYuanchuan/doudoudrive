@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -37,7 +38,6 @@ public class CreateFileAuthModel implements Serializable {
     /**
      * 文件名称
      */
-    @NotBlank(message = "请输入文件名称")
     @Size(max = 80, message = "文件夹名称长度错误")
     private String name;
 
@@ -89,4 +89,12 @@ public class CreateFileAuthModel implements Serializable {
      */
     private Long timestamp;
 
+    /**
+     * 获取文件名称
+     *
+     * @return 文件名为空时返回文件etag做为默认文件名
+     */
+    public String getName() {
+        return StringUtils.isBlank(name) ? fileEtag : name;
+    }
 }
