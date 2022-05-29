@@ -119,7 +119,9 @@ public interface DiskFileConvert {
             @Mapping(target = "fileFolder", expression = "java(Boolean.FALSE)"),
             @Mapping(target = "forbidden", expression = "java(Boolean.FALSE)"),
             @Mapping(target = "collect", expression = "java(Boolean.FALSE)"),
-            @Mapping(target = "status", constant = NumberConstant.STRING_ONE)
+            @Mapping(target = "status", constant = NumberConstant.STRING_ONE),
+            @Mapping(target = "createTime", expression = "java(new Date())"),
+            @Mapping(target = "updateTime", expression = "java(new Date())")
     })
     DiskFile createFileAuthModelConvertDiskFile(CreateFileAuthModel fileInfo, String businessId);
 
