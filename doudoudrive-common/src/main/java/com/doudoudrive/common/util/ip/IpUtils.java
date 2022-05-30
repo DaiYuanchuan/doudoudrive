@@ -6,6 +6,7 @@ import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.StrUtil;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.Region;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.lionsoul.ip2region.DataBlock;
@@ -190,9 +191,12 @@ public class IpUtils {
         try {
             DbConfig config = Singleton.get(DbConfig.class);
             final File tempFile = FileUtil.touch(Singleton.get(File.class, IP2REGION_TEMP_PATH));
-            try (InputStream inputStream = IpUtils.class.getClassLoader().getResourceAsStream(IP2REGION_PATH)) {
-                if (inputStream != null) {
-                    FileUtils.copyInputStreamToFile(inputStream, tempFile);
+            if (CollectionUtil.isEmpty(tempFile)) {
+                // 临时文件为空时，将包内文件流写入到文件
+                try (InputStream inputStream = IpUtils.class.getClassLoader().getResourceAsStream(IP2REGION_PATH)) {
+                    if (inputStream != null) {
+                        FileUtils.copyInputStreamToFile(inputStream, tempFile);
+                    }
                 }
             }
             DbSearcher dbSearcher = Singleton.get(DbSearcher.class, config, tempFile.getPath());
