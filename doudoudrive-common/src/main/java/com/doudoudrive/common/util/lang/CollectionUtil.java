@@ -1,8 +1,10 @@
 package com.doudoudrive.common.util.lang;
 
+import com.doudoudrive.common.constant.NumberConstant;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -109,5 +111,17 @@ public class CollectionUtil extends CollectionUtils {
         final List<T> arrayList = new ArrayList<>(values.length);
         Collections.addAll(arrayList, values);
         return arrayList;
+    }
+
+    // ==================================================== 文件相关 ====================================================
+
+    /**
+     * 文件是否为空，文件对象为null，文件长度为0
+     *
+     * @param file 文件对象
+     * @return 是否为空
+     */
+    public static boolean isEmpty(File file) {
+        return file == null || !file.exists() || file.length() == NumberConstant.INTEGER_ZERO;
     }
 }
