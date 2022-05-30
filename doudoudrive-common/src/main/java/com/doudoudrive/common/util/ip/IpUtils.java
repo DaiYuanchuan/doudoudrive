@@ -179,13 +179,8 @@ public class IpUtils {
      * @return 返回查询到的地区信息，查询出错时返回null
      */
     private static synchronized Region getIpLocation(String ip, String algorithm) {
-        // 判断ip是否为空
-        if (StrUtil.isBlank(ip)) {
-            log.info("The IP address detected is empty...");
-            return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
-        }
-        // 检测是否为局域网IP
-        if (isInnerIp(ip)) {
+        // 判断ip是否为空或是否为局域网IP
+        if (StrUtil.isBlank(ip) || isInnerIp(ip)) {
             return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
         }
         try {
@@ -210,12 +205,10 @@ public class IpUtils {
                         .city(ipData[NumberConstant.INTEGER_THREE])
                         .isp(ipData[NumberConstant.INTEGER_FOUR])
                         .build();
-            } else {
-                return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
         }
+        return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
     }
 }
