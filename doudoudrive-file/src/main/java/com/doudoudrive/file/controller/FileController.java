@@ -353,7 +353,7 @@ public class FileController {
     @SneakyThrows
     @OpLog(title = "文件鉴权", businessType = "回源鉴权")
     @RequestMapping(value = "/cdn-auth", produces = "application/json;charset=UTF-8", method = RequestMethod.HEAD)
-    public void fileCdnAuth(String sign, HttpServletRequest request, HttpServletResponse response) {
+    public void fileCdnAuth(String sign, String token, HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");
 
@@ -372,8 +372,9 @@ public class FileController {
         }
 
         // 从缓存中获取当前登录的用户信息
-        UserLoginResponseDTO userinfo = loginManager.getUserInfoToSession();
+        UserLoginResponseDTO userinfo = loginManager.getUserInfoToTokenSession(token);
         if (userinfo == null) {
+            // 用户信息不存在
             response.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }

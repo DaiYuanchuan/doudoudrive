@@ -193,6 +193,31 @@ public class LoginManagerImpl implements LoginManager {
     }
 
     /**
+     * 尝试根据token去获取指定的用户会话信息，无法获取时会尝试从当前session中获取，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 返回用户登录模块响应数据DTO模型
+     */
+    @Override
+    public UserLoginResponseDTO getUserInfoToTokenSession(String token) {
+        // 首先会尝试从session中获取用户信息
+        UserLoginResponseDTO loginResponse = this.getUserInfoToSession();
+        if (loginResponse == null) {
+            // 无法获取时尝试从指定token中获取
+            DiskUserModel userInfoToToken = this.getUserInfoToToken(token);
+            if (userInfoToToken == null) {
+                return null;
+            }
+            // 如果能从token中获取到用户信息，则构建用户登录模块响应数据DTO模型
+            return UserLoginResponseDTO.builder()
+                    .userInfo(userInfoToToken)
+                    .token(token)
+                    .build();
+        }
+        return loginResponse;
+    }
+
+    /**
      * 尝试去更新指定用户的会话缓存信息
      *
      * @param token    需要更新的用户token
