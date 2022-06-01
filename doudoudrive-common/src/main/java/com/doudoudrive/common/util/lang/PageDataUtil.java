@@ -1,6 +1,8 @@
 package com.doudoudrive.common.util.lang;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.PageBean;
 import com.doudoudrive.common.model.dto.response.PageResponse;
 
@@ -15,17 +17,21 @@ import java.util.Optional;
 public class PageDataUtil {
 
     /**
+     * limit 语句拼接
+     */
+    private static final String LIMIT = " limit {},{} ";
+
+    /**
      * 返回分页limit数据
      *
      * @param pageBean 用来分页的实体类
      * @return 返回最终拼接处来的SQL分页语句
      */
     public static String pangingSql(PageBean pageBean) {
-        if (pageBean != null) {
-            return StrUtil.format(" limit {},{} ", pageBean.getStart(), pageBean.getPageSize());
-        } else {
-            return "";
+        if (pageBean == null) {
+            return CharSequenceUtil.EMPTY;
         }
+        return StrUtil.format(LIMIT, pageBean.getStart(), pageBean.getPageSize());
     }
 
     /**
@@ -37,8 +43,8 @@ public class PageDataUtil {
      */
     public static String pangingSql(Integer page) {
         // 页码 最小为1
-        page = Math.max(page, 1);
-        return pangingSql(PageBean.builder().page(page).pageSize(10).build());
+        page = Math.max(page, NumberConstant.INTEGER_ONE);
+        return pangingSql(PageBean.builder().page(page).pageSize(NumberConstant.INTEGER_TEN).build());
     }
 
     /**
@@ -51,15 +57,16 @@ public class PageDataUtil {
      */
     public static String pangingSql(Integer page, Integer pageSize, PageResponse<?> pageResponse) {
         if (page == null || pageSize == null) {
-            return "";
+            return CharSequenceUtil.EMPTY;
         }
-        page = Math.max(page, 1);
-        pageSize = Math.max(pageSize, 1);
+        page = Math.max(page, NumberConstant.INTEGER_ONE);
+        pageSize = Math.max(pageSize, NumberConstant.INTEGER_ONE);
         PageBean pageBean = PageBean.builder().page(page).pageSize(pageSize).build();
         // 构建分页响应对象中关于页码部分
-        pageResponse = Optional.ofNullable(pageResponse).orElse(new PageResponse<>());
-        pageResponse.setPage(pageBean.getPage());
-        pageResponse.setPageSize(pageBean.getPageSize());
+        Optional.ofNullable(pageResponse).ifPresent(response -> {
+            response.setPage(pageBean.getPage());
+            response.setPageSize(pageBean.getPageSize());
+        });
         return pangingSql(pageBean);
     }
 }
