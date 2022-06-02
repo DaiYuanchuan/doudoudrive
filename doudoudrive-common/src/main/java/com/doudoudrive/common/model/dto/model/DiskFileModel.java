@@ -74,6 +74,16 @@ public class DiskFileModel implements Serializable {
     private Boolean collect;
 
     /**
+     * 文件预览地址
+     */
+    private String preview;
+
+    /**
+     * 文件下载地址
+     */
+    private String download;
+
+    /**
      * 创建时间
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)

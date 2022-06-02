@@ -16,11 +16,16 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.FileAuthModel;
+import com.doudoudrive.common.model.dto.model.FileReviewConfig;
+import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
+import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
@@ -32,12 +37,14 @@ import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -121,6 +128,16 @@ public class FileManagerImpl implements FileManager {
      * 重置文件名时需要使用到的日期格式
      */
     private static final String YUMMY_HMS = "_HHmmssSSS_";
+
+    /**
+     * 文件鉴权参数字段
+     */
+    private static final String FILE_AUTH_PARAM = "?sign=";
+
+    /**
+     * 文件下载时指定文件名时需要拼接的参数
+     */
+    private static final String FILE_NAME_PARAM = "&attname=";
 
     /**
      * 文件名字段长度
@@ -324,6 +341,57 @@ public class FileManagerImpl implements FileManager {
         return symmetricCrypto;
     }
 
+    /**
+     * 获取文件访问Url
+     *
+     * @param authModel 文件鉴权参数
+     * @param fileModel 文件模型
+     * @return 重新赋值后的文件模型
+     */
+    @Override
+    public DiskFileModel accessUrl(FileAuthModel authModel, DiskFileModel fileModel) {
+        // 获取七牛云配置信息
+        QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
+        // 获取文件审核配置
+        FileReviewConfig reviewConfig = diskDictionaryService.getDictionary(DictionaryConstant.FILE_REVIEW_CONFIG, FileReviewConfig.class);
+
+        // 对文件进行鉴权，获取鉴权签名
+        authModel.setFileId(fileModel.getBusinessId());
+        String sign = this.encrypt(authModel);
+
+        // 获取文件预览、下载地址
+        fileModel.setPreview(this.previewUrl(config, reviewConfig, sign, fileModel.getFileMimeType(), fileModel.getFileEtag()));
+        fileModel.setDownload(this.downloadUrl(config, fileModel.getFileEtag(), sign, fileModel.getFileName()));
+        return fileModel;
+    }
+
+    /**
+     * 批量获取文件访问Url
+     *
+     * @param authModel     文件鉴权参数
+     * @param fileModelList 文件模型集合
+     * @return 重新赋值后的文件模型集合
+     */
+    @Override
+    public List<DiskFileModel> accessUrl(FileAuthModel authModel, List<DiskFileModel> fileModelList) {
+        // 获取七牛云配置信息
+        QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
+        // 获取文件审核配置
+        FileReviewConfig reviewConfig = diskDictionaryService.getDictionary(DictionaryConstant.FILE_REVIEW_CONFIG, FileReviewConfig.class);
+
+        // 对文件模型集合批量赋值访问地址
+        for (DiskFileModel fileModel : fileModelList) {
+            // 对文件进行鉴权，获取鉴权签名
+            authModel.setFileId(fileModel.getBusinessId());
+            String sign = this.encrypt(authModel);
+
+            // 获取文件预览、下载地址
+            fileModel.setPreview(this.previewUrl(config, reviewConfig, sign, fileModel.getFileMimeType(), fileModel.getFileEtag()));
+            fileModel.setDownload(this.downloadUrl(config, fileModel.getFileEtag(), sign, fileModel.getFileName()));
+        }
+        return fileModelList;
+    }
+
     // ==================================================== private ====================================================
 
     /**
@@ -376,5 +444,49 @@ public class FileManagerImpl implements FileManager {
         requestDTO.setTableSuffix(tableSuffix);
         // 用户文件信息先入库，然后入es
         return diskFileSearchFeignClient.saveElasticsearchDiskFile(requestDTO);
+    }
+
+    /**
+     * 根据文件类型获取文件预览域名
+     *
+     * @param config       配置文件
+     * @param reviewConfig 文件审核配置
+     * @param sign         文件签名
+     * @param mimeType     文件类型
+     * @param etag         文件etag
+     * @return 文件预览域名
+     */
+    private String previewUrl(QiNiuUploadConfig config, FileReviewConfig reviewConfig, String sign, String mimeType, String etag) {
+        // 文件访问地址需要拼接的后缀
+        String suffix = FILE_AUTH_PARAM + UrlQueryUtil.encode(sign, StandardCharsets.UTF_8, null);
+        if (reviewConfig.getImageTypes().contains(mimeType)) {
+            // 使用图片类型域名
+            return String.format(config.getDomain().getPicture(), etag) + suffix;
+        }
+        if (reviewConfig.getVideoTypes().contains(mimeType)) {
+            // 使用视频类型域名
+            return String.format(config.getDomain().getStream(), etag) + suffix;
+        }
+        // 使用默认下载域名
+        return String.format(config.getDomain().getDownload(), etag) + suffix;
+    }
+
+    /**
+     * 根据文件类型获取文件下载域名
+     *
+     * @param config   配置文件
+     * @param etag     文件etag
+     * @param sign     文件签名
+     * @param filename 文件名
+     * @return 文件下载域名
+     */
+    private String downloadUrl(QiNiuUploadConfig config, String etag, String sign, String filename) {
+        // 文件访问地址需要拼接的后缀
+        String suffix = FILE_AUTH_PARAM + UrlQueryUtil.encode(sign, StandardCharsets.UTF_8, null);
+        // 使用默认下载域名
+        if (StringUtils.isNotBlank(filename)) {
+            return String.format(config.getDomain().getDownload(), etag) + suffix + FILE_NAME_PARAM + UrlQueryUtil.encode(filename, StandardCharsets.UTF_8, null);
+        }
+        return String.format(config.getDomain().getDownload(), etag) + suffix;
     }
 }

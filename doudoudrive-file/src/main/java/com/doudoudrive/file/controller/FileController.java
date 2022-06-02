@@ -276,8 +276,10 @@ public class FileController {
                 .fileInfo(createFile)
                 .build());
 
-        // TODO: 2022/5/25 需要拼接资源文件的访问地址
-        return Result.ok(fileModel);
+        // 构建文件鉴权模型，获取文件访问地址
+        return Result.ok(fileManager.accessUrl(FileAuthModel.builder()
+                .userId(createFile.getUserId())
+                .build(), fileModel));
     }
 
     @SneakyThrows
@@ -330,9 +332,11 @@ public class FileController {
                     .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile))
                     .build());
 
-            // TODO: 2022/5/26 需要拼接资源文件的访问地址
+            // 构建文件鉴权模型，拼接文件访问地址
             return Result.ok(FileUploadTokenResponseDTO.builder()
-                    .fileInfo(diskFileConvert.diskFileConvertDiskFileModel(diskFile))
+                    .fileInfo(fileManager.accessUrl(FileAuthModel.builder()
+                            .userId(userInfo.getBusinessId())
+                            .build(), diskFileConvert.diskFileConvertDiskFileModel(diskFile)))
                     .build());
         }
 
@@ -348,17 +352,19 @@ public class FileController {
      * <p>
      * 鉴权成功时响应 204 状态码，鉴权失败时响应 403 状态码
      *
-     * @param sign 参数加密后的签名字符串
+     * @param sign  参数加密后的签名字符串
+     * @param path  当前文件访问路径，由七牛云CDN回调时带入
+     * @param token 当前用户登录token串，用以支持使用参数登录
      */
     @SneakyThrows
     @OpLog(title = "文件鉴权", businessType = "回源鉴权")
     @RequestMapping(value = "/cdn-auth", produces = "application/json;charset=UTF-8", method = RequestMethod.HEAD)
-    public void fileCdnAuth(String sign, String token, HttpServletRequest request, HttpServletResponse response) {
+    public void fileCdnAuth(String sign, String path, String token, HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding("utf-8");
         response.setContentType("application/json;charset=UTF-8");
 
         // 签名字符串不存在
-        if (StringUtils.isBlank(sign)) {
+        if (StringUtils.isBlank(sign) || StringUtils.isBlank(path)) {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }
@@ -385,6 +391,13 @@ public class FileController {
         DiskFile fileInfo = fileManager.getDiskFile(fileAuth.getUserId(), fileAuth.getFileId());
         if (fileInfo == null || fileInfo.getFileFolder() || fileInfo.getForbidden() || ConstantConfig.BooleanType.FALSE.equals(fileInfo.getStatus())) {
             // 文件不可访问
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            return;
+        }
+
+        // 校验从签名中获取到的文件信息与实际访问的文件信息是否一致
+        if (!fileInfo.getFileEtag().equals(path.substring(NumberConstant.INTEGER_ONE))) {
+            // 当前签名不适用于当前访问的文件
             response.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }

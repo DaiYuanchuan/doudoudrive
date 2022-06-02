@@ -2,9 +2,12 @@ package com.doudoudrive.file.manager;
 
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.pojo.DiskFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <p>用户文件信息服务的通用业务处理层接口</p>
@@ -86,4 +89,22 @@ public interface FileManager {
      * @return SymmetricCrypto对象
      */
     SymmetricCrypto getSymmetricCrypto();
+
+    /**
+     * 获取文件访问Url
+     *
+     * @param authModel 文件鉴权参数
+     * @param fileModel 文件模型
+     * @return 重新赋值后的文件模型
+     */
+    DiskFileModel accessUrl(FileAuthModel authModel, DiskFileModel fileModel);
+
+    /**
+     * 批量获取文件访问Url
+     *
+     * @param authModel     文件鉴权参数
+     * @param fileModelList 文件模型集合
+     * @return 重新赋值后的文件模型集合
+     */
+    List<DiskFileModel> accessUrl(FileAuthModel authModel, List<DiskFileModel> fileModelList);
 }
