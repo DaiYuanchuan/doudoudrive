@@ -72,11 +72,6 @@ public class QiNiuManagerImpl implements QiNiuManager {
     private static final Byte LINE_FEED = (byte) '\n';
 
     /**
-     * format类型
-     */
-    private static final String FORM_MIME = "application/x-www-form-urlencoded";
-
-    /**
      * 请求拼接的url地址模板
      */
     private static final String REQUEST_URL = "https://%s";
@@ -148,7 +143,7 @@ public class QiNiuManagerImpl implements QiNiuManager {
             mac.update(uri.getRawQuery().getBytes(StandardCharsets.UTF_8));
         }
         mac.update(LINE_FEED);
-        if (body != null && FORM_MIME.equalsIgnoreCase(contentType)) {
+        if (body != null && ConstantConfig.HttpRequest.CONTENT_TYPE_FORM.equalsIgnoreCase(contentType)) {
             mac.update(body);
         }
 
@@ -207,11 +202,11 @@ public class QiNiuManagerImpl implements QiNiuManager {
         // 拼接url地址
         String url = String.format(REQUEST_URL, config.getRegion().getRsHost()) + path;
         // 获取请求签名
-        String signRequest = this.signRequestV2(path, POST, FORM_MIME, null);
+        String signRequest = this.signRequestV2(path, POST, ConstantConfig.HttpRequest.CONTENT_TYPE_FORM, null);
         // 执行请求
         try (cn.hutool.http.HttpResponse execute = HttpRequest.post(url)
                 .header(ConstantConfig.HttpRequest.AUTHORIZATION, ConstantConfig.QiNiuConstant.QI_NIU_AUTHORIZATION_PREFIX + signRequest)
-                .contentType(FORM_MIME)
+                .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_FORM)
                 .timeout(NumberConstant.INTEGER_MINUS_ONE)
                 .execute()) {
             // 获取请求id
@@ -246,11 +241,11 @@ public class QiNiuManagerImpl implements QiNiuManager {
             // 构建请求body
             byte[] body = (PREFIX + String.join(SEP, etag)).getBytes(StandardCharsets.UTF_8);
             // 获取请求签名
-            String signRequest = this.signRequestV2(BATCH, POST, FORM_MIME, body);
+            String signRequest = this.signRequestV2(BATCH, POST, ConstantConfig.HttpRequest.CONTENT_TYPE_FORM, body);
             // 执行请求
             try (cn.hutool.http.HttpResponse execute = HttpRequest.post(url)
                     .header(ConstantConfig.HttpRequest.AUTHORIZATION, ConstantConfig.QiNiuConstant.QI_NIU_AUTHORIZATION_PREFIX + signRequest)
-                    .contentType(FORM_MIME)
+                    .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_FORM)
                     .timeout(NumberConstant.INTEGER_MINUS_ONE)
                     .body(body)
                     .execute()) {
@@ -302,7 +297,7 @@ public class QiNiuManagerImpl implements QiNiuManager {
         String json = JSON.toJSONString(FileUploadModel.builder()
                 .callbackUrl(config.getCallback())
                 .callbackBody(urlQueryParam)
-                .callbackBodyType(FORM_MIME)
+                .callbackBodyType(ConstantConfig.HttpRequest.CONTENT_TYPE_FORM)
                 .sizeLimit(config.getSize())
                 .fileType(config.getFileType())
                 .scope(scope)

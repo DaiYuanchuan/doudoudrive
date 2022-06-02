@@ -89,6 +89,8 @@ public class FileServiceConsumer {
             long start = System.currentTimeMillis();
             try (cn.hutool.http.HttpResponse execute = HttpRequest.post(fileInfo.getCallbackUrl())
                     .headerMap(header, Boolean.TRUE)
+                    .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
+                    .charset(StandardCharsets.UTF_8)
                     .body(body.getBytes(StandardCharsets.UTF_8))
                     .timeout(TIMEOUT)
                     .execute()) {

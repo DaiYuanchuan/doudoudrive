@@ -109,6 +109,21 @@ public interface ConstantConfig {
         String HOST = "host";
 
         /**
+         * JSON格式类型
+         */
+        String CONTENT_TYPE_JSON = "application/json";
+
+        /**
+         * format类型
+         */
+        String CONTENT_TYPE_FORM = "application/x-www-form-urlencoded";
+
+        /**
+         * 文件类型
+         */
+        String CONTENT_TYPE_MULTIPART = "multipart/form-data";
+
+        /**
          * 微信浏览器请求头中的userAgent标识
          */
         String[] WECHAT_BROWSER_USER_AGENT = {"MicroMessenger/", "WeChat", "Weixin"};
