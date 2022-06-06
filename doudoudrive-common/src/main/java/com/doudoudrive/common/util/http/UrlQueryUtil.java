@@ -91,7 +91,7 @@ public class UrlQueryUtil {
      * @param customSafe 自定义的安全字符
      * @return URL查询字符串
      */
-    public static String buildUrlQueryParams(Map<String, Object> paramMap, boolean encode, boolean sort, Charset charset, Map<String, String> customSafe) {
+    public static String buildUrlQueryParams(Map<String, Object> paramMap, boolean encode, boolean sort, Charset charset, Map<Character, String> customSafe) {
         if (CollectionUtil.isEmpty(paramMap)) {
             return CharSequenceUtil.EMPTY;
         }
@@ -180,35 +180,8 @@ public class UrlQueryUtil {
      * @param customSafe 自定义的安全字符
      * @return 编码后的字符串
      */
-    public static String encode(String src, Charset charset, Map<String, String> customSafe) {
-        String encode = URLEncoder.encode(src, charset);
-        if (CollectionUtil.isEmpty(customSafe)) {
-            return encode;
-        }
-
-        for (Map.Entry<String, String> entry : customSafe.entrySet()) {
-            encode = encode.replace(entry.getKey(), entry.getValue());
-        }
-
-        return encode;
-    }
-
-    /**
-     * URL 解码，可以自定义需要转换的字符
-     *
-     * @param src        需要解码的字符串
-     * @param charset    encode编码
-     * @param customSafe 自定义的安全字符
-     * @return 解码后的字符串
-     */
-    public static String decode(String src, Charset charset, Map<String, String> customSafe) {
-        if (CollectionUtil.isNotEmpty(customSafe)) {
-            for (Map.Entry<String, String> entry : customSafe.entrySet()) {
-                src = src.replace(entry.getKey(), entry.getValue());
-            }
-        }
-
-        return decode(src, charset);
+    public static String encode(String src, Charset charset, Map<Character, String> customSafe) {
+        return escapeStr(URLEncoder.encode(src, charset), customSafe);
     }
 
     /**
@@ -344,5 +317,30 @@ public class UrlQueryUtil {
         if (StringUtils.isNotBlank(value)) {
             jsonObject.put(decode(value, charset, Boolean.TRUE), null);
         }
+    }
+
+    /**
+     * 字符串转义，针对字符串中可能存在的特殊字符进行转义
+     *
+     * @param str        需要被转义的字符串
+     * @param customSafe 自定义的需要被转义的字符
+     * @return 一个全新的，经过转义后的字符串
+     */
+    private static String escapeStr(String str, Map<Character, String> customSafe) {
+        if (StringUtils.isBlank(str)) {
+            return CharSequenceUtil.EMPTY;
+        }
+
+        if (CollectionUtil.isEmpty(customSafe)) {
+            return str;
+        }
+
+        StringBuilder sb = new StringBuilder(str.length());
+        for (int i = NumberConstant.INTEGER_ZERO; i < str.length(); ++i) {
+            final char charAt = str.charAt(i);
+            String value = customSafe.get(charAt);
+            sb.append(null != value ? value : charAt);
+        }
+        return sb.toString();
     }
 }
