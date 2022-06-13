@@ -2,7 +2,6 @@ package com.doudoudrive.common.util.lang;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 
 import java.math.BigDecimal;
@@ -149,12 +148,7 @@ public class SequenceUtil {
      * @return 表名称后缀
      */
     public static String asciiSuffix(String sequenceId, Integer remainder) {
-        int sum = NumberConstant.INTEGER_FIFTY;
-        // 对字符串序列中的每一个字符的 ASCII 码求和
-        for (int i = NumberConstant.INTEGER_ZERO; i < sequenceId.length(); i++) {
-            sum = sum + sequenceId.charAt(i);
-        }
         // 对取余结果 +1 后补零
-        return String.format(DOUBLE_DIGIT_ZERO_FILLING, complement(new BigDecimal(sum), remainder).add(BigDecimal.ONE).longValue());
+        return String.format(DOUBLE_DIGIT_ZERO_FILLING, new BigDecimal(PartitionByJumpConsistentHash.calculate(sequenceId, remainder)).add(BigDecimal.ONE).longValue());
     }
 }
