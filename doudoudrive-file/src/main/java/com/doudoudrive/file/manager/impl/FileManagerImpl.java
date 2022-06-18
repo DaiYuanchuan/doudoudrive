@@ -258,6 +258,35 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
+     * 重命名文件或文件夹
+     *
+     * @param file 需要重命名的文件或文件夹信息
+     * @param name 需要更改的文件名
+     */
+    @Override
+    public void renameFile(DiskFile file, String name) {
+        // 先修改数据库中的文件名
+        Integer result = diskFileService.update(DiskFile.builder()
+                .userId(file.getUserId())
+                .businessId(file.getBusinessId())
+                .fileName(name)
+                .build());
+        if (result > NumberConstant.INTEGER_ZERO) {
+            file.setFileName(name);
+            // 更新es信息
+            Result<String> updateElasticsearchResult = diskFileSearchFeignClient.updateElasticsearchDiskFile(diskFileConvert.diskFileConvertUpdateElasticRequest(file));
+            if (Result.isNotSuccess(updateElasticsearchResult)) {
+                BusinessExceptionUtil.throwBusinessException(updateElasticsearchResult);
+            }
+
+            // 构建的缓存key
+            String cacheKey = ConstantConfig.Cache.DISK_FILE_CACHE + file.getBusinessId();
+            // 重命名成功后删除缓存中的文件信息
+            cacheManagerConfig.removeCache(cacheKey);
+        }
+    }
+
+    /**
      * 文件信息翻页搜索
      *
      * @param queryElasticRequest 构建ES文件查询请求数据模型

@@ -38,7 +38,7 @@ public class CreateFileAuthModel implements Serializable {
     /**
      * 文件名称
      */
-    @Size(max = 80, message = "文件夹名称长度错误")
+    @Size(max = 80, message = "文件名称长度错误")
     private String name;
 
     /**
@@ -95,6 +95,6 @@ public class CreateFileAuthModel implements Serializable {
      * @return 文件名为空时返回文件etag做为默认文件名
      */
     public String getName() {
-        return StringUtils.isBlank(name) ? fileEtag : name;
+        return StringUtils.isBlank(name) ? fileEtag : name.trim();
     }
 }

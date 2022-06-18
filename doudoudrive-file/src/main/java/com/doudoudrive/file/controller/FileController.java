@@ -32,10 +32,7 @@ import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.manager.QiNiuManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
-import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
-import com.doudoudrive.file.model.dto.request.CreateFolderRequestDTO;
-import com.doudoudrive.file.model.dto.request.FileSearchRequestDTO;
-import com.doudoudrive.file.model.dto.request.FileUploadTokenRequestDTO;
+import com.doudoudrive.file.model.dto.request.*;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
@@ -346,6 +343,43 @@ public class FileController {
         // 生成七牛上传token
         return Result.ok(qiNiuManager.uploadToken(diskFileConvert.uploadTokenConvert(userInfo.getBusinessId(),
                 tokenRequest.getFileParentId(), userToken, tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag()), tokenRequest.getFileEtag()));
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "重命名", businessType = "文件系统")
+    @PostMapping(value = "/rename", produces = "application/json;charset=UTF-8")
+    public Result<DiskFileModel> renameFile(@RequestBody @Valid RenameFileRequestDTO requestDTO,
+                                            HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("application/json;charset=UTF-8");
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 根据传入的文件业务标识查找是否存在对应的文件信息
+        DiskFile diskFile = fileManager.getDiskFile(userinfo.getBusinessId(), requestDTO.getBusinessId());
+        if (diskFile == null || !diskFile.getUserId().equals(userinfo.getBusinessId())) {
+            return Result.build(StatusCodeEnum.FILE_NOT_FOUND);
+        }
+
+        // 如果 旧的文件名 = 新的文件名(始终都是同一个文件，不作任何修改操作)
+        if (diskFile.getFileName().equals(requestDTO.getName())) {
+            return Result.ok(fileManager.accessUrl(FileAuthModel.builder()
+                    .userId(userinfo.getBusinessId())
+                    .build(), diskFileConvert.diskFileConvertDiskFileModel(diskFile)));
+        }
+
+        // 文件名重复校验机制
+        if (fileManager.verifyRepeat(requestDTO.getName(), userinfo.getBusinessId(), diskFile.getFileParentId(), diskFile.getFileFolder())) {
+            return Result.build(StatusCodeEnum.FILE_NAME_REPEAT);
+        }
+
+        // 更新文件名
+        fileManager.renameFile(diskFile, requestDTO.getName());
+        return Result.ok(fileManager.accessUrl(FileAuthModel.builder()
+                .userId(userinfo.getBusinessId())
+                .build(), diskFileConvert.diskFileConvertDiskFileModel(diskFile)));
     }
 
     @SneakyThrows

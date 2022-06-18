@@ -7,6 +7,7 @@ import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.request.UpdateElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
@@ -212,5 +213,13 @@ public interface DiskFileConvert {
             @Mapping(target = "sort", expression = "java(java.util.Collections.singletonList(requestDTO.getSort()))")
     })
     QueryElasticsearchDiskFileRequestDTO fileSearchRequestConvertQueryElasticRequest(FileSearchRequestDTO requestDTO, String userId);
+
+    /**
+     * 将DiskFile(用户文件模块实体类) 类型转换为 UpdateElasticsearchDiskFileRequestDTO(修改es用户文件信息时的请求数据模型)
+     *
+     * @param file 用户文件模块实体类
+     * @return 修改es用户文件信息时的请求数据模型
+     */
+    UpdateElasticsearchDiskFileRequestDTO diskFileConvertUpdateElasticRequest(DiskFile file);
 
 }

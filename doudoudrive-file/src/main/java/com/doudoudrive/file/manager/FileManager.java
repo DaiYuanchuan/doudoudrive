@@ -50,6 +50,14 @@ public interface FileManager {
     DiskFile getDiskFile(String userId, String businessId);
 
     /**
+     * 重命名文件或文件夹
+     *
+     * @param file 需要重命名的文件或文件夹信息
+     * @param name 需要更改的文件名
+     */
+    void renameFile(DiskFile file, String name);
+
+    /**
      * 文件信息翻页搜索
      *
      * @param queryElasticRequest 构建ES文件查询请求数据模型

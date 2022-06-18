@@ -24,7 +24,7 @@ public class FileUploadTokenRequestDTO {
      * 文件名称
      */
     @NotBlank(message = "请输入文件名称")
-    @Size(max = 80, message = "文件夹名称长度错误")
+    @Size(max = 80, message = "文件名称太长")
     private String name;
 
     /**
@@ -52,5 +52,14 @@ public class FileUploadTokenRequestDTO {
      * 回调Url，文件上传成功后的回调地址，对接第三方使用
      */
     private String callbackUrl;
+
+    /**
+     * 获取文件、文件夹名称，文件名称去除前后空格
+     *
+     * @return 文件名称
+     */
+    public String getName() {
+        return name.trim();
+    }
 
 }
