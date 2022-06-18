@@ -279,8 +279,7 @@
     </select>
 
     <!-- 根据parentId查询指定目录下是否存在指定的文件名 -->
-    <select id="getRepeatFileName" resultType="com.doudoudrive.common.model.pojo.DiskFile"
-            resultMap="diskFileResultMap">
+    <select id="getRepeatFileName" resultType="java.lang.Integer">
         SELECT 1 FROM `disk_file_${tableSuffix}`
         <where>
             `file_parent_id` = #{parentId} AND `file_name` = #{fileName} AND

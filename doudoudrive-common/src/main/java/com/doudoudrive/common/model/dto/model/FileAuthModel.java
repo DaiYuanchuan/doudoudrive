@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * <p>文件鉴权参数模型</p>
@@ -49,5 +50,15 @@ public class FileAuthModel implements Serializable {
      * 分享时的文件key值
      */
     private String shareKey;
+
+    /**
+     * 搜索时的排序值，用作下一页的游标
+     */
+    private List<Object> sortValues;
+
+    /**
+     * 时间戳，记录请求时间，也能保证后续生成的签名不断变换
+     */
+    private Long timestamp;
 
 }

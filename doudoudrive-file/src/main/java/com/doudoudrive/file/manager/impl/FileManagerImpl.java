@@ -8,7 +8,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
@@ -269,12 +268,12 @@ public class FileManagerImpl implements FileManager {
     public FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, String marker) {
         // 解密游标数据
         if (StringUtils.isNotBlank(marker)) {
-            String content = this.decrypt(marker);
-            if (StringUtils.isBlank(content)) {
+            FileAuthModel content = this.decrypt(marker, FileAuthModel.class);
+            if (content == null || CollectionUtil.isEmpty(content.getSortValues())) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_MARKER);
             }
             // 解析游标数据
-            queryElasticRequest.setSearchAfter(JSONArray.parseArray(content));
+            queryElasticRequest.setSearchAfter(content.getSortValues());
         }
 
         // 执行文件信息搜索请求
@@ -300,7 +299,10 @@ public class FileManagerImpl implements FileManager {
         // 获取文件审核配置
         FileReviewConfig reviewConfig = diskDictionaryService.getDictionary(DictionaryConstant.FILE_REVIEW_CONFIG, FileReviewConfig.class);
         // 构建文件鉴权信息
-        FileAuthModel fileAuthModel = FileAuthModel.builder().userId(queryElasticRequest.getUserId()).build();
+        FileAuthModel fileAuthModel = FileAuthModel.builder()
+                .userId(queryElasticRequest.getUserId())
+                .timestamp(System.currentTimeMillis())
+                .build();
 
         // 循环查询结果，为文件赋值访问Url地址
         for (QueryElasticsearchDiskFileResponseDTO response : queryElasticResponse.getData()) {
@@ -312,7 +314,10 @@ public class FileManagerImpl implements FileManager {
         List<Object> sortValues = queryElasticResponse.getData().get(index).getSortValues();
         if (CollectionUtil.isNotEmpty(sortValues)) {
             // 对游标值进行加密
-            fileSearchResponse.setMarker(this.encrypt(sortValues));
+            fileSearchResponse.setMarker(this.encrypt(FileAuthModel.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .sortValues(sortValues)
+                    .build()));
         }
         return fileSearchResponse;
     }
