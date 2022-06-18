@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -26,6 +27,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
+@Setting(shards = 10, replicas = 0)
 @Document(indexName = ConstantConfig.IndexName.DISK_FILE)
 public class DiskFileDTO implements Serializable {
 
@@ -54,7 +56,7 @@ public class DiskFileDTO implements Serializable {
     /**
      * 文件名
      */
-    @Field(type = FieldType.Text, analyzer = ConstantConfig.IkConstant.IK_SMART, searchAnalyzer = ConstantConfig.IkConstant.IK_MAX_WORD)
+    @Field(type = FieldType.Text, analyzer = ConstantConfig.IkConstant.IK_MAX_WORD, searchAnalyzer = ConstantConfig.IkConstant.IK_MAX_WORD)
     private String fileName;
 
     /**

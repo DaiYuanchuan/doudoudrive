@@ -2,6 +2,7 @@ package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.lang.ReflectUtil;
@@ -108,7 +109,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
                         .should(QueryBuilders.termQuery(USER_EMAIL, username))
                         .should(QueryBuilders.termQuery(USER_TEL, username)))
                 .build(), UserInfoDTO.class);
-        return search.isEmpty() ? null : search.getSearchHits().get(0).getContent();
+        return search.isEmpty() ? null : search.getSearchHits().get(NumberConstant.INTEGER_ZERO).getContent();
     }
 
     /**

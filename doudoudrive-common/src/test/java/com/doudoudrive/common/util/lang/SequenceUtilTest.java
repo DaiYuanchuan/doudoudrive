@@ -8,6 +8,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,10 +49,12 @@ public class SequenceUtilTest {
     }
 
     @Test
-    public void asciiSuffixTest(){
+    public void asciiSuffixTest() {
         String sequenceId = "lq8AjBQSRIqkU_VGaQD2WQbtbvUla";
         Integer remainder = 10;
-        log.info("sequenceId:{} % {} suffix: {}", sequenceId, remainder, SequenceUtil.asciiSuffix(sequenceId, remainder));
+        String suffix = SequenceUtil.asciiSuffix(sequenceId, remainder);
+        log.info("sequenceId:{} % {} suffix: {}", sequenceId, remainder, suffix);
+        Assert.isTrue("02".equals(suffix), "suffix不正确");
     }
 
     /**

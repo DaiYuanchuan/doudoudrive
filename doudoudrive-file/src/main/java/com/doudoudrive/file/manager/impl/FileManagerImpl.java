@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
@@ -20,12 +21,15 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
@@ -35,6 +39,7 @@ import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
+import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +49,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -253,6 +259,65 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
+     * 文件信息翻页搜索
+     *
+     * @param queryElasticRequest 构建ES文件查询请求数据模型
+     * @param marker              加密的游标数据
+     * @return 文件信息翻页搜索结果
+     */
+    @Override
+    public FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, String marker) {
+        // 解密游标数据
+        if (StringUtils.isNotBlank(marker)) {
+            String content = this.decrypt(marker);
+            if (StringUtils.isBlank(content)) {
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_MARKER);
+            }
+            // 解析游标数据
+            queryElasticRequest.setSearchAfter(JSONArray.parseArray(content));
+        }
+
+        // 执行文件信息搜索请求
+        Result<List<QueryElasticsearchDiskFileResponseDTO>> queryElasticResponse = diskFileSearchFeignClient.fileInfoSearch(queryElasticRequest);
+        if (Result.isNotSuccess(queryElasticResponse)) {
+            BusinessExceptionUtil.throwBusinessException(queryElasticResponse);
+        }
+
+        // 构建文件信息翻页搜索结果
+        List<DiskFileModel> content = new ArrayList<>(queryElasticResponse.getData().size());
+        FileSearchResponseDTO fileSearchResponse = FileSearchResponseDTO.builder()
+                .content(content)
+                .marker(StringUtils.EMPTY)
+                .build();
+
+        // 没有搜索到结果时不对内容转换
+        if (CollectionUtil.isEmpty(queryElasticResponse.getData())) {
+            return fileSearchResponse;
+        }
+
+        // 获取七牛云配置信息
+        QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
+        // 获取文件审核配置
+        FileReviewConfig reviewConfig = diskDictionaryService.getDictionary(DictionaryConstant.FILE_REVIEW_CONFIG, FileReviewConfig.class);
+        // 构建文件鉴权信息
+        FileAuthModel fileAuthModel = FileAuthModel.builder().userId(queryElasticRequest.getUserId()).build();
+
+        // 循环查询结果，为文件赋值访问Url地址
+        for (QueryElasticsearchDiskFileResponseDTO response : queryElasticResponse.getData()) {
+            content.add(this.accessUrl(fileAuthModel, response.getContent(), config, reviewConfig));
+        }
+
+        // 获取集合最后一个元素的排序值，用作下一页的游标
+        int index = queryElasticResponse.getData().size() - NumberConstant.INTEGER_ONE;
+        List<Object> sortValues = queryElasticResponse.getData().get(index).getSortValues();
+        if (CollectionUtil.isNotEmpty(sortValues)) {
+            // 对游标值进行加密
+            fileSearchResponse.setMarker(this.encrypt(sortValues));
+        }
+        return fileSearchResponse;
+    }
+
+    /**
      * 文件的parentId校验机制，针对是否存在、是否与自己有关、是否为文件夹的校验
      *
      * @param userId   与parentId一致的用户id
@@ -286,7 +351,7 @@ public class FileManagerImpl implements FileManager {
      */
     @Override
     public Boolean verifyRepeat(String fileName, String userId, String parentId, boolean fileFolder) {
-        return diskFileService.getRepeatFileName(parentId, fileName, userId, fileFolder) != null;
+        return NumberConstant.INTEGER_ONE.equals(diskFileService.getRepeatFileName(parentId, fileName, userId, fileFolder));
     }
 
     /**
@@ -311,12 +376,9 @@ public class FileManagerImpl implements FileManager {
      */
     @Override
     public <T> T decrypt(String sign, Class<T> clazz) {
-        // 获取对称加密SymmetricCrypto对象
-        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
         try {
             // 获取解密后的内容
-            String content = symmetricCrypto.decryptStr(sign, CharsetUtil.CHARSET_UTF_8);
-            return JSON.parseObject(content, clazz);
+            return JSON.parseObject(this.decrypt(sign), clazz);
         } catch (Exception e) {
             // 出现异常响应null值
             return null;
@@ -354,15 +416,7 @@ public class FileManagerImpl implements FileManager {
         QiNiuUploadConfig config = diskDictionaryService.getDictionary(DictionaryConstant.QI_NIU_CONFIG, QiNiuUploadConfig.class);
         // 获取文件审核配置
         FileReviewConfig reviewConfig = diskDictionaryService.getDictionary(DictionaryConstant.FILE_REVIEW_CONFIG, FileReviewConfig.class);
-
-        // 对文件进行鉴权，获取鉴权签名
-        authModel.setFileId(fileModel.getBusinessId());
-        String sign = this.encrypt(authModel);
-
-        // 获取文件预览、下载地址
-        fileModel.setPreview(this.previewUrl(config, reviewConfig, sign, fileModel.getFileMimeType(), fileModel.getFileEtag()));
-        fileModel.setDownload(this.downloadUrl(config, fileModel.getFileEtag(), sign, fileModel.getFileName()));
-        return fileModel;
+        return this.accessUrl(authModel, fileModel, config, reviewConfig);
     }
 
     /**
@@ -381,13 +435,7 @@ public class FileManagerImpl implements FileManager {
 
         // 对文件模型集合批量赋值访问地址
         for (DiskFileModel fileModel : fileModelList) {
-            // 对文件进行鉴权，获取鉴权签名
-            authModel.setFileId(fileModel.getBusinessId());
-            String sign = this.encrypt(authModel);
-
-            // 获取文件预览、下载地址
-            fileModel.setPreview(this.previewUrl(config, reviewConfig, sign, fileModel.getFileMimeType(), fileModel.getFileEtag()));
-            fileModel.setDownload(this.downloadUrl(config, fileModel.getFileEtag(), sign, fileModel.getFileName()));
+            this.accessUrl(authModel, fileModel, config, reviewConfig);
         }
         return fileModelList;
     }
@@ -428,6 +476,49 @@ public class FileManagerImpl implements FileManager {
             finalFilename = StrUtil.reverse(StrUtil.reverse(filename).substring(differenceValue)) + specificCharacter;
         }
         return finalFilename;
+    }
+
+    /**
+     * 获取文件访问Url
+     *
+     * @param authModel    文件鉴权参数
+     * @param fileModel    文件模型
+     * @param config       七牛云配置信息
+     * @param reviewConfig 文件审核配置
+     * @return 重新赋值后的文件模型
+     */
+    private DiskFileModel accessUrl(FileAuthModel authModel, DiskFileModel fileModel, QiNiuUploadConfig config, FileReviewConfig reviewConfig) {
+        // 不对文件夹进行访问地址赋值
+        if (fileModel.getFileFolder() == null || fileModel.getFileFolder()) {
+            return fileModel;
+        }
+
+        // 对文件进行鉴权，获取鉴权签名
+        authModel.setFileId(fileModel.getBusinessId());
+        String sign = this.encrypt(authModel);
+
+        // 获取文件预览、下载地址
+        fileModel.setPreview(this.previewUrl(config, reviewConfig, sign, fileModel.getFileMimeType(), fileModel.getFileEtag()));
+        fileModel.setDownload(this.downloadUrl(config, fileModel.getFileEtag(), sign, fileModel.getFileName()));
+        return fileModel;
+    }
+
+    /**
+     * 签名解密
+     *
+     * @param sign 签名
+     * @return 解密后的字符串
+     */
+    private String decrypt(String sign) {
+        // 获取对称加密SymmetricCrypto对象
+        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
+        try {
+            // 获取解密后的内容
+            return symmetricCrypto.decryptStr(sign, CharsetUtil.CHARSET_UTF_8);
+        } catch (Exception e) {
+            // 出现异常响应null值
+            return null;
+        }
     }
 
     /**

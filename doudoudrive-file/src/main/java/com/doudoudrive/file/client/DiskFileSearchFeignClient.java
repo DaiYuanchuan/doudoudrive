@@ -1,12 +1,16 @@
 package com.doudoudrive.file.client;
 
 import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 /**
  * <p>用户文件信息搜索服务Feign调用</p>
@@ -43,5 +47,14 @@ public interface DiskFileSearchFeignClient {
      */
     @PostMapping(value = "/search/file/update", produces = "application/json;charset=UTF-8")
     Result<String> updateElasticsearchDiskFile(@RequestBody UpdateElasticsearchDiskFileRequestDTO requestDTO);
+
+    /**
+     * 文件信息搜索，支持翻页
+     *
+     * @param requestDTO 搜索es用户文件信息时的请求数据模型
+     * @return 搜索结果
+     */
+    @PostMapping(value = "/search/file", produces = "application/json;charset=UTF-8")
+    Result<List<QueryElasticsearchDiskFileResponseDTO>> fileInfoSearch(@RequestBody QueryElasticsearchDiskFileRequestDTO requestDTO);
 
 }

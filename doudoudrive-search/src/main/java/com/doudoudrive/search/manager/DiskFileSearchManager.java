@@ -1,6 +1,8 @@
 package com.doudoudrive.search.manager;
 
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
+import org.springframework.data.elasticsearch.core.SearchHits;
 
 /**
  * <p>用户文件信息搜索服务的通用业务处理层接口</p>
@@ -37,4 +39,12 @@ public interface DiskFileSearchManager {
      * @param diskFileDTO 用户文件实体信息ES数据模型
      */
     void updateDiskFile(String id, DiskFileDTO diskFileDTO);
+
+    /**
+     * 文件信息搜索，使用游标滚动翻页
+     *
+     * @param requestDTO 搜索es用户文件信息时的请求数据模型
+     * @return 用户文件实体信息ES数据模型
+     */
+    SearchHits<DiskFileDTO> fileInfoSearch(QueryElasticsearchDiskFileRequestDTO requestDTO);
 }

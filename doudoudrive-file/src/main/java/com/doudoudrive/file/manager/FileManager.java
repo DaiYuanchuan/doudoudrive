@@ -4,7 +4,9 @@ import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -46,6 +48,15 @@ public interface FileManager {
      * @return 用户文件模块信息
      */
     DiskFile getDiskFile(String userId, String businessId);
+
+    /**
+     * 文件信息翻页搜索
+     *
+     * @param queryElasticRequest 构建ES文件查询请求数据模型
+     * @param marker              加密的游标数据
+     * @return 文件信息翻页搜索结果
+     */
+    FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, String marker);
 
     /**
      * 文件的parentId校验机制，针对是否存在、是否与自己有关、是否为文件夹的校验

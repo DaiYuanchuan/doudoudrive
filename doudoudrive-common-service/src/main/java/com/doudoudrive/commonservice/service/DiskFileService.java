@@ -75,9 +75,9 @@ public interface DiskFileService {
      * @param fileName   文件、文件夹名称
      * @param userId     指定的用户标识
      * @param fileFolder 是否为文件夹
-     * @return 在指定目录下存在相同的文件名时返回
+     * @return 在指定目录下存在相同的文件名时返回 1 ，否则返回 0 或者 null
      */
-    DiskFile getRepeatFileName(String parentId, String fileName, String userId, Boolean fileFolder);
+    Integer getRepeatFileName(String parentId, String fileName, String userId, Boolean fileFolder);
 
     /**
      * 指定条件查找用户文件模块

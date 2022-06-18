@@ -89,9 +89,9 @@ public interface DiskFileDao {
      * @param userId      指定的用户标识
      * @param fileFolder  是否为文件夹
      * @param tableSuffix 表后缀
-     * @return 在指定目录下存在相同的文件名时返回
+     * @return 在指定目录下存在相同的文件名时返回 1 ，否则返回 0 或者 null
      */
-    DiskFile getRepeatFileName(@Param("parentId") String parentId,
+    Integer getRepeatFileName(@Param("parentId") String parentId,
                                @Param("fileName") String fileName,
                                @Param("userId") String userId,
                                @Param("fileFolder") Boolean fileFolder,

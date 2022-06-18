@@ -2,6 +2,7 @@ package com.doudoudrive.common.util.lang;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 
 import java.math.BigDecimal;
@@ -149,6 +150,6 @@ public class SequenceUtil {
      */
     public static String asciiSuffix(String sequenceId, Integer remainder) {
         // 对取余结果 +1 后补零
-        return String.format(DOUBLE_DIGIT_ZERO_FILLING, new BigDecimal(PartitionByJumpConsistentHash.calculate(sequenceId, remainder)).add(BigDecimal.ONE).longValue());
+        return String.format(DOUBLE_DIGIT_ZERO_FILLING, PartitionByJumpConsistentHash.calculate(sequenceId, remainder) + NumberConstant.INTEGER_ONE);
     }
 }

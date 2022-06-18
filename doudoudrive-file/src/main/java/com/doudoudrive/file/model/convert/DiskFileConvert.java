@@ -5,12 +5,14 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.lang.MimeTypes;
 import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileSearchRequestDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -198,5 +200,17 @@ public interface DiskFileConvert {
      * @return 创建文件时消费者回调请求数据模型
      */
     CreateFileCallbackRequestDTO ossFileConvertCreateFileCallbackRequest(CreateFileAuthModel createFileAuthModel, String fileId);
+
+    /**
+     * 将 FileSearchRequestDTO(文件搜索请求数据模型) 类型转换为 QueryElasticsearchDiskFileRequestDTO(搜索es用户文件信息时的请求数据模型)
+     *
+     * @param requestDTO 文件搜索请求数据模型
+     * @param userId     用户标识
+     * @return 搜索es用户文件信息时的请求数据模型
+     */
+    @Mappings({
+            @Mapping(target = "sort", expression = "java(java.util.Collections.singletonList(requestDTO.getSort()))")
+    })
+    QueryElasticsearchDiskFileRequestDTO fileSearchRequestConvertQueryElasticRequest(FileSearchRequestDTO requestDTO, String userId);
 
 }

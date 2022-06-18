@@ -186,10 +186,10 @@ public class DiskFileServiceImpl implements DiskFileService {
      * @param fileName   文件、文件夹名称
      * @param userId     指定的用户标识
      * @param fileFolder 是否为文件夹
-     * @return 在指定目录下存在相同的文件名时返回
+     * @return 在指定目录下存在相同的文件名时返回 1 ，否则返回 0 或者 null
      */
     @Override
-    public DiskFile getRepeatFileName(String parentId, String fileName, String userId, Boolean fileFolder) {
+    public Integer getRepeatFileName(String parentId, String fileName, String userId, Boolean fileFolder) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
         return diskFileDao.getRepeatFileName(parentId, fileName, userId, fileFolder, tableSuffix);

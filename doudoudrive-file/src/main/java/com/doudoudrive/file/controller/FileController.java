@@ -14,6 +14,7 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
@@ -33,7 +34,9 @@ import com.doudoudrive.file.manager.QiNiuManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFolderRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileSearchRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileUploadTokenRequestDTO;
+import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -343,6 +346,23 @@ public class FileController {
         // 生成七牛上传token
         return Result.ok(qiNiuManager.uploadToken(diskFileConvert.uploadTokenConvert(userInfo.getBusinessId(),
                 tokenRequest.getFileParentId(), userToken, tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag()), tokenRequest.getFileEtag()));
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "搜索", businessType = "文件系统")
+    @PostMapping(value = "/search", produces = "application/json;charset=UTF-8")
+    public Result<FileSearchResponseDTO> search(@RequestBody @Valid FileSearchRequestDTO requestDTO,
+                                                HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("application/json;charset=UTF-8");
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 构建ES文件查询请求
+        QueryElasticsearchDiskFileRequestDTO queryElasticRequest = diskFileConvert.fileSearchRequestConvertQueryElasticRequest(requestDTO, userinfo.getBusinessId());
+        return Result.ok(fileManager.search(queryElasticRequest, requestDTO.getMarker()));
     }
 
     /**

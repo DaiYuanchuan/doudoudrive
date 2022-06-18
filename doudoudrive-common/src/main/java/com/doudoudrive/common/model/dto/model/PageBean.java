@@ -1,6 +1,7 @@
 package com.doudoudrive.common.model.dto.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,7 +61,7 @@ public class PageBean {
      * @return 返回页码，默认为1，最小为1
      */
     public Integer getPage() {
-        return Math.max(Optional.ofNullable(page).orElse(1), 1);
+        return Math.max(Optional.ofNullable(page).orElse(NumberConstant.INTEGER_ONE), NumberConstant.INTEGER_ONE);
     }
 
     /**
@@ -76,7 +77,7 @@ public class PageBean {
      * @return 返回每页的大小，默认为10，最小为1，最大100
      */
     public Integer getPageSize() {
-        return Math.min(Math.max(Optional.ofNullable(pageSize).orElse(10), 1), 100);
+        return Math.min(Math.max(Optional.ofNullable(pageSize).orElse(NumberConstant.INTEGER_TEN), NumberConstant.INTEGER_ONE), NumberConstant.INTEGER_HUNDRED);
     }
 
     /**
@@ -94,6 +95,6 @@ public class PageBean {
      * @return 获取SQL中的起始页
      */
     public Integer getStart() {
-        return (page - 1) * pageSize;
+        return (page - NumberConstant.INTEGER_ONE) * pageSize;
     }
 }

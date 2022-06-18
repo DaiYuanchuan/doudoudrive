@@ -37,22 +37,13 @@
                 `business_id` = #{diskFile.businessId} AND
             </if>
             <if test="null != diskFile.userId and '' != diskFile.userId">
-                LOCATE(#{diskFile.userId}, `user_id`)>0 AND
-            </if>
-            <if test="null != diskFile.fileName and '' != diskFile.fileName">
-                LOCATE(#{diskFile.fileName}, `file_name`)>0 AND
-            </if>
-            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">
-                LOCATE(#{diskFile.fileParentId}, `file_parent_id`)>0 AND
-            </if>
-            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">
-                LOCATE(#{diskFile.fileSize}, `file_size`)>0 AND
-            </if>
-            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">
-                LOCATE(#{diskFile.fileMimeType}, `file_mime_type`)>0 AND
+                `user_id` = #{diskFile.userId} AND
             </if>
             <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">
-                LOCATE(#{diskFile.fileEtag}, `file_etag`)>0 AND
+                `file_etag` = #{diskFile.fileEtag} AND
+            </if>
+            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">
+                `file_parent_id` = #{diskFile.fileParentId} AND
             </if>
             <if test="null != diskFile.fileFolder">
                 `is_file_folder` = #{diskFile.fileFolder} AND
@@ -63,8 +54,17 @@
             <if test="null != diskFile.collect">
                 `is_collect` = #{diskFile.collect} AND
             </if>
+            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">
+                `file_mime_type` = #{diskFile.fileMimeType}  AND
+            </if>
+            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">
+                `file_size` = #{diskFile.fileSize} AND
+            </if>
             <if test="null != diskFile.status and '' != diskFile.status">
                 `status` = #{diskFile.status} AND
+            </if>
+            <if test="null != diskFile.fileName and '' != diskFile.fileName">
+                `file_name` LIKE CONCAT(#{diskFile.fileName}, '%') AND
             </if>
         </if>
         <if test="null != startTime and null != endTime">
@@ -281,9 +281,7 @@
     <!-- 根据parentId查询指定目录下是否存在指定的文件名 -->
     <select id="getRepeatFileName" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
-        SELECT
-        <include refid="diskFile"/>
-        FROM `disk_file_${tableSuffix}`
+        SELECT 1 FROM `disk_file_${tableSuffix}`
         <where>
             `file_parent_id` = #{parentId} AND `file_name` = #{fileName} AND
             `user_id` = #{userId} AND `is_file_folder` = #{fileFolder} LIMIT 1;
@@ -305,7 +303,7 @@
 
     <!-- 返回搜索的总数 -->
     <select id="countSearch" resultType="java.lang.Long">
-        SELECT COUNT(*) FROM `disk_file_${tableSuffix}`
+        SELECT COUNT(1) FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <include refid="searchCondition"/>
             `status` = '1';
