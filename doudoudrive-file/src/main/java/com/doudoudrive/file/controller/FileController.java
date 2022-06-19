@@ -271,17 +271,22 @@ public class FileController {
             return Result.build(StatusCodeEnum.SYSTEM_ERROR);
         }
 
+        // 获取文件访问Url
+        fileModel = fileManager.accessUrl(FileAuthModel.builder()
+                .userId(createFile.getUserId())
+                .build(), fileModel);
+
         // 文件创建成功后的发送MQ消息
         this.sendMessage(CreateFileConsumerRequestDTO.builder()
                 .fileId(fileId)
                 .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
+                .preview(fileModel.getPreview())
+                .download(fileModel.getDownload())
                 .fileInfo(createFile)
                 .build());
 
         // 构建文件鉴权模型，获取文件访问地址
-        return Result.ok(fileManager.accessUrl(FileAuthModel.builder()
-                .userId(createFile.getUserId())
-                .build(), fileModel));
+        return Result.ok(fileModel);
     }
 
     @SneakyThrows

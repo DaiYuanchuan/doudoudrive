@@ -198,9 +198,12 @@ public interface DiskFileConvert {
      *
      * @param createFileAuthModel 创建文件时的鉴权参数模型
      * @param fileId              文件标识
+     * @param preview             文件预览地址
+     * @param download            文件下载地址
      * @return 创建文件时消费者回调请求数据模型
      */
-    CreateFileCallbackRequestDTO ossFileConvertCreateFileCallbackRequest(CreateFileAuthModel createFileAuthModel, String fileId);
+    CreateFileCallbackRequestDTO ossFileConvertCreateFileCallbackRequest(CreateFileAuthModel createFileAuthModel, String fileId,
+                                                                         String preview, String download);
 
     /**
      * 将 FileSearchRequestDTO(文件搜索请求数据模型) 类型转换为 QueryElasticsearchDiskFileRequestDTO(搜索es用户文件信息时的请求数据模型)

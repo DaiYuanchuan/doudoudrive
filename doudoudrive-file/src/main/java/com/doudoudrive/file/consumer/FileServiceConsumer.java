@@ -10,6 +10,7 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
+import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,9 @@ public class FileServiceConsumer {
             header.put(ConstantConfig.HttpRequest.HOST, URI.create(fileInfo.getCallbackUrl()).getHost());
 
             // 构建回调请求对象json串
-            String body = JSON.toJSONString(diskFileConvert.ossFileConvertCreateFileCallbackRequest(fileInfo, consumerRequest.getFileId()));
+            CreateFileCallbackRequestDTO fileCallbackRequest = diskFileConvert.ossFileConvertCreateFileCallbackRequest(fileInfo,
+                    consumerRequest.getFileId(), consumerRequest.getPreview(), consumerRequest.getDownload());
+            String body = JSON.toJSONString(fileCallbackRequest);
 
             // 构建回调请求
             long start = System.currentTimeMillis();

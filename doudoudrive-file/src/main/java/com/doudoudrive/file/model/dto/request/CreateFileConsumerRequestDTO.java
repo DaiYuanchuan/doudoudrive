@@ -37,6 +37,16 @@ public class CreateFileConsumerRequestDTO implements Serializable {
     private String requestId;
 
     /**
+     * 文件预览地址
+     */
+    private String preview;
+
+    /**
+     * 文件下载地址
+     */
+    private String download;
+
+    /**
      * 创建文件时的鉴权参数模型
      */
     private CreateFileAuthModel fileInfo;
