@@ -1,12 +1,11 @@
 package com.doudoudrive.common.util.lang;
 
+import com.doudoudrive.common.constant.NumberConstant;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +25,16 @@ public class CollectionUtil extends CollectionUtils {
      */
     public static boolean isNotEmpty(@Nullable Collection<?> collection) {
         return !isEmpty(collection);
+    }
+
+    /**
+     * Map是否为非空
+     *
+     * @param map map数据
+     * @return 是否为非空
+     */
+    public static boolean isNotEmpty(@Nullable Map<?, ?> map) {
+        return !isEmpty(map);
     }
 
     /**
@@ -67,6 +76,16 @@ public class CollectionUtil extends CollectionUtils {
     }
 
     /**
+     * 字节数组是否为空
+     *
+     * @param bytes 字节数组
+     * @return 是否为空
+     */
+    public static boolean isEmpty(byte[] bytes) {
+        return bytes == null || bytes.length == 0;
+    }
+
+    /**
      * 数组是否为非空
      *
      * @param <T>   数组元素类型
@@ -92,5 +111,17 @@ public class CollectionUtil extends CollectionUtils {
         final List<T> arrayList = new ArrayList<>(values.length);
         Collections.addAll(arrayList, values);
         return arrayList;
+    }
+
+    // ==================================================== 文件相关 ====================================================
+
+    /**
+     * 文件是否为空，文件对象为null，文件长度为0
+     *
+     * @param file 文件对象
+     * @return 是否为空
+     */
+    public static boolean isEmpty(File file) {
+        return file == null || !file.exists() || file.length() == NumberConstant.INTEGER_ZERO;
     }
 }

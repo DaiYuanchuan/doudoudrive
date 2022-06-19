@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -49,7 +50,7 @@ public class DiskUserAttr implements Serializable {
     /**
      * 用户属性值
      */
-    private String attributeValue;
+    private BigDecimal attributeValue;
 
     /**
      * 创建时间

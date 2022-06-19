@@ -1,15 +1,20 @@
 package com.doudoudrive.common.util.ip;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Singleton;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.StrUtil;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.Region;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.lionsoul.ip2region.DataBlock;
 import org.lionsoul.ip2region.DbConfig;
 import org.lionsoul.ip2region.DbSearcher;
-import org.springframework.core.io.ClassPathResource;
 
+import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 
@@ -21,6 +26,41 @@ import java.net.InetAddress;
  **/
 @Slf4j
 public class IpUtils {
+
+    /**
+     * ip库文件名
+     */
+    private static final String IP2REGION = "ip2region.db";
+
+    /**
+     * ip库文件路径
+     */
+    private static final String IP2REGION_PATH = "data/" + IP2REGION;
+
+    /**
+     * ip库临时存储的文件路径
+     */
+    private static final String IP2REGION_TEMP_PATH = "logs/" + IP2REGION;
+
+    /**
+     * ip库的搜索方式-内存搜索
+     */
+    private static final String MEMORY_SEARCH = "memorySearch";
+
+    /**
+     * ip库的搜索方式- b-tree 算法
+     */
+    private static final String BTREE_SEARCH = "btreeSearch";
+
+    /**
+     * ip库的搜索方式- 二进制搜索 算法
+     */
+    private static final String BINARY_SEARCH = "binarySearch";
+
+    /**
+     * 默认情况下的内网IP显示的字符
+     */
+    private static final String INTRANET_IP = "内网IP";
 
     /**
      * 通过域名获取IP地址
@@ -106,7 +146,7 @@ public class IpUtils {
      * @return 返回查询到的地区信息，查询出错时返回null
      */
     public static Region getIpLocationByMemory(String ip) {
-        return getIpLocation(ip, "memorySearch");
+        return getIpLocation(ip, MEMORY_SEARCH);
     }
 
     /**
@@ -117,7 +157,7 @@ public class IpUtils {
      * @return 返回查询到的地区信息，查询出错时返回null
      */
     public static Region getIpLocationByBtree(String ip) {
-        return getIpLocation(ip, "btreeSearch");
+        return getIpLocation(ip, BTREE_SEARCH);
     }
 
     /**
@@ -128,7 +168,7 @@ public class IpUtils {
      * @return 返回查询到的地区信息，查询出错时返回null
      */
     public static Region getIpLocationByBinary(String ip) {
-        return getIpLocation(ip, "binarySearch");
+        return getIpLocation(ip, BINARY_SEARCH);
     }
 
     /**
@@ -139,36 +179,36 @@ public class IpUtils {
      * @return 返回查询到的地区信息，查询出错时返回null
      */
     private static synchronized Region getIpLocation(String ip, String algorithm) {
-        String intranetIp = "内网IP";
-        // 判断ip是否为空
-        if (StrUtil.isBlank(ip)) {
-            log.info("The IP address detected is empty...");
-            return new Region(intranetIp, intranetIp, intranetIp, intranetIp);
-        }
-        // 检测是否为局域网IP
-        if (isInnerIp(ip)) {
-            return new Region(intranetIp, intranetIp, intranetIp, intranetIp);
+        // 判断ip是否为空或是否为局域网IP
+        if (StrUtil.isBlank(ip) || isInnerIp(ip)) {
+            return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
         }
         try {
             DbConfig config = Singleton.get(DbConfig.class);
-            final ClassPathResource tempResource = Singleton.get(ClassPathResource.class, "/data/ip2region.db");
-            DbSearcher dbSearcher = Singleton.get(DbSearcher.class, config, tempResource.getFile());
+            final File tempFile = FileUtil.touch(Singleton.get(File.class, IP2REGION_TEMP_PATH));
+            if (CollectionUtil.isEmpty(tempFile)) {
+                // 临时文件为空时，将包内文件流写入到文件
+                try (InputStream inputStream = IpUtils.class.getClassLoader().getResourceAsStream(IP2REGION_PATH)) {
+                    if (inputStream != null) {
+                        FileUtils.copyInputStreamToFile(inputStream, tempFile);
+                    }
+                }
+            }
+            DbSearcher dbSearcher = Singleton.get(DbSearcher.class, config, tempFile.getPath());
             Method method = dbSearcher.getClass().getMethod(algorithm, String.class);
             DataBlock dataBlock = (DataBlock) method.invoke(dbSearcher, ip);
             if (dataBlock != null && StrUtil.isNotBlank(dataBlock.getRegion())) {
                 String[] ipData = dataBlock.getRegion().split("\\|");
                 return Region.builder()
-                        .country(ipData[0])
-                        .province(ipData[2])
-                        .city(ipData[3])
-                        .isp(ipData[4])
+                        .country(ipData[NumberConstant.INTEGER_ZERO])
+                        .province(ipData[NumberConstant.INTEGER_TWO])
+                        .city(ipData[NumberConstant.INTEGER_THREE])
+                        .isp(ipData[NumberConstant.INTEGER_FOUR])
                         .build();
-            } else {
-                return new Region(intranetIp, intranetIp, intranetIp, intranetIp);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return new Region(intranetIp, intranetIp, intranetIp, intranetIp);
         }
+        return new Region(INTRANET_IP, INTRANET_IP, INTRANET_IP, INTRANET_IP);
     }
 }

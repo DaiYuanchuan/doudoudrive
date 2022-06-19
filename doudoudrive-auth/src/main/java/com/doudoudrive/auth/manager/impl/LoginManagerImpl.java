@@ -3,20 +3,24 @@ package com.doudoudrive.auth.manager.impl;
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.manager.SysUserRoleManager;
+import com.doudoudrive.common.cache.RedisTemplateClient;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.global.BusinessException;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
+import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
+import org.apache.shiro.session.mgt.DefaultSessionKey;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +45,11 @@ public class LoginManagerImpl implements LoginManager {
      */
     private DiskUserAttrService diskUserAttrService;
 
+    /**
+     * Redis客户端操作相关工具类
+     */
+    private RedisTemplateClient redisTemplateClient;
+
     @Autowired(required = false)
     public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
         this.diskUserInfoConvert = diskUserInfoConvert;
@@ -59,6 +68,11 @@ public class LoginManagerImpl implements LoginManager {
     @Autowired
     public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
         this.diskUserAttrService = diskUserAttrService;
+    }
+
+    @Autowired
+    public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
+        this.redisTemplateClient = redisTemplateClient;
     }
 
     /**
@@ -140,5 +154,89 @@ public class LoginManagerImpl implements LoginManager {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_USERINFO);
         }
         return userLoginResponseDTO.getUserInfo();
+    }
+
+    /**
+     * 从session中获取当前登录的用户token信息
+     *
+     * @return 用户token字符串
+     */
+    @Override
+    public String getUserToken() {
+        // 从缓存中获取用户信息对象
+        UserLoginResponseDTO userLoginResponseDTO = this.getUserInfoToSession();
+        // 无法获取用户信息时
+        if (userLoginResponseDTO == null || userLoginResponseDTO.getUserInfo() == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_USERINFO);
+        }
+        return userLoginResponseDTO.getToken();
+    }
+
+    /**
+     * 尝试根据token去获取指定的会话信息，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 通用的用户信息数据模型
+     */
+    @Override
+    public DiskUserModel getUserInfoToToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            return null;
+        }
+        try {
+            // 通过token尝试获取用户的session对象
+            Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
+            return (DiskUserModel) session.getAttribute(ConstantConfig.Cache.USERINFO_CACHE);
+        } catch (UnknownSessionException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 尝试根据token去获取指定的用户会话信息，无法获取时会尝试从当前session中获取，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 返回用户登录模块响应数据DTO模型
+     */
+    @Override
+    public UserLoginResponseDTO getUserInfoToTokenSession(String token) {
+        // 首先会尝试从session中获取用户信息
+        UserLoginResponseDTO loginResponse = this.getUserInfoToSession();
+        if (loginResponse == null) {
+            // 无法获取时尝试从指定token中获取
+            DiskUserModel userInfoToToken = this.getUserInfoToToken(token);
+            if (userInfoToToken == null) {
+                return null;
+            }
+            // 如果能从token中获取到用户信息，则构建用户登录模块响应数据DTO模型
+            return UserLoginResponseDTO.builder()
+                    .userInfo(userInfoToToken)
+                    .token(token)
+                    .build();
+        }
+        return loginResponse;
+    }
+
+    /**
+     * 尝试去更新指定用户的会话缓存信息
+     *
+     * @param token    需要更新的用户token
+     * @param userInfo 当前需要更新缓存的用户数据
+     */
+    @Override
+    public void attemptUpdateUserSession(String token, DiskUserModel userInfo) {
+        if (StringUtils.isNotBlank(token)) {
+            try {
+                // 通过token尝试获取用户的session对象
+                Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
+                // 更新指定用户缓存信息
+                session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
+                // 更新完本地缓存后，需要通知到其他服务同步更新
+                redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
+                        .cacheKey(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + token)
+                        .build());
+            } catch (UnknownSessionException ignored) {
+            }
+        }
     }
 }

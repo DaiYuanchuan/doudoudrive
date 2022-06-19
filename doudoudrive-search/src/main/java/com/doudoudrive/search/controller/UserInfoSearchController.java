@@ -59,7 +59,7 @@ public class UserInfoSearchController {
         response.setContentType("application/json;charset=UTF-8");
         // 手机号不为空，校验手机号格式是否正确
         if (StringUtils.isNotBlank(requestDTO.getUserTel()) && !PhoneUtil.isMobile(requestDTO.getUserTel())) {
-            return Result.build(StatusCodeEnum.PARAM_INVALID).message("请输入正确的手机号");
+            return Result.build(StatusCodeEnum.PHONE_NUMBER_FORMAT_ERROR);
         }
         // es中保存用户信息
         userInfoSearchManager.saveUserInfo(userInfoModelConvert.saveElasticsearchUserInfoRequestConvert(requestDTO));

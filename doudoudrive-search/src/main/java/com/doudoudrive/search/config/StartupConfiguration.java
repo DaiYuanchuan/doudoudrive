@@ -1,5 +1,6 @@
 package com.doudoudrive.search.config;
 
+import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ public class StartupConfiguration implements CommandLineRunner {
 
     static {
         CLASS_INIT_LIST.add(UserInfoDTO.class);
+        CLASS_INIT_LIST.add(DiskFileDTO.class);
     }
 
     @Override

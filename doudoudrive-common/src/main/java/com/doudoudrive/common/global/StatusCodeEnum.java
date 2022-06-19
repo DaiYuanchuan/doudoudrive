@@ -47,6 +47,7 @@ public enum StatusCodeEnum {
     CACHE_MANAGER_PRINCIPAL_ID_NOT_ASSIGNED_EXCEPTION(506, "CacheManager没有分配主体Id"),
     SMS_SIGNATURE_EXCEPTION(507, "短信签名异常"),
     ABNORMAL_SMS_SENDING(508, "短信发送失败"),
+    SIGNATURE_EXCEPTION(509, "签名异常"),
 
     /**
      * 用户(账号)类:65x
@@ -65,9 +66,22 @@ public enum StatusCodeEnum {
     AUTHENTICATION(659, "认证失败"),
 
     /**
+     * 文件类:7xx
+     */
+    FILE_NOT_FOUND(700, "未找到指定文件"),
+    PARENT_ID_NOT_FOUND(701, "未找到指定文件夹"),
+    NOT_FOLDER(702, "关联对象非文件夹"),
+    FILE_NAME_REPEAT(703, "此目录下已存在同名文件，请修改名称"),
+    FILE_AUTHENTICATION_FAILED(704, "文件鉴权失败"),
+    SPACE_INSUFFICIENT(705, "存储空间不足"),
+    UNSUPPORTED_SORT(706, "不支持的排序"),
+    INVALID_MARKER(707, "无效的marker"),
+
+    /**
      * 接口类:8xx
      */
-    INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常");
+    INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常"),
+    INTERFACE_EXTERNAL_EXCEPTION(801, "系统外部接口调用异常");
 
     public final Integer statusCode;
     public final String message;

@@ -8,6 +8,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,6 +46,15 @@ public class SequenceUtilTest {
         String sequenceId = SequenceUtil.nextId(SequenceModuleEnum.DISK_USER);
         Integer remainder = 10;
         log.info("sequenceId:{} % {} = {} suffix: {}", sequenceId, remainder, SequenceUtil.complement(sequenceId, remainder).toPlainString(), SequenceUtil.tableSuffix(sequenceId, remainder));
+    }
+
+    @Test
+    public void asciiSuffixTest() {
+        String sequenceId = "lq8AjBQSRIqkU_VGaQD2WQbtbvUla";
+        Integer remainder = 10;
+        String suffix = SequenceUtil.asciiSuffix(sequenceId, remainder);
+        log.info("sequenceId:{} % {} suffix: {}", sequenceId, remainder, suffix);
+        Assert.isTrue("02".equals(suffix), "suffix不正确");
     }
 
     /**

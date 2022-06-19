@@ -1,12 +1,14 @@
 package com.doudoudrive.common.constant;
 
+import cn.hutool.core.text.CharSequenceUtil;
+import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
+import com.doudoudrive.common.util.lang.ReflectUtil;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -104,6 +106,26 @@ public interface ConstantConfig {
         String USER_AGENT = "User-Agent";
 
         /**
+         * 请求头中的 host 字段
+         */
+        String HOST = "host";
+
+        /**
+         * JSON格式类型
+         */
+        String CONTENT_TYPE_JSON = "application/json";
+
+        /**
+         * format类型
+         */
+        String CONTENT_TYPE_FORM = "application/x-www-form-urlencoded";
+
+        /**
+         * 文件类型
+         */
+        String CONTENT_TYPE_MULTIPART = "multipart/form-data";
+
+        /**
          * 微信浏览器请求头中的userAgent标识
          */
         String[] WECHAT_BROWSER_USER_AGENT = {"MicroMessenger/", "WeChat", "Weixin"};
@@ -138,6 +160,11 @@ public interface ConstantConfig {
          * SMS服务
          */
         String SMS_SERVICE = "SMS_SERVICE";
+
+        /**
+         * 文件服务
+         */
+        String FILE_SERVICE = "FILE_SERVICE";
     }
 
     /**
@@ -159,6 +186,11 @@ public interface ConstantConfig {
          * 邮件发送
          */
         String SEND_MAIL = "SEND_MAIL";
+
+        /**
+         * 创建文件服务
+         */
+        String CREATE_FILE = "CREATE_FILE";
     }
 
     /**
@@ -175,6 +207,11 @@ public interface ConstantConfig {
          * SMS服务所属消费者组
          */
         String SMS = "SMS_CONSUMER_GROUP";
+
+        /**
+         * FILE服务所属消费者组
+         */
+        String FILE = "FILE_CONSUMER_GROUP";
     }
 
     /**
@@ -190,10 +227,63 @@ public interface ConstantConfig {
     }
 
     /**
+     * MQ消息发送状态类型枚举
+     */
+    enum MqMessageSendStatus {
+
+        /**
+         * 发送成功
+         */
+        SEND_OK(SendStatus.SEND_OK, "1"),
+
+        /**
+         * 刷新磁盘超时
+         */
+        FLUSH_DISK_TIMEOUT(SendStatus.FLUSH_DISK_TIMEOUT, "2"),
+
+        /**
+         * 刷新从属超时
+         */
+        FLUSH_SLAVE_TIMEOUT(SendStatus.FLUSH_SLAVE_TIMEOUT, "3"),
+
+        /**
+         * 从属服务器不可用
+         */
+        SLAVE_NOT_AVAILABLE(SendStatus.SLAVE_NOT_AVAILABLE, "4");
+
+        /**
+         * 消息发送状态枚举值
+         */
+        public final SendStatus sendStatus;
+
+        /**
+         * 消息发送状态枚举映射
+         */
+        public final String status;
+
+        MqMessageSendStatus(SendStatus sendStatus, String status) {
+            this.sendStatus = sendStatus;
+            this.status = status;
+        }
+
+        /**
+         * 通过消息发送状态枚举值获取到枚举值的映射
+         *
+         * @param sendStatus 消息发送状态枚举值
+         * @return 消息发送状态枚举映射
+         */
+        public static String getStatusValue(SendStatus sendStatus) {
+            return Stream.of(MqMessageSendStatus.values())
+                    .filter(anEnum -> anEnum.sendStatus.equals(sendStatus))
+                    .map(anEnum -> anEnum.status).findFirst().orElse(CharSequenceUtil.EMPTY);
+        }
+    }
+
+    /**
      * 特殊符号
      */
     interface SpecialSymbols {
-
+        String DOT = ".";
         String ASTERISK = "*";
         String OR = "||";
         String QUESTION_MARK = "?";
@@ -204,6 +294,7 @@ public interface ConstantConfig {
         String PLUS_SIGN = "+";
         String TILDE = "~";
         String ENGLISH_COLON = ":";
+        String COMMENT_SIGN = "#";
     }
 
     /**
@@ -225,6 +316,16 @@ public interface ConstantConfig {
          * 用户属性表依据 user_id 平均分 50 个表
          */
         Integer DISK_USER_ATTR = 50;
+
+        /**
+         * 用户文件模块依据 user_id 分 500 个表
+         */
+        Integer DISK_FILE = 500;
+
+        /**
+         * OSS文件对象存储模块依据 file_etag 平均分 300 个表
+         */
+        Integer OSS_FILE = 300;
     }
 
     /**
@@ -308,7 +409,7 @@ public interface ConstantConfig {
         String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
 
         /**
-         * session内容缓存默认失效时间(10小时):秒
+         * 缓存内容默认失效时间(10小时):秒
          */
         Long DEFAULT_EXPIRE = 36000L;
 
@@ -316,6 +417,16 @@ public interface ConstantConfig {
          * 邮箱验证码缓存前缀
          */
         String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
+
+        /**
+         * 用户文件信息缓存
+         */
+        String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
+
+        /**
+         * OSS文件信息缓存
+         */
+        String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
 
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
@@ -377,6 +488,8 @@ public interface ConstantConfig {
      */
     interface IndexName {
         String USERINFO = "userinfo";
+
+        String DISK_FILE = "disk_file";
     }
 
     /**
@@ -511,10 +624,273 @@ public interface ConstantConfig {
                 userAttrList.add(DiskUserAttr.builder()
                         .userId(userId)
                         .attributeName(attrEnum.param)
-                        .attributeValue(attrEnum.defaultValue)
+                        .attributeValue(new BigDecimal(attrEnum.defaultValue))
                         .build());
             }
             return userAttrList;
+        }
+    }
+
+    /**
+     * 文件记录动作相关常量
+     */
+    interface FileRecordAction {
+
+        /**
+         * 文件记录-动作
+         */
+        enum ActionEnum {
+
+            /**
+             * 文件状态
+             */
+            FILE("0"),
+
+            /**
+             * 文件内容
+             */
+            FILE_CONTENT("1");
+
+            /**
+             * 状态标识
+             */
+            public final String status;
+
+            ActionEnum(String status) {
+                this.status = status;
+            }
+        }
+
+        /**
+         * 文件记录-动作类型
+         */
+        enum ActionTypeEnum {
+
+            // Action为0时对应的动作类型
+
+            /**
+             * 被删除
+             */
+            BE_DELETED("0"),
+
+            // Action为1时对应的动作类型
+
+            /**
+             * 待审核
+             */
+            REVIEWED("0"),
+
+            /**
+             * 待删除
+             */
+            TO_DELETE("1");
+
+            /**
+             * 状态标识
+             */
+            public final String status;
+
+            ActionTypeEnum(String status) {
+                this.status = status;
+            }
+        }
+    }
+
+    /**
+     * oss文件当前状态枚举类型
+     */
+    enum OssFileStatusEnum {
+
+        /**
+         * 正常，默认值
+         */
+        NORMAL("0"),
+
+        /**
+         * 待审核，图片、视频增量审查
+         */
+        PENDING_REVIEW("1"),
+
+        /**
+         * 审核失败，同步的用户文件被禁止访问，源文件待删除
+         */
+        AUDIT_FAILURE("2"),
+
+        /**
+         * 源文件已删除
+         */
+        SOURCE_FILE_DELETED("3");
+
+        public final String status;
+
+        OssFileStatusEnum(String status) {
+            this.status = status;
+        }
+
+        /**
+         * 判断文件当前状态是否是被禁止的
+         *
+         * @param fileStatus 文件状态
+         * @return true:文件被禁止访问 false:文件是正常的
+         */
+        public static boolean forbidden(String fileStatus) {
+            // 规定不可操作类型
+            List<String> inoperableType = Arrays.asList(AUDIT_FAILURE.status, SOURCE_FILE_DELETED.status);
+            return inoperableType.contains(fileStatus);
+        }
+    }
+
+    /**
+     * 七牛云相关常量配置
+     */
+    interface QiNiuConstant {
+        /**
+         * 七牛云请求鉴权的前缀(QBox)
+         */
+        String QBOX_AUTHORIZATION_PREFIX = "QBox ";
+
+        /**
+         * 七牛云请求鉴权的前缀(Qiniu)
+         */
+        String QI_NIU_AUTHORIZATION_PREFIX = "Qiniu ";
+
+        /**
+         * 七牛云上传回调时请求头中的请求id
+         */
+        String QI_NIU_CALLBACK_REQUEST_ID = "X-Reqid";
+
+        /**
+         * 七牛云上传回调-获得上传的目标空间名
+         */
+        String QI_NIU_CALLBACK_BUCKET = "$(bucket)";
+
+        /**
+         * 七牛云上传回调-获得文件保存在空间中的资源名
+         */
+        String QI_NIU_CALLBACK_KEY = "$(key)";
+
+        /**
+         * 七牛云上传回调-上传的原始文件名
+         */
+        String QI_NIU_CALLBACK_FILE_NAME = "$(fname)";
+
+        /**
+         * 七牛云上传回调-资源尺寸，单位为字节
+         */
+        String QI_NIU_CALLBACK_FILE_SIZE = "$(fsize)";
+
+        /**
+         * 七牛云上传回调-资源类型，例如JPG图片的资源类型为image/jpg
+         */
+        String QI_NIU_CALLBACK_FILE_MIME_TYPE = "$(mimeType)";
+
+        /**
+         * 七牛云上传回调-上传时指定的endUser字段，通常用于区分不同终端用户的请求
+         */
+        String QI_NIU_CALLBACK_END_USER = "$(endUser)";
+
+        /**
+         * 七牛云上传回调-音视频转码持久化的进度查询ID
+         */
+        String QI_NIU_CALLBACK_PERSISTENT_ID = "$(persistentId)";
+
+        /**
+         * 七牛云上传回调-获取上传图片的Exif信息，该变量包含子字段
+         */
+        String QI_NIU_CALLBACK_EXIF = "$(exif)";
+
+        /**
+         * 获取所上传图片的基本信息，该变量包含子字段，例如对$(imageInfo.width)取值将得到该图片的宽度
+         */
+        String QI_NIU_CALLBACK_IMAGE_INFO = "$(imageInfo)";
+
+        /**
+         * 音视频资源的元信息
+         */
+        String QI_NIU_CALLBACK_AV_INFO = "$(avinfo)";
+
+        /**
+         * 图片主色调
+         */
+        String QI_NIU_CALLBACK_IMAGE_AVE = "$(imageAve)";
+
+        /**
+         * 七牛云上传回调-文件etag
+         */
+        String QI_NIU_CALLBACK_FILE_ETAG = "$(etag)";
+    }
+
+    /**
+     * 文件搜索请求中指定支持排序的字段
+     */
+    enum DiskFileSearchOrderBy {
+
+        /**
+         * 文件大小
+         */
+        FILE_SIZE(ReflectUtil.property(DiskFile::getFileSize)),
+
+        /**
+         * 创建时间
+         */
+        CREATE_TIME(ReflectUtil.property(DiskFile::getCreateTime)),
+
+        /**
+         * 更新时间
+         */
+        UPDATE_TIME(ReflectUtil.property(DiskFile::getUpdateTime));
+
+        /**
+         * 用户属性参数的默认值
+         */
+        public final String fieldName;
+
+        DiskFileSearchOrderBy(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        /**
+         * 判断字段名是否存在于枚举中
+         *
+         * @param fieldName 指定的字段名
+         * @return true:不存在，false:存在
+         */
+        public static boolean noneMatch(String fieldName) {
+            return Stream.of(DiskFileSearchOrderBy.values()).noneMatch(anEnum -> anEnum.fieldName.equals(fieldName));
+        }
+    }
+
+    /**
+     * 排序字段
+     */
+    enum OrderDirection {
+        /**
+         * 正序
+         */
+        ASC("ASC"),
+
+        /**
+         * 倒叙
+         */
+        DESC("DESC");
+
+        /**
+         * 排序方向
+         */
+        public final String direction;
+
+        OrderDirection(String direction) {
+            this.direction = direction;
+        }
+
+        /**
+         * 判断字段名是否存在于枚举中
+         *
+         * @param direction 指定的排序字段
+         * @return true:不存在，false:存在
+         */
+        public static boolean noneMatch(String direction) {
+            return Stream.of(OrderDirection.values()).noneMatch(anEnum -> anEnum.direction.equals(direction));
         }
     }
 

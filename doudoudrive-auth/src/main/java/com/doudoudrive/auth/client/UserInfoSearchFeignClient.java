@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author Dan
  **/
-@FeignClient(name = "searchServer", contextId = "authUserInfoSearchFeignClient")
+@FeignClient(name = "searchServer", contextId = "userInfoSearchFeignClient")
 public interface UserInfoSearchFeignClient {
 
     /**
      * 在es中保存用户信息
      *
      * @param requestDTO 保存es用户信息时的请求数据模型
-     * @return 通过状态返回类
+     * @return 通用状态返回类
      */
     @PostMapping(value = "/search/userinfo/save", produces = "application/json;charset=UTF-8")
     Result<?> saveElasticsearchUserInfo(@RequestBody SaveElasticsearchUserInfoRequestDTO requestDTO);
@@ -33,7 +33,7 @@ public interface UserInfoSearchFeignClient {
      * 删除es中保存的用户信息
      *
      * @param requestDTO 删除es用户信息时的请求数据模型
-     * @return 通过状态返回类
+     * @return 通用状态返回类
      */
     @PostMapping(value = "/search/userinfo/delete", produces = "application/json;charset=UTF-8")
     Result<?> deleteElasticsearchUserInfo(@RequestBody DeleteElasticsearchUserInfoRequestDTO requestDTO);
@@ -42,7 +42,7 @@ public interface UserInfoSearchFeignClient {
      * 更新es中保存的用户信息
      *
      * @param requestDTO 更新es用户信息时的请求数据模型
-     * @return 通过状态返回类
+     * @return 通用状态返回类
      */
     @PostMapping(value = "/search/userinfo/update", produces = "application/json;charset=UTF-8")
     Result<?> updateElasticsearchUserInfo(@RequestBody UpdateElasticsearchUserInfoRequestDTO requestDTO);

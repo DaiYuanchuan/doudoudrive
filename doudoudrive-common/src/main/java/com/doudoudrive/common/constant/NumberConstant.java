@@ -94,6 +94,11 @@ public interface NumberConstant {
     Long LONG_ONE_THOUSAND = 1000L;
 
     /**
+     * 常量 long 10000
+     */
+    Long Long_TEN_THOUSAND = 10000L;
+
+    /**
      * 常量 long 最大值
      */
     Long LONG_MAXIMUM = 9223372036854775807L;
@@ -184,6 +189,11 @@ public interface NumberConstant {
     Integer INTEGER_ONE_THOUSAND = 1000;
 
     /**
+     * 常量 integer 10000
+     */
+    Integer INTEGER_TEN_THOUSAND = 10000;
+
+    /**
      * 常量 integer 最大值
      */
     Integer INTEGER_MAXIMUM = 2147483647;
@@ -272,4 +282,9 @@ public interface NumberConstant {
      * 常量 string 1000
      */
     String STRING_ONE_THOUSAND = "1000";
+
+    /**
+     * 常量 string 10000
+     */
+    String STRING_TEN_THOUSAND = "10000";
 }

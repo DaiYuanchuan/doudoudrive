@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -102,20 +103,58 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
     }
 
     /**
-     * 修改用户属性模块
+     * 原子性服务，扣除指定字段的数量
      *
-     * @param diskUserAttr 需要进行修改的用户属性模块实体
-     * @return 返回修改的条数
+     * @param userId       需要进行操作的用户标识
+     * @param userAttrEnum 需要扣除的字段属性枚举值
+     * @param size         需要扣除的数量
+     * @return 返回修改的条数，根据返回值判断是否修改成功
      */
     @Override
-    public Integer update(DiskUserAttr diskUserAttr) {
-        if (ObjectUtils.isEmpty(diskUserAttr) || StringUtils.isBlank(diskUserAttr.getBusinessId())
-                || StringUtils.isBlank(diskUserAttr.getUserId())) {
-            return NumberConstant.INTEGER_ZERO;
-        }
+    public Integer deducted(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size) {
         // 获取表后缀
-        String tableSuffix = SequenceUtil.tableSuffix(diskUserAttr.getUserId(), ConstantConfig.TableSuffix.DISK_USER_ATTR);
-        return diskUserAttrDao.update(diskUserAttr, tableSuffix);
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
+        try {
+            // 获取更新结果
+            return diskUserAttrDao.deducted(userId, userAttrEnum.param, size, tableSuffix);
+        } catch (Exception e) {
+            return NumberConstant.INTEGER_MINUS_ONE;
+        }
+    }
+
+    /**
+     * 原子性服务，增加指定字段的数量
+     *
+     * @param userId       需要进行操作的用户标识
+     * @param userAttrEnum 需要扣除的字段属性枚举值
+     * @param size         需要扣除的数量
+     * @param upperLimit   扣除上限
+     * @return 返回修改的条数，根据返回值判断是否修改成功
+     */
+    @Override
+    public Integer increase(String userId, ConstantConfig.UserAttrEnum userAttrEnum, String size, String upperLimit) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
+        try {
+            // 获取更新结果
+            return diskUserAttrDao.increase(userId, userAttrEnum.param, size, upperLimit, tableSuffix);
+        } catch (Exception e) {
+            return NumberConstant.INTEGER_MINUS_ONE;
+        }
+    }
+
+    /**
+     * 查找指定用户的指定属性的值
+     *
+     * @param userId   根据用户业务id查找
+     * @param attrName 属性名
+     * @return 返回查找到的用户属性值
+     */
+    @Override
+    public BigDecimal getDiskUserAttrValue(String userId, ConstantConfig.UserAttrEnum attrName) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
+        return diskUserAttrDao.getDiskUserAttrValue(userId, attrName.param, tableSuffix);
     }
 
     /**
@@ -135,7 +174,8 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
         List<DiskUserAttr> attrList = diskUserAttrDao.listDiskUserAttr(userId, tableSuffix);
 
         // 将属性信息转成Map对象
-        Map<String, String> attrMap = attrList.stream().collect(Collectors.toMap(DiskUserAttr::getAttributeName, DiskUserAttr::getAttributeValue, (key1, key2) -> key2));
+        Map<String, String> attrMap = attrList.stream().collect(Collectors.toMap(DiskUserAttr::getAttributeName,
+                value -> value.getAttributeValue().toPlainString(), (key1, key2) -> key2));
 
         // 用户属性枚举构建的Map
         Map<String, String> defaultMap = ConstantConfig.UserAttrEnum.builderMap();
@@ -154,7 +194,7 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
         this.insertBatch(entriesOnlyOnLeft.entrySet().stream().map(map -> DiskUserAttr.builder()
                 .userId(userId)
                 .attributeName(map.getKey())
-                .attributeValue(map.getValue())
+                .attributeValue(new BigDecimal(map.getValue()))
                 .build()).toList());
         // 合并两个Map内容，同时返回合并后的内容
         attrMap.putAll(entriesOnlyOnLeft);

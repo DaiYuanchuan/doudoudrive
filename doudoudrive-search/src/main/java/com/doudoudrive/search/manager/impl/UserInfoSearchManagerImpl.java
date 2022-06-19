@@ -2,6 +2,7 @@ package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.lang.ReflectUtil;
@@ -56,7 +57,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
      */
     @Override
     public void saveUserInfo(UserInfoDTO userInfoDTO) {
-        // 构建查询请求
+        // 构建保存请求
         restTemplate.save(userInfoDTO);
     }
 
@@ -82,7 +83,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
     @Override
     public void updateUserInfo(String id, UserInfoDTO userInfoDTO) {
         // 将用户信息转为map
-        Map<String, Object> userInfoMap = BeanUtil.beanToMap(userInfoDTO, false, true);
+        Map<String, Object> userInfoMap = BeanUtil.beanToMap(userInfoDTO, Boolean.FALSE, Boolean.TRUE);
         // 构建更新的es请求
         restTemplate.update(UpdateQuery
                 .builder(id)
@@ -108,7 +109,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
                         .should(QueryBuilders.termQuery(USER_EMAIL, username))
                         .should(QueryBuilders.termQuery(USER_TEL, username)))
                 .build(), UserInfoDTO.class);
-        return search.isEmpty() ? null : search.getSearchHits().get(0).getContent();
+        return search.isEmpty() ? null : search.getSearchHits().get(NumberConstant.INTEGER_ZERO).getContent();
     }
 
     /**

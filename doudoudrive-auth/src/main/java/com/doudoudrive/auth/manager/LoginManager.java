@@ -33,4 +33,35 @@ public interface LoginManager {
      */
     DiskUserModel getUserInfoToSessionException();
 
+    /**
+     * 从session中获取当前登录的用户token信息
+     *
+     * @return 用户token字符串
+     */
+    String getUserToken();
+
+    /**
+     * 尝试根据token去获取指定的会话信息，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 通用的用户信息数据模型
+     */
+    DiskUserModel getUserInfoToToken(String token);
+
+    /**
+     * 尝试根据token去获取指定的用户会话信息，无法获取时会尝试从当前session中获取，无法获取时返回null
+     *
+     * @param token 用户token
+     * @return 返回用户登录模块响应数据DTO模型
+     */
+    UserLoginResponseDTO getUserInfoToTokenSession(String token);
+
+    /**
+     * 尝试去更新指定用户的会话缓存信息
+     *
+     * @param token    需要更新的用户token
+     * @param userInfo 当前需要更新缓存的用户数据
+     */
+    void attemptUpdateUserSession(String token, DiskUserModel userInfo);
+
 }
