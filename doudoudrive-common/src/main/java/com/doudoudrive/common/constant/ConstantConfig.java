@@ -86,7 +86,7 @@ public interface ConstantConfig {
         String AUTHORIZATION = "Authorization";
 
         /**
-         * Cookie内容中的鉴权字段
+         * 请求内容中的鉴权字段
          */
         String TOKEN = "token";
 

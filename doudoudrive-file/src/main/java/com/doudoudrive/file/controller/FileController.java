@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -162,6 +163,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "文件夹", businessType = "新建")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
     @PostMapping(value = "/create-folder", produces = "application/json;charset=UTF-8")
     public Result<DiskFileModel> createFolder(@RequestBody @Valid CreateFolderRequestDTO requestDTO,
                                               HttpServletRequest request, HttpServletResponse response) {
@@ -285,6 +287,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "获取上传Token", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
     @PostMapping(value = "/token", produces = "application/json;charset=UTF-8")
     public Result<FileUploadTokenResponseDTO> getUploadToken(@RequestBody @Valid FileUploadTokenRequestDTO tokenRequest,
                                                              HttpServletRequest request, HttpServletResponse response) {
@@ -348,6 +351,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "重命名", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPDATE)
     @PostMapping(value = "/rename", produces = "application/json;charset=UTF-8")
     public Result<DiskFileModel> renameFile(@RequestBody @Valid RenameFileRequestDTO requestDTO,
                                             HttpServletRequest request, HttpServletResponse response) {
@@ -385,6 +389,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "搜索", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SELECT)
     @PostMapping(value = "/search", produces = "application/json;charset=UTF-8")
     public Result<FileSearchResponseDTO> search(@RequestBody @Valid FileSearchRequestDTO requestDTO,
                                                 HttpServletRequest request, HttpServletResponse response) {
