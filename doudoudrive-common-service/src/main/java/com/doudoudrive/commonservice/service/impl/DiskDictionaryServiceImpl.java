@@ -298,6 +298,7 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      * @param <T>            需要映射到的类型
      * @return 从缓存中获取到的字典数据的内容
      */
+    @Override
     public <T> List<T> getDictionaryArray(String dictionaryName, Class<T> clazz) {
         String dictionary = SYS_DICTIONARY_CACHE.get(dictionaryName);
         if (StringUtils.isBlank(dictionary)) {

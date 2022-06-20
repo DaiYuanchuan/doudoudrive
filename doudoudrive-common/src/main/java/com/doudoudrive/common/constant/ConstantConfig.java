@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -891,6 +893,43 @@ public interface ConstantConfig {
          */
         public static boolean noneMatch(String direction) {
             return Stream.of(OrderDirection.values()).noneMatch(anEnum -> anEnum.direction.equals(direction));
+        }
+    }
+
+    /**
+     * 线程池类型、使用场景相关配置
+     */
+    enum ThreadPoolEnum {
+        /**
+         * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy());
+
+        /**
+         * 线程池名称
+         */
+        public final String name;
+
+        /**
+         * 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
+         */
+        public final RejectedExecutionHandler handler;
+
+        ThreadPoolEnum(String name, RejectedExecutionHandler handler) {
+            this.name = name;
+            this.handler = handler;
+        }
+
+        /**
+         * 根据线程池名称获取对应的异常处理器，没有获取到时响应null
+         *
+         * @param name 线程池名称
+         * @return 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
+         */
+        public static RejectedExecutionHandler getExecutionHandler(String name) {
+            return Stream.of(values())
+                    .filter(anEnum -> anEnum.name.equals(name))
+                    .map(anEnum -> anEnum.handler).findFirst().orElse(null);
         }
     }
 

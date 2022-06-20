@@ -9,6 +9,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
+import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
@@ -35,9 +36,19 @@ public class FileServiceConsumer {
 
     private DiskFileConvert diskFileConvert;
 
+    /**
+     * 用于外部回调的线程池服务
+     */
+    private GlobalThreadPoolService globalThreadPoolService;
+
     @Autowired(required = false)
     public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
         this.diskFileConvert = diskFileConvert;
+    }
+
+    @Autowired
+    public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
+        this.globalThreadPoolService = globalThreadPoolService;
     }
 
     /**
@@ -88,20 +99,23 @@ public class FileServiceConsumer {
                     consumerRequest.getFileId(), consumerRequest.getPreview(), consumerRequest.getDownload());
             String body = JSON.toJSONString(fileCallbackRequest);
 
-            // 构建回调请求
-            long start = System.currentTimeMillis();
-            try (cn.hutool.http.HttpResponse execute = HttpRequest.post(fileInfo.getCallbackUrl())
-                    .headerMap(header, Boolean.TRUE)
-                    .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
-                    .charset(StandardCharsets.UTF_8)
-                    .body(body.getBytes(StandardCharsets.UTF_8))
-                    .timeout(TIMEOUT)
-                    .execute()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("callback request: {}ms {}\n{}", (System.currentTimeMillis() - start), fileInfo.getCallbackUrl(), body);
-                    log.debug(execute.toString());
+            // 多线程异步发送回调请求
+            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.THIRD_PARTY_CALLBACK, () -> {
+                // 构建回调请求
+                long start = System.currentTimeMillis();
+                try (cn.hutool.http.HttpResponse execute = HttpRequest.post(fileInfo.getCallbackUrl())
+                        .headerMap(header, Boolean.TRUE)
+                        .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
+                        .charset(StandardCharsets.UTF_8)
+                        .body(body.getBytes(StandardCharsets.UTF_8))
+                        .timeout(TIMEOUT)
+                        .execute()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("callback request: {}ms {}\n{}", (System.currentTimeMillis() - start), fileInfo.getCallbackUrl(), body);
+                        log.debug(execute.toString());
+                    }
                 }
-            }
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

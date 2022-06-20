@@ -125,6 +125,16 @@ public interface DiskDictionaryService {
     <T> T getDictionary(String dictionaryName, Class<T> clazz);
 
     /**
+     * 获取当前jvm缓存中的字典数据，同时转换为指定的List类型
+     *
+     * @param dictionaryName 需要获取的字典名称
+     * @param clazz          需要映射到的class类
+     * @param <T>            需要映射到的类型
+     * @return 从缓存中获取到的字典数据的内容
+     */
+    <T> List<T> getDictionaryArray(String dictionaryName, Class<T> clazz);
+
+    /**
      * 返回搜索结果的总数
      *
      * @param diskDictionary 需要查询的数据字典模块实体
