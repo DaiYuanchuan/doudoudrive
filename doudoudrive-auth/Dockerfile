@@ -5,7 +5,7 @@ MAINTAINER 兜兜网络
 #对Spring Boot应用程序为Tomcat创建的默认工作目录进行挂载(就是所有的jar默认放在/tmp下面)
 VOLUME /tmp
 #一个添加命令,把文件添加到镜像中,如果 /app 这个文件夹不存在它会自行创建这个文件夹
-ADD ./target/doudoudrive-auth-exec.jar /app/doudoudrive-auth.jar
+ADD ./doudoudrive-auth/target/doudoudrive-auth-exec.jar /app/doudoudrive-auth.jar
 #指定服务运行的端口,也是之后 -p 要映射的端口
 EXPOSE 7000
 ENV JAVA_OPTS=""
