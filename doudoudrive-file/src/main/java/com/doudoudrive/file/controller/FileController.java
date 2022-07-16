@@ -205,11 +205,6 @@ public class FileController {
         String originAuthorization = request.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
         // 从流中获取到body原始请求数据
         String requestParam = IoUtil.read(request.getInputStream()).toString();
-        if (log.isDebugEnabled()) {
-            // 打印请求参数
-            log.debug("Authorization : {}", originAuthorization);
-            log.debug("param : {}", requestParam);
-        }
 
         if (StringUtils.isBlank(originAuthorization) || StringUtils.isBlank(requestParam)) {
             return Result.build(StatusCodeEnum.FILE_AUTHENTICATION_FAILED);

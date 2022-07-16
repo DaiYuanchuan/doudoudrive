@@ -114,6 +114,8 @@ public class FileServiceConsumer {
                         log.debug("callback request: {}ms {}\n{}", (System.currentTimeMillis() - start), fileInfo.getCallbackUrl(), body);
                         log.debug(execute.toString());
                     }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
                 }
             });
         } catch (Exception e) {

@@ -462,6 +462,7 @@ public interface ConstantConfig {
 
         /**
          * redis通道名称枚举(redis需要订阅的渠道名称)
+         * redis 通过命令 PUBLISH channel message 来发布信息
          */
         enum ChanelEnum {
             /**
