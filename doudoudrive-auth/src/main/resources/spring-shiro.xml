@@ -107,7 +107,8 @@
         <property name="globalSessionTimeout" value="36000000"/>
         <property name="deleteInvalidSessions" value="true"/>
         <property name="sessionValidationSchedulerEnabled" value="true"/>
-        <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
+        <!-- session会话验证间隔，用来定期验证会话是否有效，毫秒(1小时/3600000ms) -->
+        <property name="sessionValidationInterval" value="3600000"/>
         <property name="sessionDAO" ref="sessionDAO"/>
         <property name="sessionIdCookieEnabled" value="true"/>
         <property name="sessionIdCookie" ref="sessionIdCookie"/>
@@ -120,10 +121,6 @@
         </property>
     </bean>
     <bean id="sessionFactory" class="com.doudoudrive.auth.shiro.ShiroSessionFactory"/>
-    <bean id="sessionValidationScheduler"
-          class="org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler">
-        <property name="interval" value="36000000"/>
-    </bean>
     <bean id="sessionDAO" class="com.doudoudrive.auth.shiro.RedisSessionDAO">
         <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
     </bean>
