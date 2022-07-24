@@ -31,6 +31,22 @@ CREATE TABLE `cloud-user`.`disk_user`  (
  INDEX `idx_user_tel`(`user_tel`) USING BTREE COMMENT '用户绑定的手机号'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户模块' ROW_FORMAT = DYNAMIC;
 
+-- 用户属性表
+DROP TABLE IF EXISTS `cloud-user`.`disk_user_attr`;
+CREATE TABLE `cloud-user`.`disk_user_attr`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+ `attribute_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户属性名称',
+ `attribute_value` bigint(20) UNSIGNED NOT NULL DEFAULT '0' COMMENT '用户属性值',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ UNIQUE INDEX `uk_composite` (`user_id`, `attribute_name`) USING BTREE COMMENT '用户标识、属性名称组合索引'
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户属性模块' ROW_FORMAT = DYNAMIC;
+
 -- 系统权限表
 DROP TABLE IF EXISTS `cloud-user`.`sys_authorization`;
 CREATE TABLE `cloud-user`.`sys_authorization`  (
@@ -193,9 +209,62 @@ CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_48` LIKE `cloud-user`.`sy
 CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_49` LIKE `cloud-user`.`sys_user_role`;
 CREATE TABLE IF NOT EXISTS `cloud-user`.`sys_user_role_50` LIKE `cloud-user`.`sys_user_role`;
 
+-- 用户属性表依据 user_id 平均分 50 个表
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_01` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_02` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_03` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_04` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_05` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_06` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_07` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_08` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_09` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_10` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_11` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_12` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_13` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_14` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_15` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_16` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_17` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_18` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_19` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_20` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_21` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_22` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_23` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_24` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_25` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_26` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_27` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_28` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_29` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_30` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_31` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_32` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_33` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_34` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_35` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_36` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_37` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_38` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_39` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_40` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_41` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_42` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_43` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_44` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_45` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_46` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_47` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_48` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_49` LIKE `cloud-user`.`disk_user_attr`;
+CREATE TABLE IF NOT EXISTS `cloud-user`.`disk_user_attr_50` LIKE `cloud-user`.`disk_user_attr`;
+
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-user`.`disk_user`;
 DROP TABLE IF EXISTS `cloud-user`.`sys_user_role`;
+DROP TABLE IF EXISTS `cloud-user`.`disk_user_attr`;
 
 /**
  * ******************************************************* 日志库 *******************************************************
@@ -242,6 +311,7 @@ CREATE TABLE `cloud-log`.`log_op` (
   `ip` bigint(15) UNSIGNED NULL DEFAULT NULL COMMENT '当前访问的ip地址',
   `location` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'ip地址的实际地理位置',
   `business_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '业务类型',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模块名称',
   `class_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '执行操作的类名称',
   `method_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '执行操作的方法名称',
   `parameter` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求时的url参数',
@@ -257,7 +327,6 @@ CREATE TABLE `cloud-log`.`log_op` (
   `is_mobile` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '是否为移动平台(0:false,1:true)',
   `request_uri` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问的URL除去host部分的路径',
   `referer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求头中的referer信息',
-  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模块名称',
   `error_msg` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问出现错误时获取到的异常信息',
   `error_cause` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问出现错误时获取到的异常原因',
   `is_success` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '访问的状态(0:false,1:true)',
@@ -269,11 +338,11 @@ CREATE TABLE `cloud-log`.`log_op` (
   UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
   INDEX `ip`(`ip`) USING BTREE COMMENT '当前访问的ip地址索引',
   INDEX `business_type`(`business_type`) USING BTREE COMMENT '业务类型索引',
+  INDEX `title`(`title`) USING BTREE COMMENT '模块名称索引',
   INDEX `browser`(`browser`) USING BTREE COMMENT '浏览器内核类型索引',
   INDEX `platform`(`platform`) USING BTREE COMMENT '操作平台类型索引',
   INDEX `spider`(`spider`) USING BTREE COMMENT '爬虫类型索引',
   INDEX `request_uri`(`request_uri`) USING BTREE COMMENT '访问的URL除去host部分的路径索引',
-  INDEX `title`(`title`) USING BTREE COMMENT '模块名称索引',
   INDEX `create_time`(`create_time`) USING BTREE COMMENT '访问时间索引',
   INDEX `username`(`username`) USING BTREE COMMENT '用户名索引'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8 COLLATE = utf8_bin COMMENT = 'API操作日志' ROW_FORMAT = Dynamic;
@@ -297,6 +366,27 @@ CREATE TABLE `cloud-log`.`sms_send_record` (
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'SMS发送记录' ROW_FORMAT = Dynamic;
+
+-- RocketMQ消息消费记录表 依据 创建时间 分表
+DROP TABLE IF EXISTS `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标识',
+ `offset_msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息偏移id',
+ `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息发送状态(1:发送成功；2:刷新磁盘超时；3:刷新从属超时；4:从属服务器不可用)',
+ `topic` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息主题',
+ `tag` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标签',
+ `broker_name` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ分片名',
+ `queue_id` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
+ `queue_offset` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
+ `send_time` timestamp(0) NOT NULL COMMENT '消息发送时间',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识'
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'RocketMQ消费记录' ROW_FORMAT = Dynamic;
 
 -- 日志表依据 创建时间 分表
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202201` LIKE `cloud-log`.`log_login`;
@@ -338,10 +428,24 @@ CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202210` LIKE `cloud-log`
 CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202211` LIKE `cloud-log`.`sms_send_record`;
 CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202212` LIKE `cloud-log`.`sms_send_record`;
 
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202201` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202202` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202203` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202204` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202205` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202206` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202207` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202208` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202209` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202210` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202211` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202212` LIKE `cloud-log`.`rocketmq_consumer_record`;
+
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-log`.`log_login`;
 DROP TABLE IF EXISTS `cloud-log`.`log_op`;
 DROP TABLE IF EXISTS `cloud-log`.`sms_send_record`;
+DROP TABLE IF EXISTS `cloud-log`.`rocketmq_consumer_record`;
 
 /**
  * ******************************************************* 配置库 *******************************************************
@@ -369,15 +473,942 @@ CREATE TABLE `cloud-config`.`disk_dictionary` (
 
 -- 添加系统默认配置
 INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22040719590316493327434200038792976', 'mailConfig', '邮件发送配置项', '{
-	"host": "mail.doudoudrive.com",
-	"port": 465,
-	"from": "doudou@doudoudrive.com",
-	"user": "doudou@doudoudrive.com",
-	"pass": "prnbpweakdnogbde"
+	"host": "",
+	"port": 0,
+	"from": "",
+	"user": "",
+	"pass": "",
+	"sslEnable": true,
+	"socketFactoryClass": "javax.net.ssl.SSLSocketFactory",
+	"timeout": 0,
+	"auth": true
 }');
 INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22042716251116510479117800011980439', 'throughput', '短信、邮件最大吞吐量配置', '{
-	"mail": 100,
-	"sms": 10
+	"mail": 10,
+	"sms": 1
 }');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22042919000816512300085730006624275', 'smsConfig', '短信发送配置项', '{
+	"appId": "",
+	"appKey": "",
+	"domain": "",
+	"signName": "",
+	"appType": ""
+}');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22051217075416523464741090092286650', 'defaultAvatar', '默认的用户头像', 'https://static-page-1255518771.cos.ap-shanghai.myqcloud.com/common/image/literaryMale.jpg');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22052416064916533796092510022306824', 'cipher', '全局对称加密密钥', 'VP-EcBOmZHGkTT0vZfeSHg==');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22052513162916534557896760046097518', 'qiNiuConfig', '七牛云对象存储相关配置', '{
+	"callback": "",
+	"qiNiuCallback": "",
+	"path": "",
+	"accessKey": "",
+	"secretKey": "",
+	"bucket": "",
+	"expires": 0,
+	"size": 0,
+	"fileType": 0,
+	"domain": {
+		"picture": "",
+		"download": "",
+		"stream": ""
+	},
+	"region": {
+		"region": "",
+		"srcUpHosts": "",
+		"accUpHost": "",
+		"iovipHost": "",
+		"rsHost": "",
+		"rsfHost": "",
+		"apiHost": ""
+	}
+}');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22052611330416535359848070010794434', 'fileReviewConfig', '文件内容审核相关配置', '{
+	"videoTypes": [""],
+	"imageTypes": [""],
+	"requestTimeout": 2
+}');
+INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22061923530816556539886100086143191', 'threadPoolConfig', '内部线程池相关配置', '[
+	{
+		"corePoolSize": 5,
+		"maxPoolSize": 5,
+		"queueCapacity": 1,
+		"allowCoreThreadTimeOut": true,
+		"keepAliveTime": 60,
+		"name": ""
+	}
+]');
+/**
+ * ******************************************************* 文件库 *******************************************************
+ */
+
+-- 文件库
+CREATE DATABASE IF NOT EXISTS `cloud-file` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+USE `cloud-file`;
+
+-- OSS文件对象存储表 依据 etag 分表
+DROP TABLE IF EXISTS `cloud-file`.`oss_file`;
+CREATE TABLE `cloud-file`.`oss_file`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `etag` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
+ `size` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '文件大小(字节)',
+ `mime_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的mime类型',
+ `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '文件当前状态(0:正常；1:待审核；2:审核失败；3:源文件已删除)',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ UNIQUE INDEX `uk_etag`(`etag`) USING BTREE,
+ INDEX `idx_mime_type`(`mime_type`) USING BTREE,
+ INDEX `idx_status`(`status`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'OSS文件对象存储' ROW_FORMAT = Dynamic;
+
+-- 用户文件表 依据 user_id 分表
+DROP TABLE IF EXISTS `cloud-file`.`disk_file`;
+CREATE TABLE `cloud-file`.`disk_file`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+ `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '新建文档' COMMENT '文件名',
+ `file_parent_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '文件父级标识',
+ `file_size` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '文件大小(字节)',
+ `file_mime_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的mime类型',
+ `file_etag` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
+ `is_file_folder` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否为文件夹(0:false；1:true)',
+ `is_forbidden` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前文件是否被禁止访问(0:false；1:true)',
+ `is_collect` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前文件是否被收藏(0:false；1:true)',
+ `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '文件当前状态(0:已删除；1:正常)',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ INDEX `idx_user_id`(`user_id`) USING BTREE,
+ INDEX `idx_file_name`(`file_name`) USING BTREE,
+ INDEX `idx_file_parent_id`(`file_parent_id`) USING BTREE,
+ INDEX `idx_file_etag`(`file_etag`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户文件模块' ROW_FORMAT = Dynamic;
+
+-- 文件操作记录模块
+DROP TABLE IF EXISTS `cloud-file`.`file_record`;
+CREATE TABLE `cloud-file`.`file_record`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+ `file_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '文件标识',
+ `file_etag` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
+ `action` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作(0:文件状态；1:文件内容状态)',
+ `action_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作类型(action为0:{0:被删除}；action为1:{0:待审核；1:待删除})',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ INDEX `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引'
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件操作记录' ROW_FORMAT = Dynamic;
+
+-- OSS文件对象存储表 根据 etag 平均分300个表
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_01` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_02` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_03` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_04` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_05` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_06` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_07` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_08` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_09` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_10` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_11` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_12` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_13` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_14` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_15` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_16` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_17` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_18` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_19` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_20` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_21` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_22` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_23` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_24` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_25` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_26` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_27` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_28` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_29` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_30` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_31` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_32` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_33` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_34` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_35` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_36` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_37` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_38` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_39` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_40` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_41` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_42` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_43` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_44` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_45` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_46` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_47` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_48` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_49` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_50` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_51` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_52` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_53` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_54` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_55` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_56` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_57` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_58` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_59` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_60` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_61` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_62` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_63` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_64` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_65` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_66` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_67` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_68` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_69` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_70` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_71` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_72` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_73` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_74` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_75` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_76` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_77` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_78` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_79` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_80` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_81` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_82` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_83` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_84` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_85` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_86` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_87` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_88` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_89` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_90` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_91` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_92` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_93` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_94` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_95` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_96` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_97` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_98` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_99` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_100` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_101` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_102` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_103` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_104` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_105` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_106` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_107` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_108` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_109` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_110` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_111` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_112` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_113` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_114` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_115` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_116` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_117` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_118` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_119` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_120` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_121` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_122` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_123` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_124` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_125` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_126` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_127` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_128` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_129` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_130` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_131` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_132` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_133` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_134` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_135` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_136` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_137` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_138` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_139` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_140` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_141` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_142` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_143` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_144` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_145` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_146` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_147` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_148` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_149` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_150` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_151` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_152` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_153` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_154` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_155` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_156` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_157` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_158` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_159` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_160` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_161` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_162` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_163` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_164` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_165` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_166` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_167` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_168` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_169` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_170` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_171` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_172` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_173` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_174` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_175` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_176` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_177` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_178` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_179` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_180` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_181` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_182` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_183` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_184` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_185` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_186` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_187` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_188` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_189` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_190` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_191` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_192` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_193` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_194` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_195` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_196` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_197` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_198` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_199` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_200` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_201` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_202` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_203` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_204` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_205` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_206` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_207` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_208` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_209` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_210` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_211` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_212` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_213` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_214` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_215` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_216` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_217` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_218` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_219` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_220` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_221` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_222` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_223` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_224` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_225` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_226` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_227` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_228` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_229` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_230` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_231` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_232` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_233` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_234` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_235` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_236` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_237` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_238` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_239` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_240` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_241` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_242` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_243` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_244` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_245` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_246` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_247` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_248` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_249` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_250` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_251` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_252` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_253` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_254` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_255` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_256` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_257` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_258` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_259` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_260` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_261` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_262` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_263` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_264` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_265` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_266` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_267` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_268` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_269` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_270` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_271` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_272` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_273` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_274` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_275` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_276` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_277` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_278` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_279` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_280` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_281` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_282` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_283` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_284` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_285` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_286` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_287` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_288` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_289` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_290` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_291` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_292` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_293` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_294` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_295` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_296` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_297` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_298` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_299` LIKE `cloud-file`.`oss_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_300` LIKE `cloud-file`.`oss_file`;
+
+-- 用户文件表 根据 user_id 平均分500个表
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_01` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_02` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_03` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_04` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_05` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_06` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_07` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_08` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_09` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_10` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_11` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_12` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_13` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_14` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_15` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_16` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_17` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_18` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_19` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_20` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_21` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_22` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_23` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_24` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_25` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_26` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_27` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_28` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_29` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_30` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_31` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_32` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_33` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_34` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_35` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_36` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_37` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_38` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_39` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_40` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_41` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_42` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_43` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_44` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_45` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_46` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_47` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_48` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_49` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_50` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_51` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_52` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_53` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_54` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_55` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_56` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_57` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_58` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_59` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_60` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_61` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_62` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_63` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_64` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_65` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_66` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_67` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_68` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_69` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_70` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_71` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_72` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_73` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_74` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_75` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_76` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_77` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_78` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_79` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_80` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_81` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_82` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_83` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_84` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_85` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_86` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_87` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_88` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_89` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_90` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_91` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_92` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_93` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_94` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_95` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_96` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_97` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_98` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_99` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_100` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_101` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_102` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_103` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_104` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_105` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_106` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_107` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_108` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_109` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_110` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_111` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_112` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_113` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_114` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_115` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_116` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_117` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_118` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_119` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_120` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_121` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_122` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_123` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_124` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_125` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_126` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_127` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_128` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_129` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_130` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_131` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_132` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_133` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_134` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_135` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_136` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_137` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_138` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_139` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_140` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_141` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_142` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_143` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_144` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_145` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_146` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_147` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_148` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_149` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_150` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_151` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_152` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_153` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_154` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_155` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_156` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_157` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_158` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_159` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_160` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_161` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_162` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_163` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_164` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_165` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_166` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_167` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_168` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_169` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_170` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_171` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_172` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_173` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_174` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_175` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_176` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_177` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_178` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_179` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_180` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_181` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_182` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_183` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_184` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_185` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_186` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_187` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_188` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_189` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_190` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_191` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_192` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_193` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_194` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_195` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_196` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_197` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_198` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_199` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_200` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_201` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_202` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_203` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_204` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_205` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_206` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_207` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_208` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_209` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_210` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_211` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_212` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_213` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_214` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_215` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_216` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_217` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_218` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_219` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_220` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_221` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_222` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_223` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_224` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_225` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_226` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_227` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_228` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_229` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_230` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_231` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_232` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_233` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_234` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_235` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_236` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_237` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_238` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_239` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_240` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_241` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_242` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_243` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_244` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_245` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_246` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_247` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_248` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_249` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_250` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_251` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_252` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_253` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_254` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_255` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_256` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_257` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_258` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_259` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_260` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_261` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_262` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_263` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_264` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_265` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_266` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_267` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_268` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_269` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_270` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_271` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_272` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_273` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_274` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_275` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_276` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_277` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_278` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_279` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_280` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_281` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_282` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_283` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_284` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_285` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_286` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_287` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_288` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_289` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_290` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_291` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_292` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_293` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_294` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_295` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_296` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_297` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_298` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_299` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_300` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_301` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_302` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_303` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_304` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_305` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_306` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_307` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_308` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_309` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_310` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_311` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_312` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_313` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_314` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_315` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_316` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_317` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_318` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_319` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_320` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_321` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_322` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_323` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_324` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_325` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_326` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_327` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_328` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_329` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_330` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_331` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_332` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_333` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_334` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_335` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_336` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_337` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_338` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_339` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_340` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_341` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_342` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_343` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_344` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_345` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_346` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_347` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_348` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_349` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_350` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_351` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_352` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_353` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_354` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_355` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_356` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_357` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_358` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_359` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_360` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_361` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_362` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_363` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_364` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_365` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_366` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_367` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_368` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_369` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_370` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_371` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_372` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_373` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_374` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_375` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_376` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_377` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_378` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_379` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_380` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_381` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_382` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_383` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_384` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_385` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_386` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_387` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_388` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_389` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_390` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_391` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_392` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_393` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_394` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_395` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_396` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_397` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_398` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_399` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_400` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_401` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_402` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_403` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_404` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_405` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_406` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_407` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_408` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_409` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_410` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_411` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_412` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_413` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_414` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_415` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_416` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_417` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_418` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_419` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_420` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_421` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_422` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_423` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_424` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_425` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_426` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_427` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_428` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_429` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_430` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_431` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_432` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_433` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_434` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_435` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_436` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_437` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_438` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_439` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_440` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_441` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_442` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_443` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_444` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_445` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_446` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_447` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_448` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_449` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_450` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_451` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_452` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_453` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_454` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_455` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_456` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_457` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_458` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_459` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_460` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_461` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_462` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_463` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_464` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_465` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_466` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_467` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_468` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_469` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_470` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_471` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_472` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_473` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_474` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_475` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_476` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_477` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_478` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_479` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_480` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_481` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_482` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_483` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_484` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_485` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_486` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_487` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_488` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_489` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_490` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_491` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_492` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_493` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_494` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_495` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_496` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_497` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_498` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_499` LIKE `cloud-file`.`disk_file`;
+CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_500` LIKE `cloud-file`.`disk_file`;
 
 SET NAMES utf8mb4;
