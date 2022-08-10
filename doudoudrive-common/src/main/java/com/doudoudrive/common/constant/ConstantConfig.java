@@ -113,9 +113,19 @@ public interface ConstantConfig {
         String HOST = "host";
 
         /**
+         * utf-8编码
+         */
+        String UTF8 = "utf-8";
+
+        /**
          * JSON格式类型
          */
         String CONTENT_TYPE_JSON = "application/json";
+
+        /**
+         * JSON格式类型(utf-8)
+         */
+        String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=UTF-8";
 
         /**
          * format类型
@@ -297,6 +307,7 @@ public interface ConstantConfig {
         String TILDE = "~";
         String ENGLISH_COLON = ":";
         String COMMENT_SIGN = "#";
+        String HYPHEN = "-";
     }
 
     /**

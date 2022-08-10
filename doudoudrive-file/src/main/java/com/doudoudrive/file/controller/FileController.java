@@ -164,11 +164,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "文件夹", businessType = "新建")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
-    @PostMapping(value = "/create-folder", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/create-folder", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<DiskFileModel> createFolder(@RequestBody @Valid CreateFolderRequestDTO requestDTO,
                                               HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -196,10 +196,10 @@ public class FileController {
      */
     @SneakyThrows
     @OpLog(title = "文件", businessType = "新建", isSaveRequestData = false)
-    @PostMapping(value = "/create-file", produces = "application/x-www-form-urlencoded")
+    @PostMapping(value = "/create-file", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_FORM)
     public Result<DiskFileModel> createFile(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 获取原始签名字符串，以 "QBox "作为起始字符
         String originAuthorization = request.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
@@ -288,11 +288,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "获取上传Token", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
-    @PostMapping(value = "/token", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/token", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<FileUploadTokenResponseDTO> getUploadToken(@RequestBody @Valid FileUploadTokenRequestDTO tokenRequest,
                                                              HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 回调地址不为空时，校验回调Url的正确性
         if (StringUtils.isNotBlank(tokenRequest.getCallbackUrl()) && !ReUtil.isMatch(RegexConstant.URL_HTTP, tokenRequest.getCallbackUrl())) {
@@ -352,11 +352,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "重命名", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPDATE)
-    @PostMapping(value = "/rename", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/rename", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<DiskFileModel> renameFile(@RequestBody @Valid RenameFileRequestDTO requestDTO,
                                             HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -390,11 +390,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "搜索", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SELECT)
-    @PostMapping(value = "/search", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<FileSearchResponseDTO> search(@RequestBody @Valid FileSearchRequestDTO requestDTO,
                                                 HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -417,10 +417,10 @@ public class FileController {
      */
     @SneakyThrows
     @OpLog(title = "文件鉴权", businessType = "回源鉴权")
-    @RequestMapping(value = "/cdn-auth", produces = "application/json;charset=UTF-8", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/cdn-auth", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8, method = RequestMethod.HEAD)
     public void fileCdnAuth(String sign, String path, String token, HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 签名字符串不存在
         if (StringUtils.isBlank(sign) || StringUtils.isBlank(path)) {

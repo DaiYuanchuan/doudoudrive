@@ -1,6 +1,7 @@
 package com.doudoudrive.search.controller;
 
 import com.doudoudrive.common.annotation.OpLog;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
@@ -53,11 +54,11 @@ public class DiskFileSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "保存用户文件信息", businessType = "ES用户文件信息查询服务")
-    @PostMapping(value = "/search/file/save", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> saveElasticsearchDiskFile(@RequestBody @Valid SaveElasticsearchDiskFileRequestDTO requestDTO,
                                                     HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // es中保存用户文件信息
         diskFileSearchManager.saveDiskFile(diskFileModelConvert.saveElasticsearchDiskFileRequestConvertDiskFile(requestDTO));
@@ -67,11 +68,11 @@ public class DiskFileSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "删除用户文件信息", businessType = "ES用户文件信息查询服务")
-    @PostMapping(value = "/search/file/delete", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> deleteElasticsearchDiskFile(@RequestBody @Valid DeleteElasticsearchDiskFileRequestDTO requestDTO,
                                                       HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         // 删除es中的数据
         diskFileSearchManager.deleteDiskFile(requestDTO.getBusinessId());
         return Result.ok();
@@ -80,11 +81,11 @@ public class DiskFileSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "更新用户文件信息", businessType = "ES用户文件信息查询服务")
-    @PostMapping(value = "/search/file/update", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file/update", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> updateElasticsearchDiskFile(@RequestBody @Valid UpdateElasticsearchDiskFileRequestDTO requestDTO,
                                                       HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         // 需要更新的用户信息数据模型
         DiskFileDTO diskFile = diskFileModelConvert.updateElasticsearchDiskFileRequestConvertDiskFile(requestDTO);
         // 构建es更新请求
@@ -95,11 +96,11 @@ public class DiskFileSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "文件信息查询", businessType = "ES用户文件信息查询服务")
-    @PostMapping(value = "/search/file", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<List<QueryElasticsearchDiskFileResponseDTO>> fileInfoSearch(@RequestBody @Valid QueryElasticsearchDiskFileRequestDTO requestDTO,
                                                                               HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 文件信息搜索请求，获取搜索结果
         List<SearchHit<DiskFileDTO>> searchHit = diskFileSearchManager.fileInfoSearch(requestDTO).getSearchHits();

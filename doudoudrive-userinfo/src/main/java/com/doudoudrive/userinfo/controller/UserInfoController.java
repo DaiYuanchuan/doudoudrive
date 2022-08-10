@@ -6,6 +6,7 @@ import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.util.EncryptionUtil;
 import com.doudoudrive.common.annotation.OpLog;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.RegexConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
@@ -75,11 +76,11 @@ public class UserInfoController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "用户注册", businessType = "用户信息配置中心")
-    @PostMapping(value = "/userinfo/register", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/userinfo/register", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> register(@RequestBody @Valid SaveUserInfoRequestDTO requestDTO,
                                    HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 手机号不为空
         if (StringUtils.isNotBlank(requestDTO.getUserTel())) {
@@ -121,11 +122,11 @@ public class UserInfoController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "重置用户密码", businessType = "用户信息配置中心")
-    @PostMapping(value = "/userinfo/reset-password", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/userinfo/reset-password", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> resetPassword(@RequestBody @Valid ResetPasswordRequestDTO requestDTO,
                                         HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 判断用户账号类型，同时校验对应的验证码
         Result<String> verifyCode = this.verifyCode(requestDTO.getUsername(), requestDTO.getCode());
@@ -148,11 +149,11 @@ public class UserInfoController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "修改用户信息", businessType = "用户信息配置中心")
-    @PostMapping(value = "/userinfo/update", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/userinfo/update", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> update(@RequestBody @Valid UpdateUserInfoRequestDTO requestDTO,
                                  HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         UserConfidentialInfo userinfo = loginManager.getUserConfidentialToSessionException();
@@ -230,10 +231,10 @@ public class UserInfoController {
     }
 
     @SneakyThrows
-    @GetMapping(value = "/userinfo", produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/userinfo", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<UserLoginResponseDTO> getUserinfoToSession(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         // 从session中获取当前登录的用户信息
         return Result.ok(loginManager.getUserInfoToSession());
     }

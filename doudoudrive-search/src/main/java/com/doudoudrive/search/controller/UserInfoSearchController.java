@@ -2,6 +2,7 @@ package com.doudoudrive.search.controller;
 
 import cn.hutool.core.util.PhoneUtil;
 import com.doudoudrive.common.annotation.OpLog;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.request.DeleteElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchUserInfoRequestDTO;
@@ -52,11 +53,11 @@ public class UserInfoSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "保存用户信息", businessType = "ES用户信息查询服务")
-    @PostMapping(value = "/save", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<?> saveElasticsearchUserInfo(@RequestBody @Valid SaveElasticsearchUserInfoRequestDTO requestDTO,
                                                HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         // 手机号不为空，校验手机号格式是否正确
         if (StringUtils.isNotBlank(requestDTO.getUserTel()) && !PhoneUtil.isMobile(requestDTO.getUserTel())) {
             return Result.build(StatusCodeEnum.PHONE_NUMBER_FORMAT_ERROR);
@@ -69,11 +70,11 @@ public class UserInfoSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "删除用户信息", businessType = "ES用户信息查询服务")
-    @PostMapping(value = "/delete", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<?> deleteElasticsearchUserInfo(@RequestBody @Valid DeleteElasticsearchUserInfoRequestDTO requestDTO,
                                                  HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         // 删除es中的数据
         userInfoSearchManager.deleteUserInfo(requestDTO.getBusinessId());
         return Result.ok();
@@ -82,11 +83,11 @@ public class UserInfoSearchController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "更新用户信息", businessType = "ES用户信息查询服务")
-    @PostMapping(value = "/update", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/update", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<?> updateElasticsearchUserInfo(@RequestBody @Valid UpdateElasticsearchUserInfoRequestDTO requestDTO,
                                                  HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 需要更新的用户信息数据模型
         UserInfoDTO updatedUserInfo = userInfoModelConvert.updateElasticsearchUserInfoRequestConvert(requestDTO);
@@ -97,10 +98,10 @@ public class UserInfoSearchController {
 
     @SneakyThrows
     @OpLog(title = "登录用户名查询", businessType = "ES用户信息查询服务")
-    @GetMapping(value = "/username-search", produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/username-search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<UsernameSearchResponseDTO> usernameSearch(String username, HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 参数校验
         if (StringUtils.isBlank(username)) {
@@ -117,11 +118,11 @@ public class UserInfoSearchController {
 
     @SneakyThrows
     @OpLog(title = "用户关键信息查询", businessType = "ES用户信息查询服务")
-    @GetMapping(value = "/necessary-search", produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/necessary-search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> userInfoKeyExistsSearch(String username, String userEmail, String userTel,
                                                   HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 参数校验
         if (StringUtils.isAllBlank(username, userEmail, userTel)) {

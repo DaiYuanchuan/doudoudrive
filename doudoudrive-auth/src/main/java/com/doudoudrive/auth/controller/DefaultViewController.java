@@ -1,6 +1,7 @@
 package com.doudoudrive.auth.controller;
 
 import com.doudoudrive.auth.manager.LoginManager;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import lombok.SneakyThrows;
@@ -44,10 +45,10 @@ public class DefaultViewController extends WebMvcConfigurationSupport {
      * @return 返回一个用户登录模块响应数据模型
      */
     @SneakyThrows
-    @RequestMapping(value = "/login", produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/login", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<UserLoginResponseDTO> jumpLogin(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 获取当前登录的用户信息
         UserLoginResponseDTO userLoginInfo = loginManager.getUserInfoToSession();
@@ -64,6 +65,4 @@ public class DefaultViewController extends WebMvcConfigurationSupport {
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
         super.addViewControllers(registry);
     }
-
-
 }

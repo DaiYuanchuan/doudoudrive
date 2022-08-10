@@ -24,6 +24,7 @@ import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.ip.IpUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
@@ -75,11 +76,11 @@ public class LoginController {
 
     @SneakyThrows
     @OpLog(title = "密码登录", businessType = "用户登录")
-    @PostMapping(value = "/login", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/login", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<?> login(@RequestBody @Valid UserLoginRequestDTO requestDTO,
                            HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         if (SecurityUtils.getSubject().isAuthenticated()) {
             log.info("重复调用登陆模块");
@@ -153,10 +154,10 @@ public class LoginController {
     }
 
     @SneakyThrows
-    @GetMapping(value = "/logout", produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/logout", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         SecurityUtils.getSubject().logout();
         return Result.ok();
     }
@@ -222,8 +223,8 @@ public class LoginController {
     private void setLocation(LogLogin logLogin, Future<Region> future) {
         try {
             Region region = future.get();
-            logLogin.setLocation(region.getCountry() + "-"
-                    + region.getProvince() + "-" + region.getCity() + " "
+            logLogin.setLocation(region.getCountry() + ConstantConfig.SpecialSymbols.HYPHEN
+                    + region.getProvince() + ConstantConfig.SpecialSymbols.HYPHEN + region.getCity() + StringUtils.SPACE
                     + region.getIsp());
         } catch (Exception e1) {
             logLogin.setSuccess(false);

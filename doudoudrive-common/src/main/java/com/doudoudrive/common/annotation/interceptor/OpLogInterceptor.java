@@ -20,6 +20,7 @@ import com.doudoudrive.common.util.ip.IpUtils;
 import com.doudoudrive.common.util.lang.SpiderUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.*;
@@ -294,8 +295,8 @@ public class OpLogInterceptor implements InitializingBean {
         if (future != null) {
             try {
                 Region region = future.get();
-                opLogInfo.setLocation(region.getCountry() + "-"
-                        + region.getProvince() + "-" + region.getCity() + " "
+                opLogInfo.setLocation(region.getCountry() + ConstantConfig.SpecialSymbols.HYPHEN
+                        + region.getProvince() + ConstantConfig.SpecialSymbols.HYPHEN + region.getCity() + StringUtils.SPACE
                         + region.getIsp());
             } catch (Exception e1) {
                 opLogInfo.setErrorCause(e1.getCause().toString());
