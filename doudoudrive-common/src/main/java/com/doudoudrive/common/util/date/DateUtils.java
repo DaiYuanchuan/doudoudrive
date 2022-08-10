@@ -1,6 +1,7 @@
 package com.doudoudrive.common.util.date;
 
 import cn.hutool.core.date.*;
+import com.doudoudrive.common.constant.NumberConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,9 +9,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>时间工具类</p>
@@ -368,4 +374,39 @@ public class DateUtils {
         return interval2[1].before(interval1[0]) && interval2[0].after(interval1[1]);
     }
 
+    /**
+     * 获取一段时间内的天数
+     *
+     * @param start   开始时间
+     * @param end     结束时间
+     * @param pattern 时间格式
+     * @return 时间差
+     */
+    public static List<String> getDaysByPeriodTime(LocalDateTime start, LocalDateTime end, String pattern) {
+        return Stream.iterate(start, localDate -> localDate.plusDays(NumberConstant.INTEGER_ONE))
+                // 截断无限流，长度为起始时间和结束时间的差+1个
+                .limit(ChronoUnit.DAYS.between(start, end) + NumberConstant.INTEGER_ONE)
+                // 转换成字符串
+                .map(time -> time.format(DateTimeFormatter.ofPattern(pattern)))
+                // 把流收集为List
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取一段时间内的小时
+     *
+     * @param startDateTime 开始时间
+     * @param endDateTime   结束时间
+     * @param pattern       时间格式
+     * @return 时间差
+     */
+    public static List<String> getHoursByPeriodTime(LocalDateTime startDateTime, LocalDateTime endDateTime, String pattern) {
+        return Stream.iterate(startDateTime, localDate -> localDate.plusHours(NumberConstant.INTEGER_ONE))
+                // 截断无限流，长度为起始时间和结束时间的差+1个
+                .limit(ChronoUnit.HOURS.between(startDateTime, endDateTime) + NumberConstant.INTEGER_ONE)
+                // 转换成字符串
+                .map(time -> time.format(DateTimeFormatter.ofPattern(pattern)))
+                // 把流收集为List
+                .collect(Collectors.toList());
+    }
 }

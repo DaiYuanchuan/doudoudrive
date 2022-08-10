@@ -56,6 +56,16 @@ public class CreateFileCallbackRequestDTO implements Serializable {
     private String fileEtag;
 
     /**
+     * 文件预览地址
+     */
+    private String preview;
+
+    /**
+     * 文件下载地址
+     */
+    private String download;
+
+    /**
      * 时间戳，记录文件上传时间
      */
     private Long timestamp;

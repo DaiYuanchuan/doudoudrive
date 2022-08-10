@@ -3,6 +3,7 @@ package com.doudoudrive.commonservice.service.impl;
 import cn.hutool.core.date.DatePattern;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.ParserConfig;
 import com.doudoudrive.common.cache.RedisMessageSubscriber;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
@@ -287,6 +288,23 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
         }
 
         return JSON.parseObject(dictionary, clazz);
+    }
+
+    /**
+     * 获取当前jvm缓存中的字典数据，同时转换为指定的List类型
+     *
+     * @param dictionaryName 需要获取的字典名称
+     * @param clazz          需要映射到的class类
+     * @param <T>            需要映射到的类型
+     * @return 从缓存中获取到的字典数据的内容
+     */
+    @Override
+    public <T> List<T> getDictionaryArray(String dictionaryName, Class<T> clazz) {
+        String dictionary = SYS_DICTIONARY_CACHE.get(dictionaryName);
+        if (StringUtils.isBlank(dictionary)) {
+            return new ArrayList<>(NumberConstant.INTEGER_ZERO);
+        }
+        return JSON.parseArray(dictionary, clazz, ParserConfig.global);
     }
 
     /**

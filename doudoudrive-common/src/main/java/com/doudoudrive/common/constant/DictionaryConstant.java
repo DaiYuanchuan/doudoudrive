@@ -43,4 +43,9 @@ public interface DictionaryConstant {
      */
     String FILE_REVIEW_CONFIG = "fileReviewConfig";
 
+    /**
+     * 内部线程池相关配置
+     */
+    String THREAD_POOL_CONFIG = "threadPoolConfig";
+
 }

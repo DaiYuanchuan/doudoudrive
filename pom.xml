@@ -11,7 +11,7 @@
     <!-- 1）主版本号：产品方向改变，或者大规模 API 不兼容，或者架构不兼容升级。 -->
     <!-- 2）次版本号：保持相对兼容性，增加主要功能特性，影响范围极小的 API 不兼容修改。 -->
     <!-- 3）修订号：保持完全兼容性，修复 BUG、新增次要功能特性等。-->
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 
     <!-- 子项目 -->
     <modules>
@@ -71,8 +71,7 @@
         <commons-net.version>3.8.0</commons-net.version>
         <httpmime.version>4.5.13</httpmime.version>
         <!-- shiro权限框架版本号 -->
-        <shiro.version>1.9.0</shiro.version>
-        <shiro-redis.version>3.3.1</shiro-redis.version>
+        <shiro.version>1.9.1</shiro.version>
         <!-- lombok 版本号 -->
         <lombok.version>1.18.24</lombok.version>
         <!-- mapstruct 版本号 -->

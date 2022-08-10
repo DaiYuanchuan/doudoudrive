@@ -20,6 +20,16 @@ spring:
     # 网关配置
     gateway:
       routes:
+        # 测试路由1 - www.baidu.com
+        - id: bd_route
+          uri: https://www.baidu.com
+          predicates:
+            - Query=url,duniang
+        # 测试路由2 - im.qq.com
+        - id: qq_route
+          uri: https://im.qq.com
+          predicates:
+            - Query=url,qq
         # 用户服务路由
         - id: user_route
           uri: lb://userInfoServer
@@ -41,14 +51,14 @@ spring:
         # 当前应用与Sentinel控制台交互的端口，应用本地会起一个该端口占用的HttpServer，通过此端口收发数据
         port: 8719
         # Sentinel控制台地址
-        dashboard: 192.168.31.192:8080
+        dashboard: 192.168.31.200:1080
       datasource:
         node1:
           nacos:
             # nacos服务器地址
             server-addr: ${spring.cloud.nacos.discovery.server-addr}
-            dataId: ${spring.application.name}-SENTINEL.json
-            groupId: DEFAULT_GROUP
+            dataId: ${spring.application.name}-sentinel.json
+            groupId: DEV_GROUP
             data-type: json
             rule-type: flow
             # 命名空间

@@ -1,5 +1,5 @@
 server:
-  port: 8300
+  port: 7400
   servlet:
     context-path: /
   undertow:

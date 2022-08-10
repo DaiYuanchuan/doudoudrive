@@ -3,8 +3,10 @@ spring:
     nacos:
       # 服务注册与发现配置
       discovery:
-        namespace: b14fae0c-ee4f-4394-a6d7-02e28b44d7b1
-        server-addr: 110.42.182.227:8801
+        namespace: ${ENV_NAMESPACE:c0c51892-3ce5-482c-bed6-9d77e553516a}
+        server-addr: https://nacos.novelweb.cn
+        ip: ${ENV_IP:}
+        port: ${ENV_PORT:-1}
       config:
         # 对应的是nacos config 中的 Data ID
         prefix: doudou-server
@@ -22,7 +24,7 @@ spring:
 # RocketMQ 相关配置
 rocketmq:
   # 指定 nameServer
-  name-server: 110.42.182.227:9876
+  name-server: 192.168.31.200:9876;192.168.31.200:9877;192.168.31.200:9878
   # Producer 生产者
   producer:
     # 指定发送者组名

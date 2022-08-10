@@ -46,7 +46,7 @@ public class CustomerWebSessionManager extends DefaultWebSessionManager {
 
         HttpServletRequest httpRequest = WebUtils.toHttp(request);
         // 从请求头中获取指定的鉴权字段
-        String authorization = httpRequest.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
+        String authorization = httpRequest.getHeader(ConstantConfig.HttpRequest.TOKEN);
         if (StringUtils.isNotBlank(authorization)) {
             request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE, ConstantConfig.HttpRequest.HEADER);
             request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID, authorization);

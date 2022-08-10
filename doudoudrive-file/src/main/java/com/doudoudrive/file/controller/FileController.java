@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -162,6 +163,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "文件夹", businessType = "新建")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
     @PostMapping(value = "/create-folder", produces = "application/json;charset=UTF-8")
     public Result<DiskFileModel> createFolder(@RequestBody @Valid CreateFolderRequestDTO requestDTO,
                                               HttpServletRequest request, HttpServletResponse response) {
@@ -203,11 +205,6 @@ public class FileController {
         String originAuthorization = request.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
         // 从流中获取到body原始请求数据
         String requestParam = IoUtil.read(request.getInputStream()).toString();
-        if (log.isDebugEnabled()) {
-            // 打印请求参数
-            log.debug("Authorization : {}", originAuthorization);
-            log.debug("param : {}", requestParam);
-        }
 
         if (StringUtils.isBlank(originAuthorization) || StringUtils.isBlank(requestParam)) {
             return Result.build(StatusCodeEnum.FILE_AUTHENTICATION_FAILED);
@@ -269,22 +266,28 @@ public class FileController {
             return Result.build(StatusCodeEnum.SYSTEM_ERROR);
         }
 
+        // 获取文件访问Url
+        fileModel = fileManager.accessUrl(FileAuthModel.builder()
+                .userId(createFile.getUserId())
+                .build(), fileModel);
+
         // 文件创建成功后的发送MQ消息
         this.sendMessage(CreateFileConsumerRequestDTO.builder()
                 .fileId(fileId)
                 .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
+                .preview(fileModel.getPreview())
+                .download(fileModel.getDownload())
                 .fileInfo(createFile)
                 .build());
 
         // 构建文件鉴权模型，获取文件访问地址
-        return Result.ok(fileManager.accessUrl(FileAuthModel.builder()
-                .userId(createFile.getUserId())
-                .build(), fileModel));
+        return Result.ok(fileModel);
     }
 
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "获取上传Token", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
     @PostMapping(value = "/token", produces = "application/json;charset=UTF-8")
     public Result<FileUploadTokenResponseDTO> getUploadToken(@RequestBody @Valid FileUploadTokenRequestDTO tokenRequest,
                                                              HttpServletRequest request, HttpServletResponse response) {
@@ -348,6 +351,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "重命名", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPDATE)
     @PostMapping(value = "/rename", produces = "application/json;charset=UTF-8")
     public Result<DiskFileModel> renameFile(@RequestBody @Valid RenameFileRequestDTO requestDTO,
                                             HttpServletRequest request, HttpServletResponse response) {
@@ -385,6 +389,7 @@ public class FileController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "搜索", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SELECT)
     @PostMapping(value = "/search", produces = "application/json;charset=UTF-8")
     public Result<FileSearchResponseDTO> search(@RequestBody @Valid FileSearchRequestDTO requestDTO,
                                                 HttpServletRequest request, HttpServletResponse response) {
