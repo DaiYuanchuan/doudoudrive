@@ -1,9 +1,8 @@
 package com.doudoudrive.file.client;
 
-import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.UpdateElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.model.dto.request.*;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -27,7 +26,7 @@ public interface DiskFileSearchFeignClient {
      * @param requestDTO 保存es用户文件信息时的请求数据模型
      * @return 通用状态返回类
      */
-    @PostMapping(value = "/search/file/save", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<String> saveElasticsearchDiskFile(@RequestBody SaveElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
@@ -36,7 +35,7 @@ public interface DiskFileSearchFeignClient {
      * @param requestDTO 删除es用户文件信息时的请求数据模型
      * @return 通用状态返回类
      */
-    @PostMapping(value = "/search/file/delete", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<String> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
@@ -45,7 +44,7 @@ public interface DiskFileSearchFeignClient {
      * @param requestDTO 更新es用户文件信息时的请求数据模型
      * @return 通用状态返回类
      */
-    @PostMapping(value = "/search/file/update", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file/update", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<String> updateElasticsearchDiskFile(@RequestBody UpdateElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
@@ -54,7 +53,16 @@ public interface DiskFileSearchFeignClient {
      * @param requestDTO 搜索es用户文件信息时的请求数据模型
      * @return 搜索结果
      */
-    @PostMapping(value = "/search/file", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search/file", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<List<QueryElasticsearchDiskFileResponseDTO>> fileInfoSearch(@RequestBody QueryElasticsearchDiskFileRequestDTO requestDTO);
+
+    /**
+     * 根据文件id批量查询文件信息
+     *
+     * @param requestDTO 查询文件Id信息时的请求数据模型
+     * @return 查询结果
+     */
+    @PostMapping(value = "/search/file/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearch(@RequestBody QueryElasticsearchDiskFileIdRequestDTO requestDTO);
 
 }
