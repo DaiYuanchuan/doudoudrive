@@ -2,15 +2,15 @@ package com.doudoudrive.search.controller;
 
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.UpdateElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.request.*;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.search.manager.DiskFileSearchManager;
 import com.doudoudrive.search.model.convert.DiskFileModelConvert;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,5 +105,27 @@ public class DiskFileSearchController {
         // 文件信息搜索请求，获取搜索结果
         List<SearchHit<DiskFileDTO>> searchHit = diskFileSearchManager.fileInfoSearch(requestDTO).getSearchHits();
         return Result.ok(diskFileModelConvert.diskFileDTOConvertQueryDiskFileResponse(searchHit));
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "文件ID查询", businessType = "ES用户文件信息查询服务")
+    @PostMapping(value = "/search/file/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearch(@RequestBody @Valid QueryElasticsearchDiskFileIdRequestDTO requestDTO,
+                                                                        HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 文件ID批量搜索请求，获取搜索结果
+        List<SearchHit<DiskFileDTO>> searchHit = diskFileSearchManager.fileIdSearch(requestDTO.getBusinessId()).getSearchHits();
+
+        // 构建查询结果
+        List<DiskFileModel> content = Lists.newArrayListWithExpectedSize(searchHit.size());
+        for (SearchHit<DiskFileDTO> hit : searchHit) {
+            content.add(diskFileModelConvert.diskFileDTOConvertDiskFileModel(hit.getContent()));
+        }
+        return Result.ok(QueryElasticsearchDiskFileIdResponseDTO.builder()
+                .content(content)
+                .build());
     }
 }

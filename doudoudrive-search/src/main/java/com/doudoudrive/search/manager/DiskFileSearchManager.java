@@ -4,6 +4,8 @@ import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileReques
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import org.springframework.data.elasticsearch.core.SearchHits;
 
+import java.util.List;
+
 /**
  * <p>用户文件信息搜索服务的通用业务处理层接口</p>
  * <p>2022-05-22 14:14</p>
@@ -47,4 +49,12 @@ public interface DiskFileSearchManager {
      * @return 用户文件实体信息ES数据模型
      */
     SearchHits<DiskFileDTO> fileInfoSearch(QueryElasticsearchDiskFileRequestDTO requestDTO);
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param businessId 文件业务标识
+     * @return 用户文件实体信息ES数据模型
+     */
+    SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId);
 }

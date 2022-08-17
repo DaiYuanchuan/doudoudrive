@@ -14,6 +14,7 @@ import com.doudoudrive.search.manager.DiskFileSearchManager;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -180,6 +181,26 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
 
         // 构建分页语句
         queryBuilder.withPageable(PageRequest.of(NumberConstant.INTEGER_ZERO, requestDTO.getCount()));
+
+        // 执行搜素请求
+        return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
+    }
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param businessId 文件业务标识
+     * @return 用户文件实体信息ES数据模型
+     */
+    @Override
+    public SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId) {
+        // 查询信息构建
+        IdsQueryBuilder builder = QueryBuilders.idsQuery();
+        builder.addIds(businessId.toArray(String[]::new));
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
