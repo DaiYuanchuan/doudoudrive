@@ -3,6 +3,7 @@ package com.doudoudrive.search.manager;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 
 import java.util.List;
 
@@ -30,9 +31,10 @@ public interface DiskFileSearchManager {
      *     先删库，然后再删es里存的用户文件信息
      * </pre>
      *
-     * @param id 文件业务标识
+     * @param businessId 文件业务标识
+     * @return 删除的文件信息
      */
-    void deleteDiskFile(String id);
+    ByQueryResponse deleteDiskFile(List<String> businessId);
 
     /**
      * 根据文件业务标识去更新用户文件信息

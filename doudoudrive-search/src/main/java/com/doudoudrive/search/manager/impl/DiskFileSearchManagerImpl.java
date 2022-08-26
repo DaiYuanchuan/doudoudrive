@@ -26,6 +26,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.stereotype.Service;
@@ -83,11 +84,21 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
      *     先删库，然后再删es里存的用户文件信息
      * </pre>
      *
-     * @param id 文件业务标识
+     * @param businessId 文件业务标识
+     * @return 删除的文件信息
      */
     @Override
-    public void deleteDiskFile(String id) {
-        restTemplate.delete(id, DiskFileDTO.class);
+    public ByQueryResponse deleteDiskFile(List<String> businessId) {
+        // 查询信息构建
+        IdsQueryBuilder builder = QueryBuilders.idsQuery();
+        builder.addIds(businessId.toArray(String[]::new));
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
+
+        // 批量删除数据
+        return restTemplate.delete(queryBuilder.build(), DiskFileDTO.class);
     }
 
     /**

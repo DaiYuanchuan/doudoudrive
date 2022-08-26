@@ -4,6 +4,7 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.request.*;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.util.http.Result;
@@ -15,6 +16,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -69,13 +71,16 @@ public class DiskFileSearchController {
     @ResponseBody
     @OpLog(title = "删除用户文件信息", businessType = "ES用户文件信息查询服务")
     @PostMapping(value = "/search/file/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<String> deleteElasticsearchDiskFile(@RequestBody @Valid DeleteElasticsearchDiskFileRequestDTO requestDTO,
-                                                      HttpServletRequest request, HttpServletResponse response) {
+    public Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticsearchDiskFile(@RequestBody @Valid DeleteElasticsearchDiskFileRequestDTO requestDTO,
+                                                                                      HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         // 删除es中的数据
-        diskFileSearchManager.deleteDiskFile(requestDTO.getBusinessId());
-        return Result.ok();
+        ByQueryResponse deleteResponse = diskFileSearchManager.deleteDiskFile(requestDTO.getBusinessId());
+        return Result.ok(DeleteElasticsearchDiskFileResponseDTO.builder()
+                .deleted(deleteResponse.getDeleted())
+                .took(deleteResponse.getTook())
+                .build());
     }
 
     @SneakyThrows

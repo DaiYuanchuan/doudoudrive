@@ -73,9 +73,10 @@ public enum StatusCodeEnum {
     NOT_FOLDER(702, "关联对象非文件夹"),
     FILE_NAME_REPEAT(703, "此目录下已存在同名文件，请修改名称"),
     FILE_AUTHENTICATION_FAILED(704, "文件鉴权失败"),
-    SPACE_INSUFFICIENT(705, "存储空间不足"),
+    SPACE_INSUFFICIENT(705, "存储空间不足，购买扩容包享超大空间"),
     UNSUPPORTED_SORT(706, "不支持的排序"),
     INVALID_MARKER(707, "无效的marker"),
+    TASK_ALREADY_EXIST(708, "当前有正在执行中的任务，请稍后重试"),
 
     /**
      * 接口类:8xx

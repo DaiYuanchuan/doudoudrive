@@ -203,6 +203,11 @@ public interface ConstantConfig {
          * 创建文件服务
          */
         String CREATE_FILE = "CREATE_FILE";
+
+        /**
+         * 删除文件服务
+         */
+        String DELETE_FILE = "DELETE_FILE";
     }
 
     /**
@@ -686,6 +691,16 @@ public interface ConstantConfig {
              * 被删除
              */
             BE_DELETED("0"),
+
+            /**
+             * 文件复制
+             */
+            COPY("1"),
+
+            /**
+             * 文件删除
+             */
+            DELETE("2"),
 
             // Action为1时对应的动作类型
 

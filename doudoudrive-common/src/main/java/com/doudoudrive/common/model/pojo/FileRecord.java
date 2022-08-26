@@ -57,7 +57,7 @@ public class FileRecord implements Serializable {
     private String action;
 
     /**
-     * 动作类型(action为0:{0:被删除}；action为1:{0:待审核；1:待删除})
+     * 动作类型(action为0:{0:被删除；1:文件复制；2:文件删除}；action为1:{0:待审核；1:待删除})
      */
     private String actionType;
 
