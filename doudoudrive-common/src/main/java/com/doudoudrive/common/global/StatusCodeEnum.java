@@ -82,7 +82,12 @@ public enum StatusCodeEnum {
      * 接口类:8xx
      */
     INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常"),
-    INTERFACE_EXTERNAL_EXCEPTION(801, "系统外部接口调用异常");
+    INTERFACE_EXTERNAL_EXCEPTION(801, "系统外部接口调用异常"),
+
+    /**
+     * MQ队列类:9xx
+     */
+    ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST(900, "消费记录已存在");
 
     public final Integer statusCode;
     public final String message;

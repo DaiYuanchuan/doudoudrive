@@ -16,6 +16,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -132,5 +133,20 @@ public class DiskFileSearchController {
         return Result.ok(QueryElasticsearchDiskFileIdResponseDTO.builder()
                 .content(content)
                 .build());
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "文件父级ID查询", businessType = "ES用户文件信息查询服务")
+    @PostMapping(value = "/search/file/parent-id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<List<QueryElasticsearchDiskFileResponseDTO>> fileParentIdSearch(@RequestBody @Valid QueryElasticsearchDiskFileParentIdRequestDTO requestDTO,
+                                                                                  HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 文件父级业务标识批量搜索请求，获取搜索结果
+        SearchHits<DiskFileDTO> searchHit = diskFileSearchManager.fileParentIdSearch(requestDTO.getUserId(),
+                requestDTO.getParentId(), requestDTO.getCount(), requestDTO.getSearchAfter());
+        return Result.ok(diskFileModelConvert.diskFileDTOConvertQueryDiskFileResponse(searchHit.getSearchHits()));
     }
 }

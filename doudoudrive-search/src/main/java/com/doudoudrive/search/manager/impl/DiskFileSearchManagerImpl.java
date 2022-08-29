@@ -216,4 +216,39 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
     }
+
+    /**
+     * 根据文件父级业务标识批量查询用户文件信息
+     *
+     * @param userId      用户系统内唯一标识
+     * @param parentId    文件父级业务标识
+     * @param count       单次查询的数量、每页大小
+     * @param searchAfter 上一页游标，为空时默认第一页
+     * @return 用户文件实体信息ES数据模型
+     */
+    @Override
+    public SearchHits<DiskFileDTO> fileParentIdSearch(String userId, List<String> parentId, Integer count, List<Object> searchAfter) {
+        // 查询信息构建
+        BoolQueryBuilder builder = QueryBuilders.boolQuery();
+        builder.must(QueryBuilders.termQuery(USER_ID, userId));
+        builder.must(QueryBuilders.termsQuery(FILE_PARENT_ID, parentId));
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
+
+        // 游标不为空时，加入游标查询
+        if (CollectionUtil.isNotEmpty(searchAfter)) {
+            queryBuilder.withSearchAfter(searchAfter);
+        }
+
+        // 排序字段构建，默认按照业务标识正序排列
+        queryBuilder.withSorts(SortBuilders.fieldSort(AUTO_ID).order(SortOrder.ASC));
+
+        // 构建分页语句
+        queryBuilder.withPageable(PageRequest.of(NumberConstant.INTEGER_ZERO, count));
+
+        // 执行搜素请求
+        return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
+    }
 }

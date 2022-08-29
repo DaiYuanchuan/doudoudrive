@@ -59,4 +59,15 @@ public interface DiskFileSearchManager {
      * @return 用户文件实体信息ES数据模型
      */
     SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId);
+
+    /**
+     * 根据文件父级业务标识批量查询用户文件信息
+     *
+     * @param userId      用户系统内唯一标识
+     * @param parentId    文件父级业务标识
+     * @param count       单次查询的数量、每页大小
+     * @param searchAfter 上一页游标，为空时默认第一页
+     * @return 用户文件实体信息ES数据模型
+     */
+    SearchHits<DiskFileDTO> fileParentIdSearch(String userId, List<String> parentId, Integer count, List<Object> searchAfter);
 }

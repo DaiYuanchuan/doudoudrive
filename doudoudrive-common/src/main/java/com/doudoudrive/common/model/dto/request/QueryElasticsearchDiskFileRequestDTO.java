@@ -93,6 +93,7 @@ public class QueryElasticsearchDiskFileRequestDTO {
      * @return 返回每页的大小，默认为10，最小为1，最大10000
      */
     public Integer getCount() {
-        return Math.min(Math.max(Optional.ofNullable(count).orElse(NumberConstant.INTEGER_TEN), NumberConstant.INTEGER_ONE), NumberConstant.INTEGER_TEN_THOUSAND);
+        return Math.min(Math.max(Optional.ofNullable(count).orElse(NumberConstant.INTEGER_TEN),
+                NumberConstant.INTEGER_ONE), NumberConstant.INTEGER_TEN_THOUSAND);
     }
 }
