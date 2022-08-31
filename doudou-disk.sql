@@ -370,22 +370,23 @@ CREATE TABLE `cloud-log`.`sms_send_record` (
 -- RocketMQ消息消费记录表 依据 创建时间 分表
 DROP TABLE IF EXISTS `cloud-log`.`rocketmq_consumer_record`;
 CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
- `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
- `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
- `msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标识',
- `offset_msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息偏移id',
- `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息发送状态(1:发送成功；2:刷新磁盘超时；3:刷新从属超时；4:从属服务器不可用)',
- `topic` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息主题',
- `tag` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标签',
- `broker_name` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ分片名',
- `queue_id` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
- `queue_offset` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
- `send_time` timestamp(0) NOT NULL COMMENT '消息发送时间',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
- PRIMARY KEY (`auto_id`) USING BTREE,
- UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
- UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识'
+                                                        `auto_id`       bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+                                                        `business_id`   varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+                                                        `msg_id`        varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标识',
+                                                        `offset_msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息偏移id',
+                                                        `send_status`   char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci     NOT NULL DEFAULT '' COMMENT '消息发送状态(1:发送成功；2:刷新磁盘超时；3:刷新从属超时；4:从属服务器不可用)',
+                                                        `topic`         varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息主题',
+                                                        `tag`           varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标签',
+                                                        `broker_name`   varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ分片名',
+                                                        `queue_id`      varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
+                                                        `queue_offset`  varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
+                                                        `send_time`     timestamp(0)                                                 NOT NULL COMMENT '消息发送时间',
+                                                        `create_time`   timestamp(0)                                                 NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+                                                        `update_time`   timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                                        PRIMARY KEY (`auto_id`) USING BTREE,
+                                                        UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+                                                        UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+                                                        UNIQUE INDEX `uk_msg_id`(`msg_id`) USING BTREE COMMENT 'MQ消息唯一标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'RocketMQ消费记录' ROW_FORMAT = Dynamic;
 
 -- 日志表依据 创建时间 分表
@@ -591,20 +592,21 @@ CREATE TABLE `cloud-file`.`disk_file`  (
 
 -- 文件操作记录模块
 DROP TABLE IF EXISTS `cloud-file`.`file_record`;
-CREATE TABLE `cloud-file`.`file_record`(
-                                           `auto_id`     bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
-                                           `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
-                                           `user_id`     varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
-                                           `file_id`     varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件标识',
-                                           `file_etag`   varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
-                                           `action`      char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci     NOT NULL DEFAULT '1' COMMENT '动作(0:文件状态；1:文件内容状态)',
-                                           `action_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci     NOT NULL DEFAULT '1' COMMENT '动作类型(action为0:{0:被删除；1:文件复制；2:文件删除}；action为1:{0:待审核；1:待删除})',
-                                           `create_time` timestamp(0)                                                 NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
-                                           `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                           PRIMARY KEY (`auto_id`) USING BTREE,
-                                           UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
-                                           UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
-                                           INDEX         `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引'
+CREATE TABLE `cloud-file`.`file_record`
+(
+    `auto_id`     bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+    `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+    `user_id`     varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+    `file_id`     varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件标识',
+    `file_etag`   varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
+    `action`      char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci     NOT NULL DEFAULT '1' COMMENT '动作(0:文件状态；1:文件内容状态)',
+    `action_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci     NOT NULL DEFAULT '1' COMMENT '动作类型(action为0:{0:被删除；1:文件复制；2:文件删除}；action为1:{0:待审核；1:待删除})',
+    `create_time` timestamp(0)                                                 NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+    `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`auto_id`) USING BTREE,
+    UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+    UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+    INDEX         `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件操作记录' ROW_FORMAT = Dynamic;
 
 -- OSS文件对象存储表 根据 etag 平均分300个表

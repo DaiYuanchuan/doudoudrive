@@ -24,6 +24,7 @@
         <module>doudoudrive-auth</module>
         <module>doudoudrive-file</module>
         <module>doudoudrive-sms</module>
+        <module>doudoudrive-task</module>
     </modules>
 
     <!-- 项目说明 -->
@@ -87,6 +88,8 @@
         <mail.version>1.6.2</mail.version>
         <!-- spring-data-commons 版本号 -->
         <springdata.commons.version>2.7.0</springdata.commons.version>
+        <!-- xxl-job定时任务调度中心版本号 -->
+        <xxl-job.version>2.3.1</xxl-job.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -425,6 +428,14 @@
                 <version>${mail.version}</version>
             </dependency>
             <!-- 发送邮件依赖包 end -->
+
+            <!-- xxl-job定时任务调度框架 start -->
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job.version}</version>
+            </dependency>
+            <!-- xxl-job定时任务调度框架 end -->
 
         </dependencies>
     </dependencyManagement>

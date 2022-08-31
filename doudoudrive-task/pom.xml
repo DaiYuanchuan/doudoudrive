@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 继承父类 -->
+    <parent>
+        <artifactId>doudoudrive</artifactId>
+        <groupId>com.doudoudrive</groupId>
+        <version>0.0.5</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>doudoudrive-task</artifactId>
+    <packaging>jar</packaging>
+
+    <!-- 项目说明 -->
+    <name>${project.artifactId}</name>
+    <description>兜兜网盘系统-定时任务配置中心</description>
+    <url>https://www.doudoudrive.com/</url>
+    <!-- 项目说明 -->
+
+    <!-- 附带属性 -->
+    <properties>
+        <!-- 文件拷贝时的编码 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- 编译时的编码 -->
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+        <!-- 打包跳过单元测试 -->
+        <skipTests>true</skipTests>
+    </properties>
+
+    <!-- 项目依赖 -->
+    <dependencies>
+        <!-- 公共模块 -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>doudoudrive-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <!-- xxl-job定时任务调度框架 start -->
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
+        </dependency>
+        <!-- xxl-job定时任务调度框架 end -->
+
+    </dependencies>
+
+    <!-- 依赖的插件配置 -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 如果没有该配置，devtools不会生效 -->
+                    <fork>true</fork>
+                    <!-- 指定该Main Class为全局的唯一入口 -->
+                    <mainClass>com.doudoudrive.TaskApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!-- 可以把依赖的包都打包到生成的Jar包中 -->
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
