@@ -91,7 +91,7 @@
             <if test="null != diskFile.status and '' != diskFile.status">`status`,</if>
         </trim>
         )
-        <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId and '0' != diskFile.fileParentId">
+        <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId and '0'.toString() != diskFile.fileParentId">
             SELECT
             <trim suffixOverrides=",">
                 <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
@@ -109,7 +109,7 @@
             FROM DUAL
             WHERE EXISTS(SELECT 1 FROM `disk_file_${tableSuffix}` WHERE `business_id` = #{diskFile.fileParentId});
         </if>
-        <if test="null == diskFile.fileParentId or '' == diskFile.fileParentId or '0' == diskFile.fileParentId">
+        <if test="null == diskFile.fileParentId or '' == diskFile.fileParentId or '0'.toString() == diskFile.fileParentId">
             VALUES (
             <trim suffixOverrides=",">
                 <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
