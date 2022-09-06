@@ -38,7 +38,7 @@ public class RedisCacheManager implements CacheManager {
         // 获取本地缓存中的值
         Cache<k, V> cache = cacheManagerConfig.getCacheFromLocal(name);
         if (cache == null) {
-            cache = new RedisCache<>(cacheManagerConfig, ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX,
+            cache = new RedisCache<>(cacheManagerConfig, ConstantConfig.Cache.DEFAULT_CACHE_REALM_PREFIX,
                     ConstantConfig.Cache.DEFAULT_EXPIRE, ConstantConfig.Cache.DEFAULT_PRINCIPAL_ID_FIELD_NAME);
             cacheManagerConfig.putCacheFromLocal(name, cache);
         }
