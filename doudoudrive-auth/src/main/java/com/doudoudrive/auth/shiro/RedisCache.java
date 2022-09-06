@@ -36,7 +36,7 @@ public class RedisCache<k, V> implements Cache<k, V> {
     /**
      * 缓存前缀
      */
-    private String keyPrefix = ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX;
+    private String keyPrefix = ConstantConfig.Cache.DEFAULT_CACHE_REALM_PREFIX;
 
     /**
      * 缓存过期时间

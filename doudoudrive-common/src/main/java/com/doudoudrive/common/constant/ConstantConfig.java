@@ -422,6 +422,11 @@ public interface ConstantConfig {
         String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
 
         /**
+         * 默认session内容缓存的key值前缀
+         */
+        String DEFAULT_CACHE_REALM_PREFIX = "shiro:realm:";
+
+        /**
          * session内容缓存默认key值字段名称
          */
         String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
