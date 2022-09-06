@@ -106,7 +106,7 @@
                 <if test="null != diskFile.collect">#{diskFile.collect},</if>
                 <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
             </trim>
-            FROM `DUAL`
+            FROM DUAL
             WHERE EXISTS(SELECT 1 FROM `disk_file_${tableSuffix}` WHERE `business_id` = #{diskFile.fileParentId});
         </if>
         <if test="null == diskFile.fileParentId or '' == diskFile.fileParentId or '0' == diskFile.fileParentId">
