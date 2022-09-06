@@ -17,6 +17,7 @@ public interface DiskFileDao {
 
     /**
      * 新增用户文件模块
+     * 新增时确保文件父级标识是存在的
      *
      * @param diskFile    需要新增的用户文件模块实体
      * @param tableSuffix 表后缀

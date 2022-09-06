@@ -91,22 +91,41 @@
             <if test="null != diskFile.status and '' != diskFile.status">`status`,</if>
         </trim>
         )
-        VALUES
-        (
-        <trim suffixOverrides=",">
-            <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
-            <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
-            <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
-            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
-            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
-            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
-            <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
-            <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
-            <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
-            <if test="null != diskFile.collect">#{diskFile.collect},</if>
-            <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
-        </trim>
-        )
+        <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId and '0' != diskFile.fileParentId">
+            SELECT
+            <trim suffixOverrides=",">
+                <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
+                <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
+                <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
+                <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
+                <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
+                <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
+                <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
+                <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
+                <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
+                <if test="null != diskFile.collect">#{diskFile.collect},</if>
+                <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
+            </trim>
+            FROM `DUAL`
+            WHERE EXISTS(SELECT 1 FROM `disk_file_${tableSuffix}` WHERE `business_id` = #{diskFile.fileParentId});
+        </if>
+        <if test="null == diskFile.fileParentId or '' == diskFile.fileParentId or '0' == diskFile.fileParentId">
+            VALUES (
+            <trim suffixOverrides=",">
+                <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
+                <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
+                <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
+                <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
+                <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
+                <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
+                <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
+                <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
+                <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
+                <if test="null != diskFile.collect">#{diskFile.collect},</if>
+                <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
+            </trim>
+            )
+        </if>
     </insert>
 
     <!-- 批量新增用户文件模块 -->
