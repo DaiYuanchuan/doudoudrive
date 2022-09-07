@@ -20,22 +20,29 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
+import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
-import com.doudoudrive.commonservice.service.FileRecordService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
+import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
+import com.doudoudrive.file.manager.FileRecordManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
@@ -45,6 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -78,11 +86,13 @@ public class FileManagerImpl implements FileManager {
      */
     private DiskDictionaryService diskDictionaryService;
 
-    private FileRecordService fileRecordService;
-
     private DiskUserAttrService diskUserAttrService;
 
     private LoginManager loginManager;
+
+    private FileRecordManager fileRecordManager;
+
+    private DiskUserAttrManager diskUserAttrManager;
 
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
@@ -115,11 +125,6 @@ public class FileManagerImpl implements FileManager {
     }
 
     @Autowired
-    public void setFileRecordService(FileRecordService fileRecordService) {
-        this.fileRecordService = fileRecordService;
-    }
-
-    @Autowired
     public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
         this.diskUserAttrService = diskUserAttrService;
     }
@@ -127,6 +132,16 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
         this.loginManager = loginManager;
+    }
+
+    @Autowired
+    public void setFileRecordManager(FileRecordManager fileRecordManager) {
+        this.fileRecordManager = fileRecordManager;
+    }
+
+    @Autowired
+    public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
+        this.diskUserAttrManager = diskUserAttrManager;
     }
 
     /**
@@ -167,7 +182,10 @@ public class FileManagerImpl implements FileManager {
         // 构建一个文件夹实体信息
         DiskFile diskFile = diskFileConvert.createFileConvert(userId, name, parentId);
         // 保存用户文件夹
-        diskFileService.insert(diskFile);
+        Integer insert = diskFileService.insert(diskFile);
+        if (insert <= NumberConstant.INTEGER_ZERO) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
+        }
         // 用户文件信息先入库，然后入es
         Result<String> saveElasticsearchResult = this.saveElasticsearchDiskFile(diskFile);
         if (Result.isNotSuccess(saveElasticsearchResult)) {
@@ -209,9 +227,12 @@ public class FileManagerImpl implements FileManager {
 
         try {
             // 将文件存入用户文件表中，忽略抛出的异常
-            diskFileService.insert(userFile);
-            // 删除文件记录表中状态为被删除的数据
-            fileRecordService.deleteAction(ConstantConfig.FileRecordAction.ActionEnum.FILE.status, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status);
+            Integer insert = diskFileService.insert(userFile);
+            if (insert <= NumberConstant.INTEGER_ZERO) {
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
+            }
+            // 删除文件记录表中指定文件的所有的状态为被删除的记录数据
+            fileRecordManager.deleteAction(null, userFile.getFileEtag(), ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(userFile);
             // 尝试通过token获取用户信息
@@ -283,6 +304,97 @@ public class FileManagerImpl implements FileManager {
             String cacheKey = ConstantConfig.Cache.DISK_FILE_CACHE + file.getBusinessId();
             // 重命名成功后删除缓存中的文件信息
             cacheManagerConfig.removeCache(cacheKey);
+        }
+    }
+
+    /**
+     * 根据文件id批量删除文件或文件夹
+     *
+     * @param businessId 需要删除的文件或文件夹标识
+     * @param userId     需要删除的文件或文件夹所属用户标识
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
+    public void delete(List<String> businessId, String userId) {
+        // 构建查询文件信息的条件
+        QueryElasticsearchDiskFileIdRequestDTO queryFileIdRequest = QueryElasticsearchDiskFileIdRequestDTO.builder()
+                .businessId(businessId)
+                .build();
+        // 获取所有需要进行删除的文件信息
+        Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearchResult = diskFileSearchFeignClient.fileIdSearch(queryFileIdRequest);
+        if (Result.isNotSuccess(fileIdSearchResult) || CollectionUtil.isEmpty(fileIdSearchResult.getData().getContent())) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_NOT_FOUND);
+        }
+
+        // 所有的文件标识信息集合
+        List<String> allFileIdList = new ArrayList<>();
+
+        // 构建文件操作记录信息
+        List<FileRecord> fileRecordList = new ArrayList<>();
+
+        // 当前删除的文件大小总量
+        BigDecimal totalSize = BigDecimal.ZERO;
+
+        for (DiskFileModel fileModel : fileIdSearchResult.getData().getContent()) {
+            allFileIdList.add(fileModel.getBusinessId());
+            // 构建文件操作记录信息，用于记录文件的删除操作，默认动作为删除文件
+            FileRecord fileRecord = FileRecord.builder()
+                    .userId(userId)
+                    .fileId(fileModel.getBusinessId())
+                    .fileEtag(fileModel.getFileEtag())
+                    .action(ConstantConfig.FileRecordAction.ActionEnum.FILE.status)
+                    .actionType(ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status)
+                    .build();
+
+            // 判断当前文件是否为文件夹
+            if (fileModel.getFileFolder()) {
+                // 文件夹需要将文件删除任务添加到队列中，等待异步删除
+                fileRecord.setAction(ConstantConfig.FileRecordAction.ActionEnum.DELETE.status);
+                fileRecord.setActionType(ConstantConfig.FileRecordAction.ActionTypeEnum.TASK_BE_PROCESSED.status);
+            }
+            // 计算当前删除的文件大小总量
+            totalSize = totalSize.add(new BigDecimal(fileModel.getFileSize()));
+            fileRecordList.add(fileRecord);
+        }
+
+        // 先删除最上层的所有文件数据
+        Integer resultNum = diskFileService.deleteBatch(allFileIdList, userId);
+        if (resultNum != allFileIdList.size()) {
+            // 删除失败，抛出异常
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
+        }
+
+        // 批量添加文件操作记录信息
+        fileRecordManager.insertBatch(fileRecordList);
+
+        // 原子性服务减去用户已用磁盘容量属性
+        diskUserAttrService.deducted(userId, ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, totalSize.stripTrailingZeros().toPlainString());
+
+        Result<DeleteElasticsearchDiskFileResponseDTO> deleteFileResult;
+        try {
+            // 删除成功后，删除es中的文件信息
+            DeleteElasticsearchDiskFileRequestDTO deleteFileRequest = DeleteElasticsearchDiskFileRequestDTO.builder()
+                    .businessId(allFileIdList)
+                    .build();
+            deleteFileResult = diskFileSearchFeignClient.deleteElasticsearchDiskFile(deleteFileRequest);
+        } catch (Exception e) {
+            // 删除es中的文件信息失败时抛出的异常
+            log.error(e.getMessage(), e);
+            deleteFileResult = null;
+        }
+
+        // 判断删除es中的文件信息是否成功
+        if (Result.isNotSuccess(deleteFileResult)) {
+            // 出现异常时手动增加用户已用磁盘容量
+            BigDecimal totalDiskCapacity = diskUserAttrManager.getUserAttrValue(null, userId, ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+            Integer increase = diskUserAttrService.increase(userId, ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
+                    totalSize.stripTrailingZeros().toPlainString(), totalDiskCapacity.stripTrailingZeros().toPlainString());
+            if (increase <= NumberConstant.INTEGER_ZERO) {
+                // 增加失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SPACE_INSUFFICIENT);
+            }
+            // 删除失败，抛出异常
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INTERFACE_INTERNAL_EXCEPTION);
         }
     }
 

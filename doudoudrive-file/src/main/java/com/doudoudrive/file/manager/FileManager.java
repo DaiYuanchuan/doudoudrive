@@ -58,6 +58,14 @@ public interface FileManager {
     void renameFile(DiskFile file, String name);
 
     /**
+     * 根据文件id批量删除文件或文件夹
+     *
+     * @param businessId 需要删除的文件或文件夹标识
+     * @param userId     需要删除的文件或文件夹所属用户标识
+     */
+    void delete(List<String> businessId, String userId);
+
+    /**
      * 文件信息翻页搜索
      *
      * @param queryElasticRequest 构建ES文件查询请求数据模型

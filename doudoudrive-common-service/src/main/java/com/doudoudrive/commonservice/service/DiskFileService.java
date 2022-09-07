@@ -17,8 +17,9 @@ public interface DiskFileService {
      * 新增用户文件模块
      *
      * @param diskFile 需要新增的用户文件模块实体
+     * @return 返回新增的条数
      */
-    void insert(DiskFile diskFile);
+    Integer insert(DiskFile diskFile);
 
     /**
      * 批量新增用户文件模块
@@ -41,8 +42,9 @@ public interface DiskFileService {
      *
      * @param list   需要删除的业务id(businessId)数据集合
      * @param userId 业务id对应的用户标识
+     * @return 返回删除的条数
      */
-    void deleteBatch(List<String> list, String userId);
+    Integer deleteBatch(List<String> list, String userId);
 
     /**
      * 修改用户文件模块

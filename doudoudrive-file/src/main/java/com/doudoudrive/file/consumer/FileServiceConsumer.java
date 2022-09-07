@@ -7,9 +7,12 @@ import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
+import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
@@ -41,6 +44,10 @@ public class FileServiceConsumer {
      */
     private GlobalThreadPoolService globalThreadPoolService;
 
+    private MqConsumerRecordConvert consumerRecordConvert;
+
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
+
     @Autowired(required = false)
     public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
         this.diskFileConvert = diskFileConvert;
@@ -49,6 +56,16 @@ public class FileServiceConsumer {
     @Autowired
     public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
         this.globalThreadPoolService = globalThreadPoolService;
+    }
+
+    @Autowired(required = false)
+    public void setConsumerRecordConvert(MqConsumerRecordConvert consumerRecordConvert) {
+        this.consumerRecordConvert = consumerRecordConvert;
+    }
+
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
     }
 
     /**
@@ -79,7 +96,14 @@ public class FileServiceConsumer {
      */
     @RocketmqTagDistribution(messageClass = CreateFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.CREATE_FILE)
     public void createFileConsumer(CreateFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
+        // 构建消息消费记录
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext,
+                ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.CREATE_FILE);
+
         try {
+            // 保存消息消费记录
+            rocketmqConsumerRecordService.insertException(consumerRecord);
+
             CreateFileAuthModel fileInfo = consumerRequest.getFileInfo();
 
             String requestId = consumerRequest.getRequestId();
@@ -89,7 +113,7 @@ public class FileServiceConsumer {
             }
 
             // 构建回调地址初始化请求头配置Map
-            Map<String, String> header = Maps.newHashMapWithExpectedSize(62);
+            Map<String, String> header = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_THREE);
             header.put(REQUEST_ID, requestId);
             header.put(ConstantConfig.HttpRequest.USER_AGENT, USER_AGENT_CALLBACK);
             header.put(ConstantConfig.HttpRequest.HOST, URI.create(fileInfo.getCallbackUrl()).getHost());
@@ -119,7 +143,7 @@ public class FileServiceConsumer {
                 }
             });
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("errorMsg:{}，消费记录：{}", e.getMessage(), consumerRecord, e);
         }
     }
 }

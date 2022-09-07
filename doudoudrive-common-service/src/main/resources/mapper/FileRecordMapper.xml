@@ -254,21 +254,38 @@
     <!-- 删除指定状态的文件操作记录 -->
     <delete id="deleteAction" parameterType="java.lang.String" flushCache="true">
         DELETE FROM `file_record`
-        <where>
-            `action` = #{action} AND `action_type` = #{actionType}
-        </where>
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            <if test="null != fileEtag and '' != fileEtag">
+                `file_etag` = #{fileEtag} AND
+            </if>
+            <if test="null != action and '' != action">
+                `action` = #{action} AND
+            </if>
+            <if test="null != actionType and '' != actionType">
+                `action_type` = #{actionType} AND
+            </if>
+        </trim>
     </delete>
 
-    <!-- 获取指定状态的文件操作记录，只会获取1条 -->
-    <select id="getFileRecordByAction" resultType="com.doudoudrive.common.model.pojo.FileRecord"
-            resultMap="fileRecordResultMap">
-        SELECT
-        `business_id`, `user_id`, `file_id`, `file_etag`
+    <!-- 获取指定状态的文件操作记录数据 -->
+    <select id="getFileRecordByAction" resultType="java.lang.Integer">
+        SELECT 1
         FROM `file_record`
-        <where>
-            `action` = #{action} AND `action_type` = #{actionType}
-        </where>
-        LIMIT 1
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            <if test="null != action and '' != action">
+                `action` = #{action} AND
+            </if>
+            <if test="null != actionType and '' != actionType">
+                `action_type` = #{actionType} AND
+            </if>
+        </trim>
+        LIMIT 1;
     </select>
 
 </mapper>

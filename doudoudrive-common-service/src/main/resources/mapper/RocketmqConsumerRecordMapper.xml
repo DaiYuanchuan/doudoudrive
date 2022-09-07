@@ -107,7 +107,7 @@
         <include refid="rocketmqConsumerRecord"/>
         FROM `rocketmq_consumer_record_${tableSuffix}`
         <where>
-            `business_id` = #{businessId};
+            `msg_id` = #{msgId};
         </where>
     </select>
 

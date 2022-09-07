@@ -8,7 +8,6 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
@@ -18,7 +17,6 @@ import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileReques
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
-import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -26,11 +24,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
-import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
-import com.doudoudrive.file.manager.DiskUserAttrManager;
-import com.doudoudrive.file.manager.FileManager;
-import com.doudoudrive.file.manager.OssFileManager;
-import com.doudoudrive.file.manager.QiNiuManager;
+import com.doudoudrive.file.manager.*;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
@@ -38,8 +32,6 @@ import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendCallback;
-import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +66,8 @@ public class FileController {
 
     private FileManager fileManager;
 
+    private FileRecordManager fileRecordManager;
+
     private DiskFileConvert diskFileConvert;
 
     private DiskUserAttrService diskUserAttrService;
@@ -90,10 +84,6 @@ public class FileController {
      */
     private RocketMQTemplate rocketmqTemplate;
 
-    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
-
-    private MqConsumerRecordConvert consumerRecordConvert;
-
     private DiskUserService diskUserService;
 
     private OssFileManager ossFileManager;
@@ -108,6 +98,11 @@ public class FileController {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setFileRecordManager(FileRecordManager fileRecordManager) {
+        this.fileRecordManager = fileRecordManager;
     }
 
     @Autowired(required = false)
@@ -133,16 +128,6 @@ public class FileController {
     @Autowired
     public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
         this.rocketmqTemplate = rocketmqTemplate;
-    }
-
-    @Autowired
-    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
-        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
-    }
-
-    @Autowired(required = false)
-    public void setConsumerRecordConvert(MqConsumerRecordConvert consumerRecordConvert) {
-        this.consumerRecordConvert = consumerRecordConvert;
     }
 
     @Autowired
@@ -261,7 +246,8 @@ public class FileController {
         this.verifyCapacity(totalDiskCapacity, usedDiskCapacity, createFile.getFileSize());
 
         // 创建文件
-        DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(fileManager.createFile(createFile, fileId, totalDiskCapacity, usedDiskCapacity));
+        DiskFile userFile = fileManager.createFile(createFile, fileId, totalDiskCapacity, usedDiskCapacity);
+        DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(userFile);
         if (fileModel == null) {
             return Result.build(StatusCodeEnum.SYSTEM_ERROR);
         }
@@ -384,6 +370,29 @@ public class FileController {
         return Result.ok(fileManager.accessUrl(FileAuthModel.builder()
                 .userId(userinfo.getBusinessId())
                 .build(), diskFileConvert.diskFileConvertDiskFileModel(diskFile)));
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "删除", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_DELETE)
+    @PostMapping(value = "/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<String> delete(@RequestBody @Valid DeleteFileRequestDTO requestDTO,
+                                 HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 检查当前用户是否存在有copy类型的任务(复制与删除操作相互冲突)
+        if (fileRecordManager.getFileRecordByAction(userinfo.getBusinessId(), ConstantConfig.FileRecordAction.ActionEnum.COPY, null)) {
+            return Result.build(StatusCodeEnum.TASK_ALREADY_EXIST);
+        }
+
+        // 根据文件id批量删除文件或文件夹
+        fileManager.delete(requestDTO.getBusinessId(), userinfo.getBusinessId());
+        return Result.ok();
     }
 
     @SneakyThrows
@@ -531,29 +540,10 @@ public class FileController {
         if (StringUtils.isBlank(consumerRequest.getFileInfo().getCallbackUrl())) {
             return;
         }
-        // 使用async模式异步发送消息，消息发送后立刻返回，当消息完全完成发送后，会调用回调函数sendCallback来告知发送者本次发送是成功或者失败
-        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.asyncSend(destination, ObjectUtil.serialize(consumerRequest), new SendCallback() {
-            /**
-             * 消息发送成功时的回调
-             * @param sendResult 消息发送状态
-             */
-            @Override
-            public void onSuccess(SendResult sendResult) {
-                // 构建RocketMQ消费记录
-                RocketmqConsumerRecord consumerRecord = consumerRecordConvert.sendResultConvertConsumerRecord(sendResult, sendResult.getMessageQueue(), ConstantConfig.Tag.CREATE_FILE);
-                rocketmqConsumerRecordService.insert(consumerRecord);
-            }
 
-            /**
-             * 消息发送失败时的回调
-             * @param throwable 异常消息
-             */
-            @Override
-            public void onException(Throwable throwable) {
-                log.error(throwable.getMessage(), throwable);
-            }
-        });
+        // 使用one-way模式发送消息，发送端发送完消息后会立即返回
+        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
+        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(consumerRequest));
     }
 
     /**

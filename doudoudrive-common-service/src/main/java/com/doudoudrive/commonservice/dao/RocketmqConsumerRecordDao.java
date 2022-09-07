@@ -24,9 +24,9 @@ public interface RocketmqConsumerRecordDao {
     /**
      * 查找RocketMQ消费记录
      *
-     * @param businessId 根据业务id(businessId)查找
+     * @param msgId 根据MQ消息唯一标识查找
      * @return 返回查找到的RocketMQ消费记录实体
      */
-    RocketmqConsumerRecord getRocketmqConsumerRecord(@Param("businessId") String businessId, @Param("tableSuffix") String tableSuffix);
+    RocketmqConsumerRecord getRocketmqConsumerRecord(@Param("msgId") String msgId, @Param("tableSuffix") String tableSuffix);
 
 }

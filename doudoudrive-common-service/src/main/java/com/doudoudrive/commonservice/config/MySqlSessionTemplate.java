@@ -371,7 +371,7 @@ public class MySqlSessionTemplate extends SqlSessionTemplate {
      * </pre>
      * <p>
      * The implementation of {@link DisposableBean} forces spring context to use {@link DisposableBean#destroy()} method
-     * instead of {@link SqlSessionTemplate#close()} to shutdown gently.
+     * instead of {@link SqlSessionTemplate#close()} to shut down gently.
      *
      * @see SqlSessionTemplate#close()
      * @see "org.springframework.beans.factory.support.DisposableBeanAdapter#inferDestroyMethodIfNecessary(Object, RootBeanDefinition)"

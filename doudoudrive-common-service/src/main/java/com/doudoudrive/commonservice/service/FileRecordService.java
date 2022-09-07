@@ -127,19 +127,20 @@ public interface FileRecordService {
     /**
      * 删除指定状态的文件操作记录
      *
+     * @param userId     用户id
+     * @param etag       文件唯一标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
-     * @return 返回删除的条数
      */
-    Integer deleteAction(String action, String actionType);
+    void deleteAction(String userId, String etag, String action, String actionType);
 
     /**
-     * 获取指定状态的文件操作记录，只会获取1条
+     * 获取指定状态的文件操作记录状态
      *
      * @param action     动作
      * @param actionType 动作对应的动作类型
-     * @return 指定状态的文件操作记录对象
+     * @return 存在指定状态的文件操作记录时返回 1 ，否则返回 0 或者 null
      */
-    FileRecord getFileRecordByAction(String action, String actionType);
+    Boolean getFileRecordByAction(String userId, String action, String actionType);
 
 }

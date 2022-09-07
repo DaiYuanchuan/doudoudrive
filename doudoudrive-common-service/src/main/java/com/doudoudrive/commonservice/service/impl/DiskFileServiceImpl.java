@@ -48,11 +48,12 @@ public class DiskFileServiceImpl implements DiskFileService {
      * 新增用户文件模块
      *
      * @param diskFile 需要新增的用户文件模块实体
+     * @return 返回新增的条数
      */
     @Override
-    public void insert(DiskFile diskFile) {
+    public Integer insert(DiskFile diskFile) {
         if (ObjectUtils.isEmpty(diskFile) || StringUtils.isBlank(diskFile.getUserId())) {
-            return;
+            return NumberConstant.INTEGER_ZERO;
         }
         if (StringUtils.isBlank(diskFile.getBusinessId())) {
             diskFile.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE));
@@ -60,7 +61,7 @@ public class DiskFileServiceImpl implements DiskFileService {
 
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(diskFile.getUserId(), ConstantConfig.TableSuffix.DISK_FILE);
-        diskFileDao.insert(diskFile, tableSuffix);
+        return diskFileDao.insert(diskFile, tableSuffix);
     }
 
     /**
@@ -112,18 +113,21 @@ public class DiskFileServiceImpl implements DiskFileService {
      *
      * @param list   需要删除的业务id(businessId)数据集合
      * @param userId 业务id对应的用户标识
+     * @return 返回删除的条数
      */
     @Override
-    public void deleteBatch(List<String> list, String userId) {
+    public Integer deleteBatch(List<String> list, String userId) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        Integer resultNum = NumberConstant.INTEGER_ZERO;
         // 批量删除用户文件模块
-        CollectionUtil.collectionCutting(list, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(businessId -> {
+        for (List<String> businessId : CollectionUtil.collectionCutting(list, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
             List<String> businessIdList = businessId.stream().filter(StringUtils::isNotBlank).toList();
             if (CollectionUtil.isNotEmpty(businessIdList)) {
-                diskFileDao.deleteBatch(businessIdList, tableSuffix);
+                resultNum += diskFileDao.deleteBatch(businessIdList, tableSuffix);
             }
-        });
+        }
+        return resultNum;
     }
 
     /**

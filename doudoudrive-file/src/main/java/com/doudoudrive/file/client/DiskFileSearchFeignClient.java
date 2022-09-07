@@ -2,6 +2,7 @@ package com.doudoudrive.file.client;
 
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.*;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.util.http.Result;
@@ -36,7 +37,7 @@ public interface DiskFileSearchFeignClient {
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<String> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
+    Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 更新es中保存的用户文件信息
@@ -64,5 +65,14 @@ public interface DiskFileSearchFeignClient {
      */
     @PostMapping(value = "/search/file/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearch(@RequestBody QueryElasticsearchDiskFileIdRequestDTO requestDTO);
+
+    /**
+     * 根据文件父级业务标识批量查询用户文件信息
+     *
+     * @param requestDTO 查询文件父级业务标识信息时的请求数据模型
+     * @return 查询结果
+     */
+    @PostMapping(value = "/search/file/parent-id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<List<QueryElasticsearchDiskFileResponseDTO>> fileParentIdSearch(@RequestBody QueryElasticsearchDiskFileParentIdRequestDTO requestDTO);
 
 }

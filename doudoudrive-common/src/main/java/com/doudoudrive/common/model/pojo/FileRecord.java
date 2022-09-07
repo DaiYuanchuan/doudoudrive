@@ -52,12 +52,12 @@ public class FileRecord implements Serializable {
     private String fileEtag;
 
     /**
-     * 动作(0:文件状态；1:文件内容状态)
+     * 动作(0:文件状态；1:文件内容状态；2:文件复制；3:文件删除)
      */
     private String action;
 
     /**
-     * 动作类型(action为0:{0:被删除；1:文件复制；2:文件删除}；action为1:{0:待审核；1:待删除})
+     * 动作类型(action为0:{0:文件被删除}；action为1:{0:待审核；1:待删除}；action为2:{0:任务待处理；1:任务处理中}；action为3:{0:任务待处理；1:任务处理中})
      */
     private String actionType;
 
