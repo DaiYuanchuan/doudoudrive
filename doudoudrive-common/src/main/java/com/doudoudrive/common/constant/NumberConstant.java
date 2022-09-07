@@ -96,7 +96,7 @@ public interface NumberConstant {
     /**
      * 常量 long 10000
      */
-    Long Long_TEN_THOUSAND = 10000L;
+    Long LONG_TEN_THOUSAND = 10000L;
 
     /**
      * 常量 long 最大值

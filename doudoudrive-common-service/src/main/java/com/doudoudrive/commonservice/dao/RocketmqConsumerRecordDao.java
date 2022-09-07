@@ -17,6 +17,7 @@ public interface RocketmqConsumerRecordDao {
      * 新增RocketMQ消费记录
      *
      * @param rocketmqConsumerRecord 需要新增的RocketMQ消费记录实体
+     * @param tableSuffix            表后缀
      * @return 返回新增的条数
      */
     Integer insert(@Param("record") RocketmqConsumerRecord rocketmqConsumerRecord, @Param("tableSuffix") String tableSuffix);
@@ -24,7 +25,8 @@ public interface RocketmqConsumerRecordDao {
     /**
      * 查找RocketMQ消费记录
      *
-     * @param msgId 根据MQ消息唯一标识查找
+     * @param msgId       根据MQ消息唯一标识查找
+     * @param tableSuffix 表后缀
      * @return 返回查找到的RocketMQ消费记录实体
      */
     RocketmqConsumerRecord getRocketmqConsumerRecord(@Param("msgId") String msgId, @Param("tableSuffix") String tableSuffix);

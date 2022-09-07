@@ -42,7 +42,8 @@ public interface OssFileDao {
     /**
      * 查找OSS文件对象存储
      *
-     * @param etag 根据文件的ETag(资源的唯一标识)查找
+     * @param etag        根据文件的ETag(资源的唯一标识)查找
+     * @param tableSuffix 表后缀
      * @return 返回查找到的OSS文件对象存储实体
      */
     OssFile getOssFile(@Param("etag") String etag, @Param("tableSuffix") String tableSuffix);

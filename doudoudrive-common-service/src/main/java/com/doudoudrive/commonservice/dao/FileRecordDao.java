@@ -130,6 +130,7 @@ public interface FileRecordDao {
     /**
      * 获取指定状态的文件操作记录状态
      *
+     * @param userId     用户标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 存在指定状态的文件操作记录时返回 1 ，否则返回 0 或者 null

@@ -114,7 +114,8 @@ public interface DiskFileConvert {
     /**
      * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 DiskFile(用户文件模块实体类)
      *
-     * @param fileInfo 创建文件时的鉴权参数模型
+     * @param fileInfo   创建文件时的鉴权参数模型
+     * @param businessId 文件业务标识
      * @return 用户文件模块实体类
      */
     @Mappings({
@@ -164,7 +165,10 @@ public interface DiskFileConvert {
     /**
      * 将 OssFile(OSS文件对象存储实体类) 类型转换为 CreateFileAuthModel(创建文件时的鉴权参数模型)
      *
-     * @param ossFile OSS文件对象存储实体类
+     * @param ossFile      OSS文件对象存储实体类
+     * @param userId       用户标识
+     * @param name         文件名称
+     * @param fileParentId 文件父级标识
      * @return 创建文件时的鉴权参数模型
      */
     @Mappings({

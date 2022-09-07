@@ -26,7 +26,9 @@ public interface MqConsumerRecordConvert {
     /**
      * 将 SendResult(发送结果) 类型转换为 RocketmqConsumerRecord(RocketMQ消费记录)
      *
-     * @param sendResult 发送结果
+     * @param sendResult   发送结果
+     * @param messageQueue 消息队列
+     * @param tag          消息标签
      * @return RocketMQ消费记录
      */
     @Mappings({

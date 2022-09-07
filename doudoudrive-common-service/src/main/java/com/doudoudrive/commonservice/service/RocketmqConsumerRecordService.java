@@ -24,6 +24,7 @@ public interface RocketmqConsumerRecordService {
      * 新增RocketMQ消费记录，新增失败会抛出异常
      *
      * @param record 需要新增的RocketMQ消费记录实体
+     * @throws BusinessException 新增失败会抛出异常
      */
     void insertException(RocketmqConsumerRecord record) throws BusinessException;
 

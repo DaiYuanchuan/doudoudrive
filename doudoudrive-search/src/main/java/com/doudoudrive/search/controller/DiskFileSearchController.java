@@ -110,7 +110,7 @@ public class DiskFileSearchController {
 
         // 文件信息搜索请求，获取搜索结果
         List<SearchHit<DiskFileDTO>> searchHit = diskFileSearchManager.fileInfoSearch(requestDTO).getSearchHits();
-        return Result.ok(diskFileModelConvert.diskFileDTOConvertQueryDiskFileResponse(searchHit));
+        return Result.ok(diskFileModelConvert.diskFileDtoConvertQueryDiskFileResponse(searchHit));
     }
 
     @SneakyThrows
@@ -128,7 +128,7 @@ public class DiskFileSearchController {
         // 构建查询结果
         List<DiskFileModel> content = Lists.newArrayListWithExpectedSize(searchHit.size());
         for (SearchHit<DiskFileDTO> hit : searchHit) {
-            content.add(diskFileModelConvert.diskFileDTOConvertDiskFileModel(hit.getContent()));
+            content.add(diskFileModelConvert.diskFileDtoConvertDiskFileModel(hit.getContent()));
         }
         return Result.ok(QueryElasticsearchDiskFileIdResponseDTO.builder()
                 .content(content)
@@ -147,6 +147,6 @@ public class DiskFileSearchController {
         // 文件父级业务标识批量搜索请求，获取搜索结果
         SearchHits<DiskFileDTO> searchHit = diskFileSearchManager.fileParentIdSearch(requestDTO.getUserId(),
                 requestDTO.getParentId(), requestDTO.getCount(), requestDTO.getSearchAfter());
-        return Result.ok(diskFileModelConvert.diskFileDTOConvertQueryDiskFileResponse(searchHit.getSearchHits()));
+        return Result.ok(diskFileModelConvert.diskFileDtoConvertQueryDiskFileResponse(searchHit.getSearchHits()));
     }
 }

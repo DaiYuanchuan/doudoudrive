@@ -24,6 +24,7 @@ public interface FileRecordManager {
      * 获取指定状态的文件操作记录状态
      *
      * @param userId     指定用户
+     * @param actionEnum 动作枚举
      * @param actionType 任务类型枚举
      * @return true:用户存在指定未完成的任务 false:不存在指定任务
      */

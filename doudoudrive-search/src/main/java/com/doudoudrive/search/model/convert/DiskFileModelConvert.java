@@ -47,7 +47,7 @@ public interface DiskFileModelConvert {
      * @param searchHit 用户文件实体信息ES数据模型
      * @return 搜索es用户文件信息时的响应数据模型
      */
-    List<QueryElasticsearchDiskFileResponseDTO> diskFileDTOConvertQueryDiskFileResponse(List<SearchHit<DiskFileDTO>> searchHit);
+    List<QueryElasticsearchDiskFileResponseDTO> diskFileDtoConvertQueryDiskFileResponse(List<SearchHit<DiskFileDTO>> searchHit);
 
     /**
      * 将DiskFileDTO(用户文件实体信息ES数据模型) 类型转换为 DiskFileModel(用户文件信息模型)
@@ -55,5 +55,5 @@ public interface DiskFileModelConvert {
      * @param diskFile 用户文件实体信息ES数据模型
      * @return 用户文件信息模型
      */
-    DiskFileModel diskFileDTOConvertDiskFileModel(DiskFileDTO diskFile);
+    DiskFileModel diskFileDtoConvertDiskFileModel(DiskFileDTO diskFile);
 }
