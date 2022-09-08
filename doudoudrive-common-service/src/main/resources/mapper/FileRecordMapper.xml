@@ -313,10 +313,10 @@
         UPDATE `file_record`
         <trim prefix="SET" suffixOverrides=",">
             <if test="null != toAction and '' != toAction">
-                `action` = #{toAction} AND
+                `action` = #{toAction},
             </if>
             <if test="null != toActionType and '' != toActionType">
-                `action_type` = #{toActionType} AND
+                `action_type` = #{toActionType},
             </if>
         </trim>
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
