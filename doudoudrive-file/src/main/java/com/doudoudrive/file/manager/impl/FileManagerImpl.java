@@ -21,11 +21,9 @@ import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
@@ -310,22 +308,12 @@ public class FileManagerImpl implements FileManager {
     /**
      * 根据文件id批量删除文件或文件夹
      *
-     * @param businessId 需要删除的文件或文件夹标识
-     * @param userId     需要删除的文件或文件夹所属用户标识
+     * @param content 需要删除的文件或文件夹信息
+     * @param userId  需要删除的文件或文件夹所属用户标识
      */
     @Override
     @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
-    public void delete(List<String> businessId, String userId) {
-        // 构建查询文件信息的条件
-        QueryElasticsearchDiskFileIdRequestDTO queryFileIdRequest = QueryElasticsearchDiskFileIdRequestDTO.builder()
-                .businessId(businessId)
-                .build();
-        // 获取所有需要进行删除的文件信息
-        Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearchResult = diskFileSearchFeignClient.fileIdSearch(queryFileIdRequest);
-        if (Result.isNotSuccess(fileIdSearchResult) || CollectionUtil.isEmpty(fileIdSearchResult.getData().getContent())) {
-            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_NOT_FOUND);
-        }
-
+    public void delete(List<DiskFileModel> content, String userId) {
         // 所有的文件标识信息集合
         List<String> allFileIdList = new ArrayList<>();
 
@@ -335,7 +323,7 @@ public class FileManagerImpl implements FileManager {
         // 当前删除的文件大小总量
         BigDecimal totalSize = BigDecimal.ZERO;
 
-        for (DiskFileModel fileModel : fileIdSearchResult.getData().getContent()) {
+        for (DiskFileModel fileModel : content) {
             allFileIdList.add(fileModel.getBusinessId());
             // 构建文件操作记录信息，用于记录文件的删除操作，默认动作为删除文件
             FileRecord fileRecord = FileRecord.builder()

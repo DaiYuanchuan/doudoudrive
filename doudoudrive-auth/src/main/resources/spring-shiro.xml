@@ -74,6 +74,9 @@
                 /file/create-file = anon
                 /file/cdn-auth = anon
 
+                <!-- 内部接口不需要认证 -->
+                /internal/** = anon
+
                 /favicon.ico = anon
 
                 /** = oauth

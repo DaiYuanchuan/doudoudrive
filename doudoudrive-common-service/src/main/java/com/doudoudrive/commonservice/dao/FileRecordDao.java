@@ -128,15 +128,42 @@ public interface FileRecordDao {
                          @Param("actionType") String actionType);
 
     /**
-     * 获取指定状态的文件操作记录状态
+     * 判断指定状态的文件操作记录是否存在
      *
      * @param userId     用户标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 存在指定状态的文件操作记录时返回 1 ，否则返回 0 或者 null
      */
-    Integer getFileRecordByAction(@Param("userId") String userId,
-                                  @Param("action") String action,
-                                  @Param("actionType") String actionType);
+    Integer isFileRecordExist(@Param("userId") String userId,
+                              @Param("action") String action,
+                              @Param("actionType") String actionType);
 
+    /**
+     * 根据action和actionType查询指定状态的文件操作记录，只返回一条数据
+     *
+     * @param userId     用户标识
+     * @param action     动作
+     * @param actionType 动作对应的动作类型
+     * @return 返回查找到的文件操作记录实体
+     */
+    FileRecord getFileRecordByAction(@Param("userId") String userId,
+                                     @Param("action") String action,
+                                     @Param("actionType") String actionType);
+
+    /**
+     * 更新 指定动作类型 的文件操作记录的 动作类型
+     *
+     * @param businessId     文件操作记录系统内唯一标识
+     * @param fromAction     原动作
+     * @param fromActionType 原动作对应的动作类型
+     * @param toAction       新动作
+     * @param toActionType   新动作对应的动作类型
+     * @return 返回更新的条数
+     */
+    Integer updateFileRecordByAction(@Param("businessId") String businessId,
+                                     @Param("fromAction") String fromAction,
+                                     @Param("fromActionType") String fromActionType,
+                                     @Param("toAction") String toAction,
+                                     @Param("toActionType") String toActionType);
 }

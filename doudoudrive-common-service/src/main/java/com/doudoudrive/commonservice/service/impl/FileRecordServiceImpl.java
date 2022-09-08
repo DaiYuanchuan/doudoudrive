@@ -281,14 +281,43 @@ public class FileRecordServiceImpl implements FileRecordService {
     }
 
     /**
-     * 获取指定状态的文件操作记录状态
+     * 判断指定状态的文件操作记录是否存在
      *
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 存在指定状态的文件操作记录时返回 true ，否则返回 false
      */
     @Override
-    public Boolean getFileRecordByAction(String userId, String action, String actionType) {
-        return NumberConstant.INTEGER_ONE.equals(fileRecordDao.getFileRecordByAction(userId, action, actionType));
+    public Boolean isFileRecordExist(String userId, String action, String actionType) {
+        return NumberConstant.INTEGER_ONE.equals(fileRecordDao.isFileRecordExist(userId, action, actionType));
+    }
+
+    /**
+     * 获取指定状态的文件操作记录数据
+     *
+     * @param userId     用户id
+     * @param action     动作
+     * @param actionType 动作对应的动作类型
+     * @return 返回指定状态的文件操作记录数据
+     */
+    @Override
+    public FileRecord getFileRecordByAction(String userId, String action, String actionType) {
+        return fileRecordDao.getFileRecordByAction(userId, action, actionType);
+    }
+
+    /**
+     * 更新 指定动作类型 的文件操作记录的 动作类型
+     *
+     * @param businessId     文件操作记录系统内唯一标识
+     * @param fromAction     原动作
+     * @param fromActionType 原动作对应的动作类型
+     * @param toAction       新动作
+     * @param toActionType   新动作对应的动作类型
+     * @return 返回更新的条数
+     */
+    @Override
+    public Integer updateFileRecordByAction(String businessId, String fromAction, String fromActionType,
+                                            String toAction, String toActionType) {
+        return fileRecordDao.updateFileRecordByAction(businessId, fromAction, fromActionType, toAction, toActionType);
     }
 }

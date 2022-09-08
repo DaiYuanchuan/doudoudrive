@@ -21,22 +21,14 @@ public interface FileRecordManager {
     void insertBatch(List<FileRecord> list);
 
     /**
-     * 获取指定状态的文件操作记录状态
+     * 判断指定状态的文件操作记录是否存在
      *
      * @param userId     指定用户
      * @param actionEnum 动作枚举
      * @param actionType 任务类型枚举
      * @return true:用户存在指定未完成的任务 false:不存在指定任务
      */
-    Boolean getFileRecordByAction(String userId, ConstantConfig.FileRecordAction.ActionEnum actionEnum, ConstantConfig.FileRecordAction.ActionTypeEnum actionType);
-
-    /**
-     * 创建一条文件的任务记录
-     *
-     * @param userId     指定用户
-     * @param actionType 任务类型枚举
-     */
-    void createTask(String userId, ConstantConfig.FileRecordAction.ActionTypeEnum actionType);
+    Boolean isFileRecordExist(String userId, ConstantConfig.FileRecordAction.ActionEnum actionEnum, ConstantConfig.FileRecordAction.ActionTypeEnum actionType);
 
     /**
      * 删除指定状态的文件操作记录数据
@@ -50,4 +42,32 @@ public interface FileRecordManager {
                       ConstantConfig.FileRecordAction.ActionEnum actionEnum,
                       ConstantConfig.FileRecordAction.ActionTypeEnum actionType);
 
+    /**
+     * 删除文件操作记录数据
+     *
+     * @param businessId 根据业务id(businessId)删除数据
+     */
+    void delete(String businessId);
+
+    /**
+     * 获取指定状态的文件操作记录数据
+     *
+     * @param userId     用户id
+     * @param action     动作
+     * @param actionType 动作对应的动作类型
+     * @return 返回指定状态的文件操作记录数据
+     */
+    FileRecord getFileRecordByAction(String userId, String action, String actionType);
+
+    /**
+     * 更新 指定动作类型 的文件操作记录的 动作类型
+     *
+     * @param businessId     文件操作记录系统内唯一标识
+     * @param fromAction     原动作
+     * @param fromActionType 原动作对应的动作类型
+     * @param toAction       新动作
+     * @param toActionType   新动作对应的动作类型
+     * @return 返回更新的条数
+     */
+    Integer updateFileRecordByAction(String businessId, String fromAction, String fromActionType, String toAction, String toActionType);
 }

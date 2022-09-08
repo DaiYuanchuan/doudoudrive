@@ -13,7 +13,9 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
@@ -24,6 +26,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
+import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.*;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
@@ -90,6 +93,8 @@ public class FileController {
 
     private DiskUserAttrManager diskUserAttrManager;
 
+    private DiskFileSearchFeignClient diskFileSearchFeignClient;
+
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
         this.loginManager = loginManager;
@@ -143,6 +148,11 @@ public class FileController {
     @Autowired
     public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
         this.diskUserAttrManager = diskUserAttrManager;
+    }
+
+    @Autowired
+    public void setDiskFileSearchFeignClient(DiskFileSearchFeignClient diskFileSearchFeignClient) {
+        this.diskFileSearchFeignClient = diskFileSearchFeignClient;
     }
 
     @SneakyThrows
@@ -386,12 +396,22 @@ public class FileController {
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
 
         // 检查当前用户是否存在有copy类型的任务(复制与删除操作相互冲突)
-        if (fileRecordManager.getFileRecordByAction(userinfo.getBusinessId(), ConstantConfig.FileRecordAction.ActionEnum.COPY, null)) {
+        if (fileRecordManager.isFileRecordExist(userinfo.getBusinessId(), ConstantConfig.FileRecordAction.ActionEnum.COPY, null)) {
             return Result.build(StatusCodeEnum.TASK_ALREADY_EXIST);
         }
 
+        // 构建查询文件信息的条件
+        QueryElasticsearchDiskFileIdRequestDTO queryFileIdRequest = QueryElasticsearchDiskFileIdRequestDTO.builder()
+                .businessId(requestDTO.getBusinessId())
+                .build();
+        // 获取所有需要进行删除的文件信息
+        Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearchResult = diskFileSearchFeignClient.fileIdSearch(queryFileIdRequest);
+        if (Result.isNotSuccess(fileIdSearchResult) || CollectionUtil.isEmpty(fileIdSearchResult.getData().getContent())) {
+            return Result.build(StatusCodeEnum.FILE_NOT_FOUND);
+        }
+
         // 根据文件id批量删除文件或文件夹
-        fileManager.delete(requestDTO.getBusinessId(), userinfo.getBusinessId());
+        fileManager.delete(fileIdSearchResult.getData().getContent(), userinfo.getBusinessId());
         return Result.ok();
     }
 
