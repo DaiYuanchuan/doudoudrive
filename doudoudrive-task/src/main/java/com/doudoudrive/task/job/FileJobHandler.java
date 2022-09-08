@@ -1,5 +1,6 @@
 package com.doudoudrive.task.job;
 
+import com.alibaba.fastjson.JSONObject;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
@@ -61,7 +62,7 @@ public class FileJobHandler {
                 .action(ConstantConfig.FileRecordAction.ActionEnum.DELETE.status)
                 .build());
         // 打印请求结果
-        XxlJobHelper.log(specificAction.toString());
+        XxlJobHelper.log(JSONObject.toJSONString(specificAction));
         if (Result.isNotSuccess(specificAction)) {
             BusinessExceptionUtil.throwBusinessException(specificAction);
             return ReturnT.FAIL;
