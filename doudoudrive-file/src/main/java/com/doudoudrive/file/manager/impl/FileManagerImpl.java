@@ -176,6 +176,7 @@ public class FileManagerImpl implements FileManager {
      * @return 用户文件模块信息
      */
     @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
     public DiskFile createFolder(String userId, String name, String parentId) {
         // 构建一个文件夹实体信息
         DiskFile diskFile = diskFileConvert.createFileConvert(userId, name, parentId);
@@ -283,6 +284,7 @@ public class FileManagerImpl implements FileManager {
      * @param name 需要更改的文件名
      */
     @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
     public void renameFile(DiskFile file, String name) {
         // 先修改数据库中的文件名
         Integer result = diskFileService.update(DiskFile.builder()
