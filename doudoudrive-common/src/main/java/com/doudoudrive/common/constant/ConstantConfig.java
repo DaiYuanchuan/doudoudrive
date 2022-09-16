@@ -947,7 +947,12 @@ public interface ConstantConfig {
         /**
          * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy());
+        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+
+        /**
+         * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy());
 
         /**
          * 线程池名称

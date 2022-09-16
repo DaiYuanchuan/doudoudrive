@@ -4,6 +4,7 @@ import com.doudoudrive.common.model.dto.response.PageResponse;
 import com.doudoudrive.common.model.pojo.DiskFile;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * <p>用户文件模块服务层接口</p>
@@ -105,4 +106,13 @@ public interface DiskFileService {
      * @return 返回用户文件模块集合
      */
     List<DiskFile> listDiskFile(DiskFile diskFile, String startTime, String endTime, Integer page, Integer pageSize);
+
+    /**
+     * 获取指定文件节点下所有的子节点信息 （递归）
+     *
+     * @param userId   用户系统内唯一标识
+     * @param parentId 文件父级标识
+     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     */
+    void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer);
 }
