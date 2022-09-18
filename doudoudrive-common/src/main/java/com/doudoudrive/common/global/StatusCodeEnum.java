@@ -87,7 +87,9 @@ public enum StatusCodeEnum {
     /**
      * MQ队列类:9xx
      */
-    ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST(900, "消费记录已存在");
+    ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST(900, "消费记录已存在"),
+    ROCKETMQ_SEND_MESSAGE_FAILED(901, "消息发送失败");
+
 
     public final Integer statusCode;
     public final String message;

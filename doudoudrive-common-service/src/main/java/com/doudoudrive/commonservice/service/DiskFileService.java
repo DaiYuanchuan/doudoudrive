@@ -115,4 +115,13 @@ public interface DiskFileService {
      * @param consumer 回调函数中返回查找到的用户文件模块数据集合
      */
     void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer);
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @param fileId 文件业务标识
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    List<DiskFile> fileIdSearch(String userId, List<String> fileId);
 }

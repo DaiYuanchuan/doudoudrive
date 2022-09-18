@@ -232,18 +232,6 @@ public interface ConstantConfig {
     }
 
     /**
-     * RocketMQ生产者组定义
-     */
-    interface ProducerGroup {
-
-        /**
-         * 日志服务生产者
-         */
-        String LOG = "DOUDOU_MQ_PRODUCER_GROUP";
-
-    }
-
-    /**
      * MQ消息发送状态类型枚举
      */
     enum MqMessageSendStatus {
@@ -952,7 +940,12 @@ public interface ConstantConfig {
         /**
          * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy());
+        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+
+        /**
+         * 全局线程池配置，任意地点使用，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        GLOBAL_THREAD_POOL("global-thread-pool", new ThreadPoolExecutor.CallerRunsPolicy());
 
         /**
          * 线程池名称

@@ -349,4 +349,21 @@
         LIMIT 10000;
     </select>
 
+    <!-- 根据文件业务标识批量查询用户文件信息 -->
+    <select id="fileIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
+            resultMap="diskFileResultMap">
+        SELECT
+        <include refid="diskFile"/>
+        FROM `disk_file_${tableSuffix}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            `business_id` IN
+            <foreach collection="fileId" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </trim>
+    </select>
+
 </mapper>

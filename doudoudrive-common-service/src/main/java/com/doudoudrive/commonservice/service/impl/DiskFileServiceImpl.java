@@ -14,8 +14,6 @@ import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskFileDao;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
@@ -36,7 +34,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("diskFileService")
-@DataSource(DataSourceEnum.FILE)
 public class DiskFileServiceImpl implements DiskFileService {
 
     private DiskFileDao diskFileDao;
@@ -276,18 +273,6 @@ public class DiskFileServiceImpl implements DiskFileService {
     }
 
     /**
-     * 返回搜索结果的总数
-     *
-     * @param diskFile  需要查询的用户文件模块实体(这里不能为NULL，且必须包含用户id)
-     * @param startTime 需要查询的开始时间(如果有)
-     * @param endTime   需要查询的结束时间(如果有)
-     * @return 返回搜索结果的总数
-     */
-    private Long countSearch(DiskFile diskFile, String tableSuffix, String startTime, String endTime) {
-        return diskFileDao.countSearch(diskFile, tableSuffix, startTime, endTime);
-    }
-
-    /**
      * 获取指定文件节点下所有的子节点信息 （递归）
      *
      * @param userId   用户系统内唯一标识
@@ -298,7 +283,6 @@ public class DiskFileServiceImpl implements DiskFileService {
     public void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
-
         this.getAllFileInfo(null, userId, parentId, tableSuffix, queryParentIdResponse -> {
             // 获取查询结果中的所有文件夹标识
             List<String> parentFileList = queryParentIdResponse.stream()
@@ -314,6 +298,32 @@ public class DiskFileServiceImpl implements DiskFileService {
     }
 
     /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @param fileId 文件业务标识
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    @Override
+    public List<DiskFile> fileIdSearch(String userId, List<String> fileId) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        return diskFileDao.fileIdSearch(userId, fileId, tableSuffix);
+    }
+
+    /**
+     * 返回搜索结果的总数
+     *
+     * @param diskFile  需要查询的用户文件模块实体(这里不能为NULL，且必须包含用户id)
+     * @param startTime 需要查询的开始时间(如果有)
+     * @param endTime   需要查询的结束时间(如果有)
+     * @return 返回搜索结果的总数
+     */
+    private Long countSearch(DiskFile diskFile, String tableSuffix, String startTime, String endTime) {
+        return diskFileDao.countSearch(diskFile, tableSuffix, startTime, endTime);
+    }
+
+    /**
      * 获取指定父目录下的所有文件信息
      *
      * @param autoId       自增长标识，用于分页游标
@@ -324,21 +334,22 @@ public class DiskFileServiceImpl implements DiskFileService {
      */
     private void getAllFileInfo(Long autoId, String userId, List<String> parentFileId,
                                 String tableSuffix, Consumer<List<DiskFile>> consumer) {
-        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.TASK_RECURSION_EXECUTOR,
-                () -> CollectionUtil.collectionCutting(parentFileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(parentId -> {
-                    // 获取到当前文件的所有子文件
-                    List<DiskFile> queryParentIdResponse = diskFileDao.fileParentIdSearch(autoId, userId, parentId, tableSuffix);
-                    if (CollectionUtil.isEmpty(queryParentIdResponse)) {
-                        // 查询结果为空时，结束当前递归
-                        return;
-                    }
-                    // 进行任务的回调，执行回调函数
-                    consumer.accept(queryParentIdResponse);
+        for (List<String> parentId : CollectionUtil.collectionCutting(parentFileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
+            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.TASK_RECURSION_EXECUTOR, () -> {
+                // 获取到当前文件的所有子文件
+                List<DiskFile> queryParentIdResponse = diskFileDao.fileParentIdSearch(autoId, userId, parentId, tableSuffix);
+                if (CollectionUtil.isEmpty(queryParentIdResponse)) {
+                    // 查询结果为空时，结束当前递归
+                    return;
+                }
+                // 进行任务的回调，执行回调函数
+                consumer.accept(queryParentIdResponse);
 
-                    // 获取最后一个节点的id
-                    int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
-                    // 递归继续翻页查询
-                    this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
-                }));
+                // 获取最后一个节点的id
+                int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
+                // 递归继续翻页查询
+                this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
+            });
+        }
     }
 }

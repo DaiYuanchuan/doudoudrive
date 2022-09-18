@@ -13,9 +13,7 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
@@ -50,6 +48,7 @@ import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -395,23 +394,14 @@ public class FileController {
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
 
-        // 检查当前用户是否存在有copy类型的任务(复制与删除操作相互冲突)
-        if (fileRecordManager.isFileRecordExist(userinfo.getBusinessId(), ConstantConfig.FileRecordAction.ActionEnum.COPY, null)) {
-            return Result.build(StatusCodeEnum.TASK_ALREADY_EXIST);
-        }
-
-        // 构建查询文件信息的条件
-        QueryElasticsearchDiskFileIdRequestDTO queryFileIdRequest = QueryElasticsearchDiskFileIdRequestDTO.builder()
-                .businessId(requestDTO.getBusinessId())
-                .build();
-        // 获取所有需要进行删除的文件信息
-        Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearchResult = diskFileSearchFeignClient.fileIdSearch(queryFileIdRequest);
-        if (Result.isNotSuccess(fileIdSearchResult) || CollectionUtil.isEmpty(fileIdSearchResult.getData().getContent())) {
+        // 根据传入的文件业务标识查找是否存在对应的文件信息
+        List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(userinfo.getBusinessId(), requestDTO.getBusinessId());
+        if (CollectionUtil.isEmpty(fileIdSearchResult)) {
             return Result.build(StatusCodeEnum.FILE_NOT_FOUND);
         }
 
         // 根据文件id批量删除文件或文件夹
-        fileManager.delete(fileIdSearchResult.getData().getContent(), userinfo.getBusinessId());
+        fileManager.delete(fileIdSearchResult, userinfo.getBusinessId(), Boolean.TRUE);
         return Result.ok();
     }
 

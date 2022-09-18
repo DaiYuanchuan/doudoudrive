@@ -10,6 +10,7 @@ import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * <p>用户文件信息服务的通用业务处理层接口</p>
@@ -62,8 +63,9 @@ public interface FileManager {
      *
      * @param content 需要删除的文件或文件夹信息
      * @param userId  需要删除的文件或文件夹所属用户标识
+     * @param sendMsg 是否发送MQ消息，用于删除文件(true:发送，false:不发送)
      */
-    void delete(List<DiskFileModel> content, String userId);
+    void delete(List<DiskFile> content, String userId, boolean sendMsg);
 
     /**
      * 文件信息翻页搜索
@@ -73,6 +75,24 @@ public interface FileManager {
      * @return 文件信息翻页搜索结果
      */
     FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, String marker);
+
+    /**
+     * 获取指定文件节点下所有的子节点信息 （递归）
+     *
+     * @param userId   用户系统内唯一标识
+     * @param parentId 文件父级标识
+     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     */
+    void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer);
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @param fileId 文件业务标识
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    List<DiskFile> fileIdSearch(String userId, List<String> fileId);
 
     /**
      * 文件的parentId校验机制，针对是否存在、是否与自己有关、是否为文件夹的校验

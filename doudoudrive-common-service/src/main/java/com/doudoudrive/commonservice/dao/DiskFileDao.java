@@ -1,6 +1,8 @@
 package com.doudoudrive.commonservice.dao;
 
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.commonservice.annotation.DataSource;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +15,7 @@ import java.util.List;
  * @author Dan
  **/
 @Repository
+@DataSource(DataSourceEnum.FILE)
 public interface DiskFileDao {
 
     /**
@@ -138,4 +141,16 @@ public interface DiskFileDao {
                                       @Param("userId") String userId,
                                       @Param("parentId") List<String> parentId,
                                       @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId      用户系统内唯一标识
+     * @param fileId      文件业务标识
+     * @param tableSuffix 表后缀
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    List<DiskFile> fileIdSearch(@Param("userId") String userId,
+                                @Param("fileId") List<String> fileId,
+                                @Param("tableSuffix") String tableSuffix);
 }
