@@ -195,26 +195,35 @@ public class FileServiceConsumer {
                     fileId.addAll(fileFolderList);
                 }
 
+                // 如果消息中包含有文件信息，则需要先删除文件信息
+                if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
+                    deleteHandler(fileIdSearchResult, consumerRequest.getUserId());
+                }
+
                 // 递归获取指定文件节点下所有的子节点信息
-                fileManager.getUserFileAllNode(consumerRequest.getUserId(), fileId, queryParentIdResponse -> {
-                    try {
-                        // 如果消息中包含有文件信息，则需要删除文件信息
-                        if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
-                            queryParentIdResponse.addAll(fileIdSearchResult);
-                        }
-                        // 根据文件id批量删除文件或文件夹
-                        fileManager.delete(queryParentIdResponse, consumerRequest.getUserId(), Boolean.FALSE);
-                    } catch (Exception e) {
-                        // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
-                        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
-                        SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
-                                .userId(consumerRequest.getUserId())
-                                .businessId(queryParentIdResponse.stream().map(DiskFile::getBusinessId).toList())
-                                .build()));
-                        log.error("发送消息到MQ, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}", destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage());
-                    }
-                });
+                fileManager.getUserFileAllNode(consumerRequest.getUserId(), fileId, queryParentIdResponse -> deleteHandler(queryParentIdResponse, consumerRequest.getUserId()));
             }
         });
+    }
+
+    /**
+     * 删除文件消费处理程序
+     *
+     * @param content 文件内容
+     * @param userId  用户Id
+     */
+    private void deleteHandler(List<DiskFile> content, String userId) {
+        try {
+            // 根据文件id批量删除文件或文件夹
+            fileManager.delete(content, userId, Boolean.FALSE);
+        } catch (Exception e) {
+            // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userId)
+                    .businessId(content.stream().map(DiskFile::getBusinessId).toList())
+                    .build()));
+            log.error("发送消息到MQ, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}", destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage());
+        }
     }
 }
