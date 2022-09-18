@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -183,34 +182,25 @@ public class FileServiceConsumer {
     public void deleteFileConsumer(DeleteFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
         globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.GLOBAL_THREAD_POOL, () -> {
             for (List<String> fileId : CollectionUtil.collectionCutting(consumerRequest.getBusinessId(), ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
-                // 其中所有的文件夹信息集合
-                List<String> fileFolderList = new ArrayList<>();
-
-                // 其中所有的文件信息集合
-                List<DiskFile> fileInfoList = new ArrayList<>();
 
                 // 根据传入的文件业务标识查找是否存在对应的文件信息
                 List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(consumerRequest.getUserId(), fileId);
-                for (DiskFile diskFile : fileIdSearchResult) {
-                    // 判断当前文件是否为文件夹
-                    if (diskFile.getFileFolder()) {
-                        fileFolderList.add(diskFile.getBusinessId());
-                    } else {
-                        fileInfoList.add(diskFile);
-                    }
-                }
+                // 其中所有的文件夹信息集合
+                List<String> fileFolderList = fileIdSearchResult.stream()
+                        .filter(DiskFile::getFileFolder)
+                        .map(DiskFile::getBusinessId).toList();
 
-                // 如果不存在文件夹信息，则默认消息传递过来的数据全部为文件夹信息
-                if (CollectionUtil.isEmpty(fileFolderList)) {
-                    fileFolderList.addAll(fileId);
+                // 如果存在文件夹信息，则需要删除文件夹信息
+                if (CollectionUtil.isNotEmpty(fileFolderList)) {
+                    fileId.addAll(fileFolderList);
                 }
 
                 // 递归获取指定文件节点下所有的子节点信息
-                fileManager.getUserFileAllNode(consumerRequest.getUserId(), fileFolderList, queryParentIdResponse -> {
+                fileManager.getUserFileAllNode(consumerRequest.getUserId(), fileId, queryParentIdResponse -> {
                     try {
                         // 如果消息中包含有文件信息，则需要删除文件信息
-                        if (CollectionUtil.isNotEmpty(fileInfoList)) {
-                            queryParentIdResponse.addAll(fileInfoList);
+                        if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
+                            queryParentIdResponse.addAll(fileIdSearchResult);
                         }
                         // 根据文件id批量删除文件或文件夹
                         fileManager.delete(queryParentIdResponse, consumerRequest.getUserId(), Boolean.FALSE);
