@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -215,16 +216,17 @@ public class FileServiceConsumer {
             // 根据文件id批量删除文件或文件夹
             fileManager.delete(content, userId, Boolean.FALSE);
         } catch (Exception e) {
-            List<String> fileIdList = content.stream().map(DiskFile::getBusinessId).toList();
-            CollectionUtil.collectionCutting(fileIdList, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(businessId -> {
-                // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
-                String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
-                        .userId(userId)
-                        .businessId(businessId)
-                        .build()));
-                log.error("发送消息到MQ, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}", destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage());
-            });
+            // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userId)
+                    .businessId(content.stream().map(DiskFile::getBusinessId).toList())
+                    .build()));
+            // 消息发送失败，打印错误日志
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                log.error("send to mq, destination:{}, msgId:{}, sendStatus:{}, contentSize:{}, errorMsg:{}, sendResult:{}",
+                        destination, sendResult.getMsgId(), sendResult.getSendStatus(), content.size(), e.getMessage(), sendResult);
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.dao.DiskFileDao;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -308,7 +309,10 @@ public class DiskFileServiceImpl implements DiskFileService {
     public List<DiskFile> fileIdSearch(String userId, List<String> fileId) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
-        return diskFileDao.fileIdSearch(userId, fileId, tableSuffix);
+        List<DiskFile> fileIdSearchResult = Lists.newArrayListWithExpectedSize(fileId.size());
+        CollectionUtil.collectionCutting(fileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)
+                .forEach(list -> fileIdSearchResult.addAll(diskFileDao.fileIdSearch(userId, list, tableSuffix)));
+        return fileIdSearchResult;
     }
 
     /**
@@ -334,13 +338,13 @@ public class DiskFileServiceImpl implements DiskFileService {
      */
     private void getAllFileInfo(Long autoId, String userId, List<String> parentFileId,
                                 String tableSuffix, Consumer<List<DiskFile>> consumer) {
-        for (List<String> parentId : CollectionUtil.collectionCutting(parentFileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
-            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.TASK_RECURSION_EXECUTOR, () -> {
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.TASK_RECURSION_EXECUTOR, () -> {
+            for (List<String> parentId : CollectionUtil.collectionCutting(parentFileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
                 // 获取到当前文件的所有子文件
                 List<DiskFile> queryParentIdResponse = diskFileDao.fileParentIdSearch(autoId, userId, parentId, tableSuffix);
                 if (CollectionUtil.isEmpty(queryParentIdResponse)) {
-                    // 查询结果为空时，结束当前递归
-                    return;
+                    // 查询结果为空时，跳出当前循环
+                    continue;
                 }
                 // 进行任务的回调，执行回调函数
                 consumer.accept(queryParentIdResponse);
@@ -349,7 +353,7 @@ public class DiskFileServiceImpl implements DiskFileService {
                 int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
                 // 递归继续翻页查询
                 this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
-            });
-        }
+            }
+        });
     }
 }
