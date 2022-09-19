@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -182,28 +181,26 @@ public class FileServiceConsumer {
     @RocketmqTagDistribution(messageClass = DeleteFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.DELETE_FILE)
     public void deleteFileConsumer(DeleteFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
         globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.GLOBAL_THREAD_POOL, () -> {
+            // 根据传入的文件业务标识查找是否存在对应的文件信息
+            List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(consumerRequest.getUserId(), consumerRequest.getBusinessId());
             // 其中所有的文件夹信息集合
-            List<String> fileFolderList = new ArrayList<>();
+            List<String> fileFolderList = fileIdSearchResult.stream()
+                    .filter(DiskFile::getFileFolder)
+                    .map(DiskFile::getBusinessId).toList();
 
-            // 其中所有的文件信息集合
-            List<DiskFile> fileInfoList = new ArrayList<>();
-
-            // 筛选出其中文件、文件夹信息
-            for (DiskFile diskFile : consumerRequest.getContent()) {
-                if (diskFile.getFileFolder()) {
-                    fileFolderList.add(diskFile.getBusinessId());
-                } else {
-                    fileInfoList.add(diskFile);
-                }
+            // 如果存在文件夹信息，则需要删除文件夹信息
+            if (CollectionUtil.isNotEmpty(fileFolderList)) {
+                consumerRequest.getBusinessId().addAll(fileFolderList);
             }
 
             // 如果消息中包含有文件信息，则需要先删除文件信息
-            if (CollectionUtil.isNotEmpty(fileInfoList)) {
-                deleteHandler(fileInfoList, consumerRequest.getUserId());
+            if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
+                deleteHandler(fileIdSearchResult, consumerRequest.getUserId());
             }
 
             // 递归获取指定文件节点下所有的子节点信息
-            fileManager.getUserFileAllNode(consumerRequest.getUserId(), fileFolderList, queryParentIdResponse -> deleteHandler(queryParentIdResponse, consumerRequest.getUserId()));
+            fileManager.getUserFileAllNode(consumerRequest.getUserId(), consumerRequest.getBusinessId(),
+                    queryParentIdResponse -> deleteHandler(queryParentIdResponse, consumerRequest.getUserId()));
         });
     }
 
@@ -218,12 +215,13 @@ public class FileServiceConsumer {
             // 根据文件id批量删除文件或文件夹
             fileManager.delete(content, userId, Boolean.FALSE);
         } catch (Exception e) {
-            CollectionUtil.collectionCutting(content, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(fileInfo -> {
+            List<String> fileIdList = content.stream().map(DiskFile::getBusinessId).toList();
+            CollectionUtil.collectionCutting(fileIdList, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(businessId -> {
                 // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
                 String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
                 SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
                         .userId(userId)
-                        .content(fileInfo)
+                        .businessId(businessId)
                         .build()));
                 log.error("发送消息到MQ, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}", destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage());
             });

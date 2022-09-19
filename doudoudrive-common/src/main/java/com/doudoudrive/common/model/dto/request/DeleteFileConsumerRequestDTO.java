@@ -1,6 +1,5 @@
 package com.doudoudrive.common.model.dto.request;
 
-import com.doudoudrive.common.model.pojo.DiskFile;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,8 +32,8 @@ public class DeleteFileConsumerRequestDTO implements Serializable {
     private String userId;
 
     /**
-     * 指定需要删除的文件信息
+     * 指定需要删除的文件的业务id(这里应该是文件夹的业务id)
      */
-    private List<DiskFile> content;
+    private List<String> businessId;
 
 }

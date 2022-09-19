@@ -346,7 +346,7 @@ public class FileManagerImpl implements FileManager {
         List<String> allFileIdList = new ArrayList<>();
 
         // 其中所有的文件夹信息集合
-        List<DiskFile> fileFolderList = new ArrayList<>();
+        List<String> fileFolderList = new ArrayList<>();
 
         // 构建文件操作记录信息
         List<FileRecord> fileRecordList = new ArrayList<>();
@@ -358,12 +358,7 @@ public class FileManagerImpl implements FileManager {
             allFileIdList.add(diskFile.getBusinessId());
             // 判断当前文件是否为文件夹
             if (diskFile.getFileFolder()) {
-                fileFolderList.add(DiskFile.builder()
-                        .businessId(diskFile.getBusinessId())
-                        .fileSize(diskFile.getFileSize())
-                        .fileEtag(diskFile.getFileEtag())
-                        .fileFolder(diskFile.getFileFolder())
-                        .build());
+                fileFolderList.add(diskFile.getBusinessId());
             } else {
                 // 构建文件操作记录信息，用于记录文件的删除操作
                 fileRecordList.add(fileRecordConvert.diskFileConvertFileRecord(diskFile, userId,
@@ -391,7 +386,7 @@ public class FileManagerImpl implements FileManager {
             String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
             SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
                     .userId(userId)
-                    .content(fileFolderList)
+                    .businessId(fileFolderList)
                     .build()));
             // 判断消息是否发送成功
             if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
