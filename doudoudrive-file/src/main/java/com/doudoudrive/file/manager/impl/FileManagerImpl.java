@@ -408,7 +408,6 @@ public class FileManagerImpl implements FileManager {
                 reason = deleteFileResult.getMessage();
             } catch (Exception e) {
                 // 删除es中的文件信息失败时抛出的异常
-                log.error(e.getMessage(), e);
                 deleteFileResult = null;
             }
 
