@@ -38,7 +38,6 @@ import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
-import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileRecordManager;
 import com.doudoudrive.file.manager.OssFileManager;
@@ -95,8 +94,6 @@ public class FileManagerImpl implements FileManager {
 
     private FileRecordManager fileRecordManager;
 
-    private DiskUserAttrManager diskUserAttrManager;
-
     /**
      * RocketMQ消息模型
      */
@@ -147,11 +144,6 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setFileRecordManager(FileRecordManager fileRecordManager) {
         this.fileRecordManager = fileRecordManager;
-    }
-
-    @Autowired
-    public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
-        this.diskUserAttrManager = diskUserAttrManager;
     }
 
     @Autowired
