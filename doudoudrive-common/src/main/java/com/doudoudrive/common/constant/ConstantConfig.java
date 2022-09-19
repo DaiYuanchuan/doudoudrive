@@ -177,6 +177,11 @@ public interface ConstantConfig {
          * 文件服务
          */
         String FILE_SERVICE = "FILE_SERVICE";
+
+        /**
+         * 文件搜索服务
+         */
+        String FILE_SEARCH_SERVICE = "FILE_SEARCH_SERVICE";
     }
 
     /**
@@ -208,6 +213,11 @@ public interface ConstantConfig {
          * 删除文件服务
          */
         String DELETE_FILE = "DELETE_FILE";
+
+        /**
+         * 删除文件ES服务
+         */
+        String DELETE_FILE_ES = "DELETE_FILE_ES";
     }
 
     /**
@@ -229,6 +239,11 @@ public interface ConstantConfig {
          * FILE服务所属消费者组
          */
         String FILE = "FILE_CONSUMER_GROUP";
+
+        /**
+         * FILE搜索服务所属消费者组
+         */
+        String FILE_SEARCH = "FILE_SEARCH_CONSUMER_GROUP";
     }
 
     /**

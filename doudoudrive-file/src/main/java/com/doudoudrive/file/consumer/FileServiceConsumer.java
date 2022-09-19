@@ -174,7 +174,7 @@ public class FileServiceConsumer {
     }
 
     /**
-     * 删除文件消费处理，当前消费者服务需要做幂等处理
+     * 删除文件消费处理
      *
      * @param consumerRequest 删除文件时的消费者请求数据模型
      * @param messageContext  mq消息内容

@@ -21,11 +21,9 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
-import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
@@ -395,37 +393,18 @@ public class FileManagerImpl implements FileManager {
             }
         }
 
+        // 批量删除es中的文件信息
         for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_ONE_THOUSAND)) {
-            // 异常原因
-            String reason = StatusCodeEnum.INTERFACE_INTERNAL_EXCEPTION.message;
-            Result<DeleteElasticsearchDiskFileResponseDTO> deleteFileResult;
-            try {
-                // 删除成功后，删除es中的文件信息
-                deleteFileResult = diskFileSearchFeignClient.deleteElasticsearchDiskFile(DeleteElasticsearchDiskFileRequestDTO.builder()
-                        .businessId(allFileId)
-                        .build());
-                // 抛出异常原因
-                reason = deleteFileResult.getMessage();
-            } catch (Exception e) {
-                // 删除es中的文件信息失败时抛出的异常
-                deleteFileResult = null;
-            }
-
-            // 判断删除es中的文件信息是否成功
-            if (Result.isNotSuccess(deleteFileResult)) {
-                // 判断当前删除的文件大小总量是否为0
-                if (totalSize.compareTo(BigDecimal.ZERO) > NumberConstant.INTEGER_ZERO) {
-                    // 出现异常时手动增加用户已用磁盘容量
-                    BigDecimal totalDiskCapacity = diskUserAttrManager.getUserAttrValue(null, userId, ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
-                    Integer increase = diskUserAttrService.increase(userId, ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY,
-                            totalSize.stripTrailingZeros().toPlainString(), totalDiskCapacity.stripTrailingZeros().toPlainString());
-                    if (increase <= NumberConstant.INTEGER_ZERO) {
-                        // 增加失败，抛出异常
-                        BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SPACE_INSUFFICIENT);
-                    }
-                }
-                // 删除失败，抛出异常
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INTERFACE_INTERNAL_EXCEPTION, reason);
+            // 使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE_ES;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userId)
+                    .businessId(allFileId)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                // 消息发送失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
             }
         }
     }
