@@ -1,9 +1,10 @@
 package com.doudoudrive.file.model.convert;
 
-import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.model.dto.response.QueryExecutableTaskResponseDTO;
+import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.Date;
@@ -15,15 +16,23 @@ import java.util.Date;
  * @author Dan
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {Boolean.class, Date.class, ConstantConfig.class})
+        imports = {Date.class})
 public interface FileRecordConvert {
 
     /**
-     * 将 FileRecord(文件临时操作记录模块实体) 类型转换为 QueryFileRecordActionResponseDTO(获取指定动作的文件操作记录数据时的响应数据模型)
+     * 将 DiskFile(用户文件模块实体类) 类型转换为 FileRecord(文件临时操作记录模块实体)
      *
-     * @param content 文件临时操作记录模块实体
-     * @return 获取指定动作的文件操作记录数据时的响应数据模型
+     * @param content 用户文件模块实体类
+     * @return 文件临时操作记录模块实体
      */
-    QueryExecutableTaskResponseDTO fileRecordConvertQueryFileRecordActionResponse(FileRecord content);
+    @Mappings({
+            @Mapping(target = "fileId", source = "content.businessId"),
+            @Mapping(target = "userId", source = "userId"),
+            @Mapping(target = "autoId", expression = "java(null)"),
+            @Mapping(target = "businessId", expression = "java(null)"),
+            @Mapping(target = "createTime", expression = "java(new Date())"),
+            @Mapping(target = "updateTime", expression = "java(new Date())")
+    })
+    FileRecord diskFileConvertFileRecord(DiskFile content, String userId, String action, String actionType);
 
 }

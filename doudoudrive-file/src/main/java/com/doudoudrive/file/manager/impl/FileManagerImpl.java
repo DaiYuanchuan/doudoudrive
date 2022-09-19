@@ -45,6 +45,7 @@ import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileRecordManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
+import com.doudoudrive.file.model.convert.FileRecordConvert;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
@@ -103,6 +104,8 @@ public class FileManagerImpl implements FileManager {
      */
     private RocketMQTemplate rocketmqTemplate;
 
+    private FileRecordConvert fileRecordConvert;
+
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
         this.cacheManagerConfig = cacheManagerConfig;
@@ -156,6 +159,11 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
         this.rocketmqTemplate = rocketmqTemplate;
+    }
+
+    @Autowired(required = false)
+    public void setFileRecordConvert(FileRecordConvert fileRecordConvert) {
+        this.fileRecordConvert = fileRecordConvert;
     }
 
     /**
@@ -350,17 +358,17 @@ public class FileManagerImpl implements FileManager {
             allFileIdList.add(diskFile.getBusinessId());
             // 判断当前文件是否为文件夹
             if (diskFile.getFileFolder()) {
-                fileFolderList.add(diskFile);
+                fileFolderList.add(DiskFile.builder()
+                        .businessId(diskFile.getBusinessId())
+                        .fileSize(diskFile.getFileSize())
+                        .fileEtag(diskFile.getFileEtag())
+                        .fileFolder(diskFile.getFileFolder())
+                        .build());
             } else {
                 // 构建文件操作记录信息，用于记录文件的删除操作
-                FileRecord fileRecord = FileRecord.builder()
-                        .userId(userId)
-                        .fileId(diskFile.getBusinessId())
-                        .fileEtag(diskFile.getFileEtag())
-                        .action(ConstantConfig.FileRecordAction.ActionEnum.FILE.status)
-                        .actionType(ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status)
-                        .build();
-                fileRecordList.add(fileRecord);
+                fileRecordList.add(fileRecordConvert.diskFileConvertFileRecord(diskFile, userId,
+                        ConstantConfig.FileRecordAction.ActionEnum.FILE.status,
+                        ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status));
             }
             // 计算当前删除的文件大小总量
             totalSize = totalSize.add(new BigDecimal(diskFile.getFileSize()));
