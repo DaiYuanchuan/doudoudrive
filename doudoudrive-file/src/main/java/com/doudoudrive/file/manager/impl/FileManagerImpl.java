@@ -338,7 +338,7 @@ public class FileManagerImpl implements FileManager {
         List<String> allFileIdList = new ArrayList<>();
 
         // 其中所有的文件夹信息集合
-        List<String> fileFolderList = new ArrayList<>();
+        List<DiskFile> fileFolderList = new ArrayList<>();
 
         // 构建文件操作记录信息
         List<FileRecord> fileRecordList = new ArrayList<>();
@@ -350,7 +350,7 @@ public class FileManagerImpl implements FileManager {
             allFileIdList.add(diskFile.getBusinessId());
             // 判断当前文件是否为文件夹
             if (diskFile.getFileFolder()) {
-                fileFolderList.add(diskFile.getBusinessId());
+                fileFolderList.add(diskFile);
             } else {
                 // 构建文件操作记录信息，用于记录文件的删除操作
                 FileRecord fileRecord = FileRecord.builder()
@@ -373,7 +373,9 @@ public class FileManagerImpl implements FileManager {
         fileRecordManager.insertBatch(fileRecordList);
 
         // 原子性服务减去用户已用磁盘容量属性
-        diskUserAttrService.deducted(userId, ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, totalSize.stripTrailingZeros().toPlainString());
+        if (totalSize.compareTo(BigDecimal.ZERO) > NumberConstant.INTEGER_ZERO) {
+            diskUserAttrService.deducted(userId, ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, totalSize.stripTrailingZeros().toPlainString());
+        }
 
         // 发送MQ消息，用于删除子文件夹下的所有文件
         if (sendMsg) {
@@ -381,7 +383,7 @@ public class FileManagerImpl implements FileManager {
             String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
             SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
                     .userId(userId)
-                    .businessId(fileFolderList)
+                    .content(fileFolderList)
                     .build()));
             // 判断消息是否发送成功
             if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
@@ -421,7 +423,7 @@ public class FileManagerImpl implements FileManager {
                     }
                 }
                 // 删除失败，抛出异常
-                throw new RuntimeException(reason);
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INTERFACE_INTERNAL_EXCEPTION, reason);
             }
         }
     }
