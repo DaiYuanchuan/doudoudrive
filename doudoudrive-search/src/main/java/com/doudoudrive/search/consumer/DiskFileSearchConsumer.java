@@ -5,6 +5,7 @@ import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.search.manager.DiskFileSearchManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,9 @@ public class DiskFileSearchConsumer {
      */
     @RocketmqTagDistribution(messageClass = DeleteFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.DELETE_FILE_ES)
     public void deleteFileConsumer(DeleteFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
-        // 删除es中的数据
-        diskFileSearchManager.deleteDiskFile(consumerRequest.getBusinessId());
+        if (CollectionUtil.isNotEmpty(consumerRequest.getBusinessId())) {
+            // 删除es中的数据
+            diskFileSearchManager.deleteDiskFile(consumerRequest.getBusinessId());
+        }
     }
 }
