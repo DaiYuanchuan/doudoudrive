@@ -24,8 +24,10 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
-import com.doudoudrive.file.client.DiskFileSearchFeignClient;
-import com.doudoudrive.file.manager.*;
+import com.doudoudrive.file.manager.DiskUserAttrManager;
+import com.doudoudrive.file.manager.FileManager;
+import com.doudoudrive.file.manager.OssFileManager;
+import com.doudoudrive.file.manager.QiNiuManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
@@ -68,8 +70,6 @@ public class FileController {
 
     private FileManager fileManager;
 
-    private FileRecordManager fileRecordManager;
-
     private DiskFileConvert diskFileConvert;
 
     private DiskUserAttrService diskUserAttrService;
@@ -92,8 +92,6 @@ public class FileController {
 
     private DiskUserAttrManager diskUserAttrManager;
 
-    private DiskFileSearchFeignClient diskFileSearchFeignClient;
-
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
         this.loginManager = loginManager;
@@ -102,11 +100,6 @@ public class FileController {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
-    }
-
-    @Autowired
-    public void setFileRecordManager(FileRecordManager fileRecordManager) {
-        this.fileRecordManager = fileRecordManager;
     }
 
     @Autowired(required = false)
@@ -147,11 +140,6 @@ public class FileController {
     @Autowired
     public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
         this.diskUserAttrManager = diskUserAttrManager;
-    }
-
-    @Autowired
-    public void setDiskFileSearchFeignClient(DiskFileSearchFeignClient diskFileSearchFeignClient) {
-        this.diskFileSearchFeignClient = diskFileSearchFeignClient;
     }
 
     @SneakyThrows
