@@ -14,8 +14,6 @@ import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.FileRecordDao;
 import com.doudoudrive.commonservice.service.FileRecordService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("fileRecordService")
-@DataSource(DataSourceEnum.FILE)
 public class FileRecordServiceImpl implements FileRecordService {
 
     private FileRecordDao fileRecordDao;
@@ -296,13 +293,14 @@ public class FileRecordServiceImpl implements FileRecordService {
      * 获取指定状态的文件操作记录数据
      *
      * @param userId     用户id
+     * @param etag       文件唯一标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 返回指定状态的文件操作记录数据
      */
     @Override
-    public FileRecord getFileRecordByAction(String userId, String action, String actionType) {
-        return fileRecordDao.getFileRecordByAction(userId, action, actionType);
+    public FileRecord getFileRecordByAction(String userId, String etag, String action, String actionType) {
+        return fileRecordDao.getFileRecordByAction(userId, etag, action, actionType);
     }
 
     /**

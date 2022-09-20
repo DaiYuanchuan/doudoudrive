@@ -1,6 +1,8 @@
 package com.doudoudrive.commonservice.dao;
 
 import com.doudoudrive.common.model.pojo.FileRecord;
+import com.doudoudrive.commonservice.annotation.DataSource;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +15,7 @@ import java.util.List;
  * @author Dan
  **/
 @Repository
+@DataSource(DataSourceEnum.FILE)
 public interface FileRecordDao {
 
     /**
@@ -143,11 +146,13 @@ public interface FileRecordDao {
      * 根据action和actionType查询指定状态的文件操作记录，只返回一条数据
      *
      * @param userId     用户标识
+     * @param etag       文件唯一标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 返回查找到的文件操作记录实体
      */
     FileRecord getFileRecordByAction(@Param("userId") String userId,
+                                     @Param("etag") String etag,
                                      @Param("action") String action,
                                      @Param("actionType") String actionType);
 

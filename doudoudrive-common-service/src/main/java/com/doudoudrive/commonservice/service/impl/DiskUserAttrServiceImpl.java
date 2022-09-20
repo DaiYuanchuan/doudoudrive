@@ -8,8 +8,6 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskUserAttrDao;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.google.common.collect.MapDifference;
@@ -32,7 +30,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("diskUserAttrService")
-@DataSource(DataSourceEnum.USERINFO)
 public class DiskUserAttrServiceImpl implements DiskUserAttrService {
 
     private DiskUserAttrDao diskUserAttrDao;

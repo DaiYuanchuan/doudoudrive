@@ -148,11 +148,12 @@ public interface FileRecordService {
      * 获取指定状态的文件操作记录数据
      *
      * @param userId     用户id
+     * @param etag       文件唯一标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 返回指定状态的文件操作记录数据
      */
-    FileRecord getFileRecordByAction(String userId, String action, String actionType);
+    FileRecord getFileRecordByAction(String userId, String etag, String action, String actionType);
 
     /**
      * 更新 指定动作类型 的文件操作记录的 动作类型

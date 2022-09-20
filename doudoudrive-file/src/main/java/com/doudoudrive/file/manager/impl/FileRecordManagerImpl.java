@@ -30,6 +30,16 @@ public class FileRecordManagerImpl implements FileRecordManager {
     }
 
     /**
+     * 新增文件操作记录
+     *
+     * @param fileRecord 需要新增的文件操作记录实体
+     */
+    @Override
+    public void insert(FileRecord fileRecord) {
+        fileRecordService.insert(fileRecord);
+    }
+
+    /**
      * 批量新增文件操作记录
      *
      * @param list 需要新增的文件操作记录集合
@@ -84,13 +94,14 @@ public class FileRecordManagerImpl implements FileRecordManager {
      * 获取指定状态的文件操作记录数据
      *
      * @param userId     用户id
+     * @param etag       文件唯一标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
      * @return 返回指定状态的文件操作记录数据
      */
     @Override
-    public FileRecord getFileRecordByAction(String userId, String action, String actionType) {
-        return fileRecordService.getFileRecordByAction(userId, action, actionType);
+    public FileRecord getFileRecordByAction(String userId, String etag, String action, String actionType) {
+        return fileRecordService.getFileRecordByAction(userId, etag, action, actionType);
     }
 
     /**

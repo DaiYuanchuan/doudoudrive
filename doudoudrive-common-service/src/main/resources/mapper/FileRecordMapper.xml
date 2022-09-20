@@ -298,6 +298,9 @@
             <if test="null != userId and '' != userId">
                 `user_id` = #{userId} AND
             </if>
+            <if test="null != etag and '' != etag">
+                `file_etag` = #{etag} AND
+            </if>
             <if test="null != action and '' != action">
                 `action` = #{action} AND
             </if>
