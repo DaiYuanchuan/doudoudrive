@@ -386,7 +386,7 @@ public class FileManagerImpl implements FileManager {
         }
 
         // 批量删除es中的文件信息
-        for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_ONE_THOUSAND)) {
+        for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_TEN_THOUSAND)) {
             // 使用sync模式发送消息，保证消息发送成功
             String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE_ES;
             SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
