@@ -503,7 +503,7 @@ public class FileManagerImpl implements FileManager {
             return;
         }
         // 根据文件标识查找文件对象
-        DiskFile diskFile = this.getDiskFile(userId, parentId);
+        DiskFile diskFile = diskFileService.getDiskFile(userId, parentId);
         if (diskFile == null || !diskFile.getUserId().equals(userId)) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.PARENT_ID_NOT_FOUND);
         }
