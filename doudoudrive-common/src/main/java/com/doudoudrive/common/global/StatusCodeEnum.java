@@ -77,6 +77,7 @@ public enum StatusCodeEnum {
     UNSUPPORTED_SORT(706, "不支持的排序"),
     INVALID_MARKER(707, "无效的marker"),
     TASK_ALREADY_EXIST(708, "当前有正在执行中的任务，请稍后重试"),
+    FILE_CREATE_FAILED(709, "文件创建失败"),
 
     /**
      * 接口类:8xx

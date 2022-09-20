@@ -197,7 +197,7 @@ public class FileManagerImpl implements FileManager {
         // 保存用户文件夹
         Integer insert = diskFileService.insert(diskFile);
         if (insert <= NumberConstant.INTEGER_ZERO) {
-            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_CREATE_FAILED);
         }
         // 用户文件信息先入库，然后入es
         Result<String> saveElasticsearchResult = this.saveElasticsearchDiskFile(diskFile);
@@ -242,7 +242,7 @@ public class FileManagerImpl implements FileManager {
             // 将文件存入用户文件表中，忽略抛出的异常
             Integer insert = diskFileService.insert(userFile);
             if (insert <= NumberConstant.INTEGER_ZERO) {
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SYSTEM_ERROR);
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_CREATE_FAILED);
             }
             // 删除文件记录表中指定文件的所有的状态为被删除的记录数据
             fileRecordManager.deleteAction(null, userFile.getFileEtag(), ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
