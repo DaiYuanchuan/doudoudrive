@@ -22,7 +22,10 @@ public interface FileRecordConvert {
     /**
      * 将 DiskFile(用户文件模块实体类) 类型转换为 FileRecord(文件临时操作记录模块实体)
      *
-     * @param content 用户文件模块实体类
+     * @param content    用户文件模块实体类
+     * @param userId     用户id
+     * @param action     动作枚举
+     * @param actionType 动作类型枚举
      * @return 文件临时操作记录模块实体
      */
     @Mappings({
