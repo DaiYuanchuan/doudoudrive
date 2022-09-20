@@ -23,7 +23,7 @@ public interface DiskFileSearchManager {
      *
      * @param diskFileDTO 用户文件实体信息ES数据模型
      */
-    void saveDiskFile(DiskFileDTO diskFileDTO);
+    void saveDiskFile(List<DiskFileDTO> diskFileDTO);
 
     /**
      * 根据文件业务标识删除指定文件信息

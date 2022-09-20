@@ -73,7 +73,7 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
      * @param diskFileDTO 用户文件实体信息ES数据模型
      */
     @Override
-    public void saveDiskFile(DiskFileDTO diskFileDTO) {
+    public void saveDiskFile(List<DiskFileDTO> diskFileDTO) {
         // 构建保存请求
         restTemplate.save(diskFileDTO);
     }

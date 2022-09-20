@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -64,7 +65,8 @@ public class DiskFileSearchController {
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // es中保存用户文件信息
-        diskFileSearchManager.saveDiskFile(diskFileModelConvert.saveElasticsearchDiskFileRequestConvertDiskFile(requestDTO));
+        DiskFileDTO diskFileInfo = diskFileModelConvert.saveElasticsearchDiskFileRequestConvertDiskFile(requestDTO);
+        diskFileSearchManager.saveDiskFile(Collections.singletonList(diskFileInfo));
         return Result.ok();
     }
 
