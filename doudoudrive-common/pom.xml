@@ -84,6 +84,13 @@
         </dependency>
         <!-- mapstruct end -->
 
+        <!-- google-guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <!-- google-guava -->
+
     </dependencies>
     <!-- 项目依赖 -->
 
