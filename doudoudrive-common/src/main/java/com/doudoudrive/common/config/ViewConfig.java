@@ -1,5 +1,6 @@
 package com.doudoudrive.common.config;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.util.http.Result;
 import lombok.SneakyThrows;
@@ -21,10 +22,10 @@ import javax.servlet.http.HttpServletResponse;
 public class ViewConfig {
 
     @SneakyThrows
-    @RequestMapping(value = "/404", produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/404", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> jumpNotFound(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         return Result.build(StatusCodeEnum.NOT_FOUND);
     }
 }

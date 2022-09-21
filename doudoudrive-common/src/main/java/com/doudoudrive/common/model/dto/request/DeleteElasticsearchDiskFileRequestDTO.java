@@ -5,8 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 /**
  * <p>删除es用户文件信息时的请求数据模型</p>
@@ -24,8 +25,8 @@ public class DeleteElasticsearchDiskFileRequestDTO {
     /**
      * 用户文件标识，也是es的id值，根据此值删除es数据
      */
-    @NotBlank(message = "业务标识不能为空")
-    @Size(min = 1, max = 35, message = "业务标识长度错误")
-    private String businessId;
+    @NotEmpty(message = "参数集合为空")
+    @Size(max = 1000, message = "请不要一次性操作太多数据~")
+    private List<String> businessId;
 
 }

@@ -89,12 +89,12 @@ public class MailController {
 
     @SneakyThrows
     @OpLog(title = "邮箱验证码", businessType = "发送")
-    @PostMapping(value = "/mail/send/verification-code", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/mail/send/verification-code", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> verificationCode(@RequestBody @Validated(ValidatedInterface.Mail.class)
                                            VerificationCodeRequestDTO requestDTO, HttpServletRequest request,
                                            HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         if (requestDTO.getExist()) {
             // 根据用户邮箱查询用户信息
@@ -125,11 +125,11 @@ public class MailController {
 
     @SneakyThrows
     @OpLog(title = "邮箱验证码", businessType = "校验")
-    @PostMapping(value = "/mail/verify-code", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/mail/verify-code", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> verifyCode(@RequestBody @Validated(ValidatedInterface.Mail.class)
                                      VerifyCodeRequestDTO requestDTO, HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
         SmsUtil.verifyCode(requestDTO.getSmsRecipient(), requestDTO.getCode(), cacheManagerConfig);
         return Result.ok();
     }

@@ -254,21 +254,83 @@
     <!-- 删除指定状态的文件操作记录 -->
     <delete id="deleteAction" parameterType="java.lang.String" flushCache="true">
         DELETE FROM `file_record`
-        <where>
-            `action` = #{action} AND `action_type` = #{actionType}
-        </where>
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            <if test="null != etag and '' != etag">
+                `file_etag` = #{etag} AND
+            </if>
+            <if test="null != action and '' != action">
+                `action` = #{action} AND
+            </if>
+            <if test="null != actionType and '' != actionType">
+                `action_type` = #{actionType} AND
+            </if>
+        </trim>
     </delete>
 
-    <!-- 获取指定状态的文件操作记录，只会获取1条 -->
+    <!-- 判断指定状态的文件操作记录是否存在 -->
+    <select id="isFileRecordExist" resultType="java.lang.Integer">
+        SELECT 1
+        FROM `file_record`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            <if test="null != action and '' != action">
+                `action` = #{action} AND
+            </if>
+            <if test="null != actionType and '' != actionType">
+                `action_type` = #{actionType} AND
+            </if>
+        </trim>
+        LIMIT 1;
+    </select>
+
+    <!-- 根据action和actionType查询指定状态的文件操作记录，只返回一条数据 -->
     <select id="getFileRecordByAction" resultType="com.doudoudrive.common.model.pojo.FileRecord"
             resultMap="fileRecordResultMap">
         SELECT
         `business_id`, `user_id`, `file_id`, `file_etag`
         FROM `file_record`
-        <where>
-            `action` = #{action} AND `action_type` = #{actionType}
-        </where>
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            <if test="null != etag and '' != etag">
+                `file_etag` = #{etag} AND
+            </if>
+            <if test="null != action and '' != action">
+                `action` = #{action} AND
+            </if>
+            <if test="null != actionType and '' != actionType">
+                `action_type` = #{actionType} AND
+            </if>
+        </trim>
         LIMIT 1
     </select>
+
+    <!-- 更新 指定动作类型 的文件操作记录的 动作类型 -->
+    <update id="updateFileRecordByAction" parameterType="java.lang.String" flushCache="true">
+        UPDATE `file_record`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != toAction and '' != toAction">
+                `action` = #{toAction},
+            </if>
+            <if test="null != toActionType and '' != toActionType">
+                `action_type` = #{toActionType},
+            </if>
+        </trim>
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            `business_id` = #{businessId} AND
+            <if test="null != fromAction and '' != fromAction">
+                `action` = #{fromAction} AND
+            </if>
+            <if test="null != fromActionType and '' != fromActionType">
+                `action_type` = #{fromActionType} AND
+            </if>
+        </trim>
+    </update>
 
 </mapper>

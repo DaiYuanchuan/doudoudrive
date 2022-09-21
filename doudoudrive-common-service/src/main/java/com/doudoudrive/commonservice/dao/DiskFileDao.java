@@ -1,6 +1,8 @@
 package com.doudoudrive.commonservice.dao;
 
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.commonservice.annotation.DataSource;
+import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,10 +15,12 @@ import java.util.List;
  * @author Dan
  **/
 @Repository
+@DataSource(DataSourceEnum.FILE)
 public interface DiskFileDao {
 
     /**
      * 新增用户文件模块
+     * 新增时确保文件父级标识是存在的
      *
      * @param diskFile    需要新增的用户文件模块实体
      * @param tableSuffix 表后缀
@@ -92,10 +96,10 @@ public interface DiskFileDao {
      * @return 在指定目录下存在相同的文件名时返回 1 ，否则返回 0 或者 null
      */
     Integer getRepeatFileName(@Param("parentId") String parentId,
-                               @Param("fileName") String fileName,
-                               @Param("userId") String userId,
-                               @Param("fileFolder") Boolean fileFolder,
-                               @Param("tableSuffix") String tableSuffix);
+                              @Param("fileName") String fileName,
+                              @Param("userId") String userId,
+                              @Param("fileFolder") Boolean fileFolder,
+                              @Param("tableSuffix") String tableSuffix);
 
     /**
      * 指定条件查找用户文件模块
@@ -121,4 +125,32 @@ public interface DiskFileDao {
      */
     Long countSearch(@Param("diskFile") DiskFile diskFile, @Param("tableSuffix") String tableSuffix,
                      @Param("startTime") String startTime, @Param("endTime") String endTime);
+
+    // ====================================================== 截断 =====================================================
+
+    /**
+     * 根据文件父级业务标识批量查询用户文件信息
+     *
+     * @param autoId      自增长标识，用于分页游标
+     * @param userId      用户系统内唯一标识
+     * @param parentId    文件父级标识
+     * @param tableSuffix 表后缀
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    List<DiskFile> fileParentIdSearch(@Param("autoId") Long autoId,
+                                      @Param("userId") String userId,
+                                      @Param("parentId") List<String> parentId,
+                                      @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId      用户系统内唯一标识
+     * @param fileId      文件业务标识
+     * @param tableSuffix 表后缀
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    List<DiskFile> fileIdSearch(@Param("userId") String userId,
+                                @Param("fileId") List<String> fileId,
+                                @Param("tableSuffix") String tableSuffix);
 }

@@ -1,5 +1,6 @@
 package com.doudoudrive.file.consumer;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSON;
@@ -7,20 +8,31 @@ import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
+import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
+import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
+import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +53,17 @@ public class FileServiceConsumer {
      */
     private GlobalThreadPoolService globalThreadPoolService;
 
+    private MqConsumerRecordConvert consumerRecordConvert;
+
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
+
+    private FileManager fileManager;
+
+    /**
+     * RocketMQ消息模型
+     */
+    private RocketMQTemplate rocketmqTemplate;
+
     @Autowired(required = false)
     public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
         this.diskFileConvert = diskFileConvert;
@@ -49,6 +72,26 @@ public class FileServiceConsumer {
     @Autowired
     public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
         this.globalThreadPoolService = globalThreadPoolService;
+    }
+
+    @Autowired(required = false)
+    public void setConsumerRecordConvert(MqConsumerRecordConvert consumerRecordConvert) {
+        this.consumerRecordConvert = consumerRecordConvert;
+    }
+
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
+    }
+
+    @Autowired
+    public void setFileManager(FileManager fileManager) {
+        this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
+        this.rocketmqTemplate = rocketmqTemplate;
     }
 
     /**
@@ -79,7 +122,14 @@ public class FileServiceConsumer {
      */
     @RocketmqTagDistribution(messageClass = CreateFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.CREATE_FILE)
     public void createFileConsumer(CreateFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
+        // 构建消息消费记录
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext,
+                ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.CREATE_FILE);
+
         try {
+            // 保存消息消费记录
+            rocketmqConsumerRecordService.insertException(consumerRecord);
+
             CreateFileAuthModel fileInfo = consumerRequest.getFileInfo();
 
             String requestId = consumerRequest.getRequestId();
@@ -89,7 +139,7 @@ public class FileServiceConsumer {
             }
 
             // 构建回调地址初始化请求头配置Map
-            Map<String, String> header = Maps.newHashMapWithExpectedSize(62);
+            Map<String, String> header = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_THREE);
             header.put(REQUEST_ID, requestId);
             header.put(ConstantConfig.HttpRequest.USER_AGENT, USER_AGENT_CALLBACK);
             header.put(ConstantConfig.HttpRequest.HOST, URI.create(fileInfo.getCallbackUrl()).getHost());
@@ -119,7 +169,64 @@ public class FileServiceConsumer {
                 }
             });
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("errorMsg:{}，消费记录：{}", e.getMessage(), consumerRecord, e);
+        }
+    }
+
+    /**
+     * 删除文件消费处理
+     *
+     * @param consumerRequest 删除文件时的消费者请求数据模型
+     * @param messageContext  mq消息内容
+     */
+    @RocketmqTagDistribution(messageClass = DeleteFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.DELETE_FILE)
+    public void deleteFileConsumer(DeleteFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.GLOBAL_THREAD_POOL, () -> {
+            // 根据传入的文件业务标识查找是否存在对应的文件信息
+            List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(consumerRequest.getUserId(), consumerRequest.getBusinessId());
+            // 其中所有的文件夹信息集合
+            List<String> fileFolderList = fileIdSearchResult.stream()
+                    .filter(DiskFile::getFileFolder)
+                    .map(DiskFile::getBusinessId).toList();
+
+            // 如果存在文件夹信息，则需要删除文件夹信息
+            if (CollectionUtil.isNotEmpty(fileFolderList)) {
+                consumerRequest.getBusinessId().addAll(fileFolderList);
+            }
+
+            // 如果消息中包含有文件信息，则需要先删除文件信息
+            if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
+                deleteHandler(fileIdSearchResult, consumerRequest.getUserId());
+            }
+
+            // 递归获取指定文件节点下所有的子节点信息
+            fileManager.getUserFileAllNode(consumerRequest.getUserId(), consumerRequest.getBusinessId(),
+                    queryParentIdResponse -> deleteHandler(queryParentIdResponse, consumerRequest.getUserId()));
+        });
+    }
+
+    /**
+     * 删除文件消费处理程序
+     *
+     * @param content 文件内容
+     * @param userId  用户Id
+     */
+    private void deleteHandler(List<DiskFile> content, String userId) {
+        try {
+            // 根据文件id批量删除文件或文件夹
+            fileManager.delete(content, userId, Boolean.FALSE);
+        } catch (Exception e) {
+            // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userId)
+                    .businessId(content.stream().map(DiskFile::getBusinessId).toList())
+                    .build()));
+            // 消息发送失败，打印错误日志
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                log.error("send to mq, destination:{}, msgId:{}, sendStatus:{}, contentSize:{}, errorMsg:{}, sendResult:{}",
+                        destination, sendResult.getMsgId(), sendResult.getSendStatus(), content.size(), e.getMessage(), sendResult);
+            }
         }
     }
 }

@@ -113,9 +113,19 @@ public interface ConstantConfig {
         String HOST = "host";
 
         /**
+         * utf-8编码
+         */
+        String UTF8 = "utf-8";
+
+        /**
          * JSON格式类型
          */
         String CONTENT_TYPE_JSON = "application/json";
+
+        /**
+         * JSON格式类型(utf-8)
+         */
+        String CONTENT_TYPE_JSON_UTF8 = "application/json;charset=UTF-8";
 
         /**
          * format类型
@@ -167,6 +177,11 @@ public interface ConstantConfig {
          * 文件服务
          */
         String FILE_SERVICE = "FILE_SERVICE";
+
+        /**
+         * 文件搜索服务
+         */
+        String FILE_SEARCH_SERVICE = "FILE_SEARCH_SERVICE";
     }
 
     /**
@@ -193,6 +208,16 @@ public interface ConstantConfig {
          * 创建文件服务
          */
         String CREATE_FILE = "CREATE_FILE";
+
+        /**
+         * 删除文件服务
+         */
+        String DELETE_FILE = "DELETE_FILE";
+
+        /**
+         * 删除文件ES服务
+         */
+        String DELETE_FILE_ES = "DELETE_FILE_ES";
     }
 
     /**
@@ -214,18 +239,11 @@ public interface ConstantConfig {
          * FILE服务所属消费者组
          */
         String FILE = "FILE_CONSUMER_GROUP";
-    }
-
-    /**
-     * RocketMQ生产者组定义
-     */
-    interface ProducerGroup {
 
         /**
-         * 日志服务生产者
+         * FILE搜索服务所属消费者组
          */
-        String LOG = "DOUDOU_MQ_PRODUCER_GROUP";
-
+        String FILE_SEARCH = "FILE_SEARCH_CONSUMER_GROUP";
     }
 
     /**
@@ -297,6 +315,7 @@ public interface ConstantConfig {
         String TILDE = "~";
         String ENGLISH_COLON = ":";
         String COMMENT_SIGN = "#";
+        String HYPHEN = "-";
     }
 
     /**
@@ -404,6 +423,11 @@ public interface ConstantConfig {
          * 默认session内容缓存的key值前缀
          */
         String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
+
+        /**
+         * 默认session内容缓存的key值前缀
+         */
+        String DEFAULT_CACHE_REALM_PREFIX = "shiro:realm:";
 
         /**
          * session内容缓存默认key值字段名称
@@ -650,9 +674,19 @@ public interface ConstantConfig {
             FILE("0"),
 
             /**
-             * 文件内容
+             * 文件内容状态
              */
-            FILE_CONTENT("1");
+            FILE_CONTENT("1"),
+
+            /**
+             * 文件复制任务
+             */
+            COPY("2"),
+
+            /**
+             * 文件删除任务
+             */
+            DELETE("3");
 
             /**
              * 状态标识
@@ -672,7 +706,7 @@ public interface ConstantConfig {
             // Action为0时对应的动作类型
 
             /**
-             * 被删除
+             * 文件被删除
              */
             BE_DELETED("0"),
 
@@ -686,7 +720,19 @@ public interface ConstantConfig {
             /**
              * 待删除
              */
-            TO_DELETE("1");
+            TO_DELETE("1"),
+
+            // Action为2、3时对应的动作类型
+
+            /**
+             * 任务待处理
+             */
+            TASK_BE_PROCESSED("0"),
+
+            /**
+             * 任务处理中
+             */
+            TASK_PROCESSING("1");
 
             /**
              * 状态标识
@@ -904,7 +950,17 @@ public interface ConstantConfig {
         /**
          * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy());
+        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+
+        /**
+         * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+
+        /**
+         * 全局线程池配置，任意地点使用，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        GLOBAL_THREAD_POOL("global-thread-pool", new ThreadPoolExecutor.CallerRunsPolicy());
 
         /**
          * 线程池名称

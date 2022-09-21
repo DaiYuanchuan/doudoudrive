@@ -85,7 +85,7 @@
             `attribute_value` = `attribute_value` - #{number}
         </set>
         <where>
-            `user_id` = #{userId} AND `attribute_name` = #{attrName} AND `attribute_value` >= 0;
+            `user_id` = #{userId} AND `attribute_name` = #{attrName} AND `attribute_value` - #{number} >= 0;
         </where>
     </update>
 

@@ -14,6 +14,7 @@ import com.doudoudrive.search.manager.DiskFileSearchManager;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -25,6 +26,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.stereotype.Service;
@@ -71,7 +73,7 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
      * @param diskFileDTO 用户文件实体信息ES数据模型
      */
     @Override
-    public void saveDiskFile(DiskFileDTO diskFileDTO) {
+    public void saveDiskFile(List<DiskFileDTO> diskFileDTO) {
         // 构建保存请求
         restTemplate.save(diskFileDTO);
     }
@@ -82,11 +84,21 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
      *     先删库，然后再删es里存的用户文件信息
      * </pre>
      *
-     * @param id 文件业务标识
+     * @param businessId 文件业务标识
+     * @return 删除的文件信息
      */
     @Override
-    public void deleteDiskFile(String id) {
-        restTemplate.delete(id, DiskFileDTO.class);
+    public ByQueryResponse deleteDiskFile(List<String> businessId) {
+        // 查询信息构建
+        IdsQueryBuilder builder = QueryBuilders.idsQuery();
+        builder.addIds(businessId.toArray(String[]::new));
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
+
+        // 批量删除数据
+        return restTemplate.delete(queryBuilder.build(), DiskFileDTO.class);
     }
 
     /**
@@ -180,6 +192,61 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
 
         // 构建分页语句
         queryBuilder.withPageable(PageRequest.of(NumberConstant.INTEGER_ZERO, requestDTO.getCount()));
+
+        // 执行搜素请求
+        return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
+    }
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param businessId 文件业务标识
+     * @return 用户文件实体信息ES数据模型
+     */
+    @Override
+    public SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId) {
+        // 查询信息构建
+        IdsQueryBuilder builder = QueryBuilders.idsQuery();
+        builder.addIds(businessId.toArray(String[]::new));
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
+
+        // 执行搜素请求
+        return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
+    }
+
+    /**
+     * 根据文件父级业务标识批量查询用户文件信息
+     *
+     * @param userId      用户系统内唯一标识
+     * @param parentId    文件父级业务标识
+     * @param count       单次查询的数量、每页大小
+     * @param searchAfter 上一页游标，为空时默认第一页
+     * @return 用户文件实体信息ES数据模型
+     */
+    @Override
+    public SearchHits<DiskFileDTO> fileParentIdSearch(String userId, List<String> parentId, Integer count, List<Object> searchAfter) {
+        // 查询信息构建
+        BoolQueryBuilder builder = QueryBuilders.boolQuery();
+        builder.must(QueryBuilders.termQuery(USER_ID, userId));
+        builder.must(QueryBuilders.termsQuery(FILE_PARENT_ID, parentId));
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
+
+        // 游标不为空时，加入游标查询
+        if (CollectionUtil.isNotEmpty(searchAfter)) {
+            queryBuilder.withSearchAfter(searchAfter);
+        }
+
+        // 排序字段构建，默认按照业务标识正序排列
+        queryBuilder.withSorts(SortBuilders.fieldSort(AUTO_ID).order(SortOrder.ASC));
+
+        // 构建分页语句
+        queryBuilder.withPageable(PageRequest.of(NumberConstant.INTEGER_ZERO, count));
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);

@@ -8,7 +8,6 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
@@ -18,7 +17,6 @@ import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileReques
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
-import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -26,7 +24,6 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
-import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.OssFileManager;
@@ -38,8 +35,6 @@ import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendCallback;
-import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +50,7 @@ import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -89,10 +85,6 @@ public class FileController {
      * RocketMQ消息模型
      */
     private RocketMQTemplate rocketmqTemplate;
-
-    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
-
-    private MqConsumerRecordConvert consumerRecordConvert;
 
     private DiskUserService diskUserService;
 
@@ -136,16 +128,6 @@ public class FileController {
     }
 
     @Autowired
-    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
-        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
-    }
-
-    @Autowired(required = false)
-    public void setConsumerRecordConvert(MqConsumerRecordConvert consumerRecordConvert) {
-        this.consumerRecordConvert = consumerRecordConvert;
-    }
-
-    @Autowired
     public void setDiskUserService(DiskUserService diskUserService) {
         this.diskUserService = diskUserService;
     }
@@ -164,11 +146,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "文件夹", businessType = "新建")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
-    @PostMapping(value = "/create-folder", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/create-folder", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<DiskFileModel> createFolder(@RequestBody @Valid CreateFolderRequestDTO requestDTO,
                                               HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -196,10 +178,10 @@ public class FileController {
      */
     @SneakyThrows
     @OpLog(title = "文件", businessType = "新建", isSaveRequestData = false)
-    @PostMapping(value = "/create-file", produces = "application/x-www-form-urlencoded")
+    @PostMapping(value = "/create-file", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_FORM)
     public Result<DiskFileModel> createFile(HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 获取原始签名字符串，以 "QBox "作为起始字符
         String originAuthorization = request.getHeader(ConstantConfig.HttpRequest.AUTHORIZATION);
@@ -261,7 +243,8 @@ public class FileController {
         this.verifyCapacity(totalDiskCapacity, usedDiskCapacity, createFile.getFileSize());
 
         // 创建文件
-        DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(fileManager.createFile(createFile, fileId, totalDiskCapacity, usedDiskCapacity));
+        DiskFile userFile = fileManager.createFile(createFile, fileId, totalDiskCapacity, usedDiskCapacity);
+        DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(userFile);
         if (fileModel == null) {
             return Result.build(StatusCodeEnum.SYSTEM_ERROR);
         }
@@ -288,11 +271,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "获取上传Token", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPLOAD)
-    @PostMapping(value = "/token", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/token", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<FileUploadTokenResponseDTO> getUploadToken(@RequestBody @Valid FileUploadTokenRequestDTO tokenRequest,
                                                              HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 回调地址不为空时，校验回调Url的正确性
         if (StringUtils.isNotBlank(tokenRequest.getCallbackUrl()) && !ReUtil.isMatch(RegexConstant.URL_HTTP, tokenRequest.getCallbackUrl())) {
@@ -352,11 +335,11 @@ public class FileController {
     @ResponseBody
     @OpLog(title = "重命名", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPDATE)
-    @PostMapping(value = "/rename", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/rename", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<DiskFileModel> renameFile(@RequestBody @Valid RenameFileRequestDTO requestDTO,
                                             HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -388,13 +371,37 @@ public class FileController {
 
     @SneakyThrows
     @ResponseBody
+    @OpLog(title = "删除", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_DELETE)
+    @PostMapping(value = "/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<String> delete(@RequestBody @Valid DeleteFileRequestDTO requestDTO,
+                                 HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 根据传入的文件业务标识查找是否存在对应的文件信息
+        List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(userinfo.getBusinessId(), requestDTO.getBusinessId());
+        if (CollectionUtil.isEmpty(fileIdSearchResult)) {
+            return Result.build(StatusCodeEnum.FILE_NOT_FOUND);
+        }
+
+        // 根据文件id批量删除文件或文件夹
+        fileManager.delete(fileIdSearchResult, userinfo.getBusinessId(), Boolean.TRUE);
+        return Result.ok();
+    }
+
+    @SneakyThrows
+    @ResponseBody
     @OpLog(title = "搜索", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SELECT)
-    @PostMapping(value = "/search", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<FileSearchResponseDTO> search(@RequestBody @Valid FileSearchRequestDTO requestDTO,
                                                 HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -417,10 +424,10 @@ public class FileController {
      */
     @SneakyThrows
     @OpLog(title = "文件鉴权", businessType = "回源鉴权")
-    @RequestMapping(value = "/cdn-auth", produces = "application/json;charset=UTF-8", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/cdn-auth", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8, method = RequestMethod.HEAD)
     public void fileCdnAuth(String sign, String path, String token, HttpServletRequest request, HttpServletResponse response) {
-        request.setCharacterEncoding("utf-8");
-        response.setContentType("application/json;charset=UTF-8");
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 签名字符串不存在
         if (StringUtils.isBlank(sign) || StringUtils.isBlank(path)) {
@@ -531,29 +538,10 @@ public class FileController {
         if (StringUtils.isBlank(consumerRequest.getFileInfo().getCallbackUrl())) {
             return;
         }
-        // 使用async模式异步发送消息，消息发送后立刻返回，当消息完全完成发送后，会调用回调函数sendCallback来告知发送者本次发送是成功或者失败
-        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.asyncSend(destination, ObjectUtil.serialize(consumerRequest), new SendCallback() {
-            /**
-             * 消息发送成功时的回调
-             * @param sendResult 消息发送状态
-             */
-            @Override
-            public void onSuccess(SendResult sendResult) {
-                // 构建RocketMQ消费记录
-                RocketmqConsumerRecord consumerRecord = consumerRecordConvert.sendResultConvertConsumerRecord(sendResult, sendResult.getMessageQueue(), ConstantConfig.Tag.CREATE_FILE);
-                rocketmqConsumerRecordService.insert(consumerRecord);
-            }
 
-            /**
-             * 消息发送失败时的回调
-             * @param throwable 异常消息
-             */
-            @Override
-            public void onException(Throwable throwable) {
-                log.error(throwable.getMessage(), throwable);
-            }
-        });
+        // 使用one-way模式发送消息，发送端发送完消息后会立即返回
+        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
+        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(consumerRequest));
     }
 
     /**

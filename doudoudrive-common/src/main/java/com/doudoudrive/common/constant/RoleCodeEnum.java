@@ -59,7 +59,7 @@ public enum RoleCodeEnum {
     public static List<SysUserRole> builderList(String userId, Boolean isDefault) {
         final List<SysUserRole> sysUserRoleList = new ArrayList<>();
         for (RoleCodeEnum roleCodeEnum : values()) {
-            if (roleCodeEnum.isDefault == isDefault) {
+            if (roleCodeEnum.isDefault.equals(isDefault)) {
                 sysUserRoleList.add(SysUserRole.builder()
                         .userId(userId)
                         .roleCode(roleCodeEnum.roleCode)

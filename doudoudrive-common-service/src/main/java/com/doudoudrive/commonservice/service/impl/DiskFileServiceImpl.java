@@ -14,10 +14,10 @@ import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskFileDao;
 import com.doudoudrive.commonservice.service.DiskFileService;
+import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -34,25 +35,32 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("diskFileService")
-@DataSource(DataSourceEnum.FILE)
 public class DiskFileServiceImpl implements DiskFileService {
 
     private DiskFileDao diskFileDao;
+
+    private GlobalThreadPoolService globalThreadPoolService;
 
     @Autowired
     public void setDiskFileDao(DiskFileDao diskFileDao) {
         this.diskFileDao = diskFileDao;
     }
 
+    @Autowired
+    public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
+        this.globalThreadPoolService = globalThreadPoolService;
+    }
+
     /**
      * 新增用户文件模块
      *
      * @param diskFile 需要新增的用户文件模块实体
+     * @return 返回新增的条数
      */
     @Override
-    public void insert(DiskFile diskFile) {
+    public Integer insert(DiskFile diskFile) {
         if (ObjectUtils.isEmpty(diskFile) || StringUtils.isBlank(diskFile.getUserId())) {
-            return;
+            return NumberConstant.INTEGER_ZERO;
         }
         if (StringUtils.isBlank(diskFile.getBusinessId())) {
             diskFile.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE));
@@ -60,7 +68,7 @@ public class DiskFileServiceImpl implements DiskFileService {
 
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(diskFile.getUserId(), ConstantConfig.TableSuffix.DISK_FILE);
-        diskFileDao.insert(diskFile, tableSuffix);
+        return diskFileDao.insert(diskFile, tableSuffix);
     }
 
     /**
@@ -112,18 +120,21 @@ public class DiskFileServiceImpl implements DiskFileService {
      *
      * @param list   需要删除的业务id(businessId)数据集合
      * @param userId 业务id对应的用户标识
+     * @return 返回删除的条数
      */
     @Override
-    public void deleteBatch(List<String> list, String userId) {
+    public Integer deleteBatch(List<String> list, String userId) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        Integer resultNum = NumberConstant.INTEGER_ZERO;
         // 批量删除用户文件模块
-        CollectionUtil.collectionCutting(list, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(businessId -> {
+        for (List<String> businessId : CollectionUtil.collectionCutting(list, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
             List<String> businessIdList = businessId.stream().filter(StringUtils::isNotBlank).toList();
             if (CollectionUtil.isNotEmpty(businessIdList)) {
-                diskFileDao.deleteBatch(businessIdList, tableSuffix);
+                resultNum += diskFileDao.deleteBatch(businessIdList, tableSuffix);
             }
-        });
+        }
+        return resultNum;
     }
 
     /**
@@ -263,6 +274,48 @@ public class DiskFileServiceImpl implements DiskFileService {
     }
 
     /**
+     * 获取指定文件节点下所有的子节点信息 （递归）
+     *
+     * @param userId   用户系统内唯一标识
+     * @param parentId 文件父级标识
+     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     */
+    @Override
+    public void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        this.getAllFileInfo(null, userId, parentId, tableSuffix, queryParentIdResponse -> {
+            // 获取查询结果中的所有文件夹标识
+            List<String> parentFileList = queryParentIdResponse.stream()
+                    .filter(DiskFile::getFileFolder)
+                    .map(DiskFile::getBusinessId).toList();
+            if (CollectionUtil.isNotEmpty(parentFileList)) {
+                // 存在有文件夹时，继续递归查询
+                this.getUserFileAllNode(userId, parentFileList, consumer);
+            }
+            // 回调函数
+            consumer.accept(queryParentIdResponse);
+        });
+    }
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @param fileId 文件业务标识
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    @Override
+    public List<DiskFile> fileIdSearch(String userId, List<String> fileId) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        List<DiskFile> fileIdSearchResult = Lists.newArrayListWithExpectedSize(fileId.size());
+        CollectionUtil.collectionCutting(fileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)
+                .forEach(list -> fileIdSearchResult.addAll(diskFileDao.fileIdSearch(userId, list, tableSuffix)));
+        return fileIdSearchResult;
+    }
+
+    /**
      * 返回搜索结果的总数
      *
      * @param diskFile  需要查询的用户文件模块实体(这里不能为NULL，且必须包含用户id)
@@ -272,5 +325,35 @@ public class DiskFileServiceImpl implements DiskFileService {
      */
     private Long countSearch(DiskFile diskFile, String tableSuffix, String startTime, String endTime) {
         return diskFileDao.countSearch(diskFile, tableSuffix, startTime, endTime);
+    }
+
+    /**
+     * 获取指定父目录下的所有文件信息
+     *
+     * @param autoId       自增长标识，用于分页游标
+     * @param userId       用户系统内唯一标识
+     * @param parentFileId 文件父级标识
+     * @param tableSuffix  表后缀
+     * @param consumer     回调函数中返回查找到的用户文件模块数据集合
+     */
+    private void getAllFileInfo(Long autoId, String userId, List<String> parentFileId,
+                                String tableSuffix, Consumer<List<DiskFile>> consumer) {
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.TASK_RECURSION_EXECUTOR, () -> {
+            for (List<String> parentId : CollectionUtil.collectionCutting(parentFileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
+                // 获取到当前文件的所有子文件
+                List<DiskFile> queryParentIdResponse = diskFileDao.fileParentIdSearch(autoId, userId, parentId, tableSuffix);
+                if (CollectionUtil.isEmpty(queryParentIdResponse)) {
+                    // 查询结果为空时，跳出当前循环
+                    continue;
+                }
+                // 进行任务的回调，执行回调函数
+                consumer.accept(queryParentIdResponse);
+
+                // 获取最后一个节点的id
+                int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
+                // 递归继续翻页查询
+                this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
+            }
+        });
     }
 }

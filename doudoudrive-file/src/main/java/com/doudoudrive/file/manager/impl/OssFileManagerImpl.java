@@ -3,14 +3,13 @@ package com.doudoudrive.file.manager.impl;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
-import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
-import com.doudoudrive.commonservice.service.FileRecordService;
 import com.doudoudrive.commonservice.service.OssFileService;
+import com.doudoudrive.file.manager.FileRecordManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,7 @@ public class OssFileManagerImpl implements OssFileManager {
 
     private DiskFileConvert diskFileConvert;
 
-    private FileRecordService fileRecordService;
+    private FileRecordManager fileRecordManager;
 
     private OssFileService ossFileService;
 
@@ -46,8 +45,8 @@ public class OssFileManagerImpl implements OssFileManager {
     }
 
     @Autowired
-    public void setFileRecordService(FileRecordService fileRecordService) {
-        this.fileRecordService = fileRecordService;
+    public void setFileRecordManager(FileRecordManager fileRecordManager) {
+        this.fileRecordManager = fileRecordManager;
     }
 
     @Autowired
@@ -82,18 +81,27 @@ public class OssFileManagerImpl implements OssFileManager {
                 || fileReviewConfig.getVideoTypes().contains(createFile.getFileMimeType());
         if (isReview) {
             // 需要内容审核时将文件写入文件记录表中，状态标识为待审核
-            FileRecord fileRecord = diskFileConvert.createFileAuthModelConvertFileRecord(createFile, fileId,
+            FileRecord fileRecordModel = diskFileConvert.createFileAuthModelConvertFileRecord(createFile, fileId,
                     ConstantConfig.FileRecordAction.ActionEnum.FILE_CONTENT.status, ConstantConfig.FileRecordAction.ActionTypeEnum.REVIEWED.status);
-            fileRecordService.insert(fileRecord);
-            ossFileInfo.setStatus(NumberConstant.STRING_ONE);
+            // 获取指定状态的文件操作记录数据
+            FileRecord record = fileRecordManager.getFileRecordByAction(createFile.getUserId(),
+                    createFile.getFileEtag(), fileRecordModel.getAction(), fileRecordModel.getActionType());
+            if (record == null) {
+                // 记录不存在时，添加文件记录信息
+                fileRecordManager.insert(fileRecordModel);
+            }
+            // 重置文件状态为待审核
+            ossFileInfo.setStatus(ConstantConfig.OssFileStatusEnum.PENDING_REVIEW.status);
         }
 
-        // 根据etag查找oss文件信息
-        if (this.getOssFile(createFile.getFileEtag()) == null) {
-            try {
-                // 将文件存入OSS文件对象存储表中，忽略抛出的异常
-                ossFileService.insert(ossFileInfo);
-            } catch (Exception ignored) {
+        synchronized (this) {
+            // 根据etag查找oss文件信息
+            if (this.getOssFile(createFile.getFileEtag()) == null) {
+                try {
+                    // 将文件存入OSS文件对象存储表中，忽略抛出的异常
+                    ossFileService.insert(ossFileInfo);
+                } catch (Exception ignored) {
+                }
             }
         }
     }

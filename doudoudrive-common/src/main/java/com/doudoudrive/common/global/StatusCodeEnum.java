@@ -73,15 +73,24 @@ public enum StatusCodeEnum {
     NOT_FOLDER(702, "关联对象非文件夹"),
     FILE_NAME_REPEAT(703, "此目录下已存在同名文件，请修改名称"),
     FILE_AUTHENTICATION_FAILED(704, "文件鉴权失败"),
-    SPACE_INSUFFICIENT(705, "存储空间不足"),
+    SPACE_INSUFFICIENT(705, "存储空间不足，购买扩容包享超大空间"),
     UNSUPPORTED_SORT(706, "不支持的排序"),
     INVALID_MARKER(707, "无效的marker"),
+    TASK_ALREADY_EXIST(708, "当前有正在执行中的任务，请稍后重试"),
+    FILE_CREATE_FAILED(709, "文件创建失败"),
 
     /**
      * 接口类:8xx
      */
     INTERFACE_INTERNAL_EXCEPTION(800, "系统内部接口调用异常"),
-    INTERFACE_EXTERNAL_EXCEPTION(801, "系统外部接口调用异常");
+    INTERFACE_EXTERNAL_EXCEPTION(801, "系统外部接口调用异常"),
+
+    /**
+     * MQ队列类:9xx
+     */
+    ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST(900, "消费记录已存在"),
+    ROCKETMQ_SEND_MESSAGE_FAILED(901, "消息发送失败");
+
 
     public final Integer statusCode;
     public final String message;

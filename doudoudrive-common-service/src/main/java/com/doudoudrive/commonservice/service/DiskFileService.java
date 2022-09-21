@@ -4,6 +4,7 @@ import com.doudoudrive.common.model.dto.response.PageResponse;
 import com.doudoudrive.common.model.pojo.DiskFile;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * <p>用户文件模块服务层接口</p>
@@ -17,8 +18,9 @@ public interface DiskFileService {
      * 新增用户文件模块
      *
      * @param diskFile 需要新增的用户文件模块实体
+     * @return 返回新增的条数
      */
-    void insert(DiskFile diskFile);
+    Integer insert(DiskFile diskFile);
 
     /**
      * 批量新增用户文件模块
@@ -41,8 +43,9 @@ public interface DiskFileService {
      *
      * @param list   需要删除的业务id(businessId)数据集合
      * @param userId 业务id对应的用户标识
+     * @return 返回删除的条数
      */
-    void deleteBatch(List<String> list, String userId);
+    Integer deleteBatch(List<String> list, String userId);
 
     /**
      * 修改用户文件模块
@@ -103,4 +106,22 @@ public interface DiskFileService {
      * @return 返回用户文件模块集合
      */
     List<DiskFile> listDiskFile(DiskFile diskFile, String startTime, String endTime, Integer page, Integer pageSize);
+
+    /**
+     * 获取指定文件节点下所有的子节点信息 （递归）
+     *
+     * @param userId   用户系统内唯一标识
+     * @param parentId 文件父级标识
+     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     */
+    void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer);
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @param fileId 文件业务标识
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    List<DiskFile> fileIdSearch(String userId, List<String> fileId);
 }

@@ -55,7 +55,7 @@
                 `is_collect` = #{diskFile.collect} AND
             </if>
             <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">
-                `file_mime_type` = #{diskFile.fileMimeType}  AND
+                `file_mime_type` = #{diskFile.fileMimeType} AND
             </if>
             <if test="null != diskFile.fileSize and '' != diskFile.fileSize">
                 `file_size` = #{diskFile.fileSize} AND
@@ -91,22 +91,41 @@
             <if test="null != diskFile.status and '' != diskFile.status">`status`,</if>
         </trim>
         )
-        VALUES
-        (
-        <trim suffixOverrides=",">
-            <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
-            <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
-            <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
-            <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
-            <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
-            <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
-            <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
-            <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
-            <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
-            <if test="null != diskFile.collect">#{diskFile.collect},</if>
-            <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
-        </trim>
-        )
+        <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId and '0'.toString() != diskFile.fileParentId">
+            SELECT
+            <trim suffixOverrides=",">
+                <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
+                <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
+                <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
+                <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
+                <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
+                <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
+                <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
+                <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
+                <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
+                <if test="null != diskFile.collect">#{diskFile.collect},</if>
+                <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
+            </trim>
+            FROM DUAL
+            WHERE EXISTS(SELECT 1 FROM `disk_file_${tableSuffix}` WHERE `business_id` = #{diskFile.fileParentId});
+        </if>
+        <if test="null == diskFile.fileParentId or '' == diskFile.fileParentId or '0'.toString() == diskFile.fileParentId">
+            VALUES (
+            <trim suffixOverrides=",">
+                <if test="null != diskFile.businessId and '' != diskFile.businessId">#{diskFile.businessId},</if>
+                <if test="null != diskFile.userId and '' != diskFile.userId">#{diskFile.userId},</if>
+                <if test="null != diskFile.fileName and '' != diskFile.fileName">#{diskFile.fileName},</if>
+                <if test="null != diskFile.fileParentId and '' != diskFile.fileParentId">#{diskFile.fileParentId},</if>
+                <if test="null != diskFile.fileSize and '' != diskFile.fileSize">#{diskFile.fileSize},</if>
+                <if test="null != diskFile.fileMimeType and '' != diskFile.fileMimeType">#{diskFile.fileMimeType},</if>
+                <if test="null != diskFile.fileEtag and '' != diskFile.fileEtag">#{diskFile.fileEtag},</if>
+                <if test="null != diskFile.fileFolder">#{diskFile.fileFolder},</if>
+                <if test="null != diskFile.forbidden">#{diskFile.forbidden},</if>
+                <if test="null != diskFile.collect">#{diskFile.collect},</if>
+                <if test="null != diskFile.status and '' != diskFile.status">#{diskFile.status},</if>
+            </trim>
+            )
+        </if>
     </insert>
 
     <!-- 批量新增用户文件模块 -->
@@ -306,6 +325,44 @@
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <include refid="searchCondition"/>
             `status` = '1';
+        </trim>
+    </select>
+
+    <!-- 根据文件父级业务标识批量查询用户文件信息 -->
+    <select id="fileParentIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
+            resultMap="diskFileResultMap">
+        SELECT
+        `business_id`, `file_size`, `file_etag`, `is_file_folder`
+        FROM `disk_file_${tableSuffix}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != autoId and 0 != autoId">
+                `auto_id` > #{autoId} AND
+            </if>
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            `file_parent_id` IN
+            <foreach collection="parentId" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </trim>
+        LIMIT 10000;
+    </select>
+
+    <!-- 根据文件业务标识批量查询用户文件信息 -->
+    <select id="fileIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
+            resultMap="diskFileResultMap">
+        SELECT
+        `business_id`, `file_size`, `file_etag`, `is_file_folder`
+        FROM `disk_file_${tableSuffix}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != userId and '' != userId">
+                `user_id` = #{userId} AND
+            </if>
+            `business_id` IN
+            <foreach collection="fileId" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </trim>
     </select>
 

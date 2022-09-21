@@ -14,8 +14,6 @@ import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.FileRecordDao;
 import com.doudoudrive.commonservice.service.FileRecordService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("fileRecordService")
-@DataSource(DataSourceEnum.FILE)
 public class FileRecordServiceImpl implements FileRecordService {
 
     private FileRecordDao fileRecordDao;
@@ -270,24 +267,55 @@ public class FileRecordServiceImpl implements FileRecordService {
     /**
      * 删除指定状态的文件操作记录
      *
+     * @param userId     用户id
+     * @param etag       文件唯一标识
      * @param action     动作
      * @param actionType 动作对应的动作类型
-     * @return 返回删除的条数
      */
     @Override
-    public Integer deleteAction(String action, String actionType) {
-        return fileRecordDao.deleteAction(action, actionType);
+    public void deleteAction(String userId, String etag, String action, String actionType) {
+        fileRecordDao.deleteAction(userId, etag, action, actionType);
     }
 
     /**
-     * 获取指定状态的文件操作记录，只会获取1条
+     * 判断指定状态的文件操作记录是否存在
      *
      * @param action     动作
      * @param actionType 动作对应的动作类型
-     * @return 指定状态的文件操作记录对象
+     * @return 存在指定状态的文件操作记录时返回 true ，否则返回 false
      */
     @Override
-    public FileRecord getFileRecordByAction(String action, String actionType) {
-        return fileRecordDao.getFileRecordByAction(action, actionType);
+    public Boolean isFileRecordExist(String userId, String action, String actionType) {
+        return NumberConstant.INTEGER_ONE.equals(fileRecordDao.isFileRecordExist(userId, action, actionType));
+    }
+
+    /**
+     * 获取指定状态的文件操作记录数据
+     *
+     * @param userId     用户id
+     * @param etag       文件唯一标识
+     * @param action     动作
+     * @param actionType 动作对应的动作类型
+     * @return 返回指定状态的文件操作记录数据
+     */
+    @Override
+    public FileRecord getFileRecordByAction(String userId, String etag, String action, String actionType) {
+        return fileRecordDao.getFileRecordByAction(userId, etag, action, actionType);
+    }
+
+    /**
+     * 更新 指定动作类型 的文件操作记录的 动作类型
+     *
+     * @param businessId     文件操作记录系统内唯一标识
+     * @param fromAction     原动作
+     * @param fromActionType 原动作对应的动作类型
+     * @param toAction       新动作
+     * @param toActionType   新动作对应的动作类型
+     * @return 返回更新的条数
+     */
+    @Override
+    public Integer updateFileRecordByAction(String businessId, String fromAction, String fromActionType,
+                                            String toAction, String toActionType) {
+        return fileRecordDao.updateFileRecordByAction(businessId, fromAction, fromActionType, toAction, toActionType);
     }
 }

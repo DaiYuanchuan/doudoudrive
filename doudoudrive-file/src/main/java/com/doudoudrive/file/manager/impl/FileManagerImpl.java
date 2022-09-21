@@ -3,6 +3,7 @@ package com.doudoudrive.file.manager.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
@@ -20,37 +21,46 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
+import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
+import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
-import com.doudoudrive.commonservice.service.FileRecordService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
+import com.doudoudrive.file.manager.FileRecordManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
+import com.doudoudrive.file.model.convert.FileRecordConvert;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * <p>用户文件信息服务的通用业务处理层接口实现</p>
@@ -78,11 +88,18 @@ public class FileManagerImpl implements FileManager {
      */
     private DiskDictionaryService diskDictionaryService;
 
-    private FileRecordService fileRecordService;
-
     private DiskUserAttrService diskUserAttrService;
 
     private LoginManager loginManager;
+
+    private FileRecordManager fileRecordManager;
+
+    /**
+     * RocketMQ消息模型
+     */
+    private RocketMQTemplate rocketmqTemplate;
+
+    private FileRecordConvert fileRecordConvert;
 
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
@@ -115,11 +132,6 @@ public class FileManagerImpl implements FileManager {
     }
 
     @Autowired
-    public void setFileRecordService(FileRecordService fileRecordService) {
-        this.fileRecordService = fileRecordService;
-    }
-
-    @Autowired
     public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
         this.diskUserAttrService = diskUserAttrService;
     }
@@ -127,6 +139,21 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
         this.loginManager = loginManager;
+    }
+
+    @Autowired
+    public void setFileRecordManager(FileRecordManager fileRecordManager) {
+        this.fileRecordManager = fileRecordManager;
+    }
+
+    @Autowired
+    public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
+        this.rocketmqTemplate = rocketmqTemplate;
+    }
+
+    @Autowired(required = false)
+    public void setFileRecordConvert(FileRecordConvert fileRecordConvert) {
+        this.fileRecordConvert = fileRecordConvert;
     }
 
     /**
@@ -163,11 +190,15 @@ public class FileManagerImpl implements FileManager {
      * @return 用户文件模块信息
      */
     @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
     public DiskFile createFolder(String userId, String name, String parentId) {
         // 构建一个文件夹实体信息
         DiskFile diskFile = diskFileConvert.createFileConvert(userId, name, parentId);
         // 保存用户文件夹
-        diskFileService.insert(diskFile);
+        Integer insert = diskFileService.insert(diskFile);
+        if (insert <= NumberConstant.INTEGER_ZERO) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_CREATE_FAILED);
+        }
         // 用户文件信息先入库，然后入es
         Result<String> saveElasticsearchResult = this.saveElasticsearchDiskFile(diskFile);
         if (Result.isNotSuccess(saveElasticsearchResult)) {
@@ -209,9 +240,12 @@ public class FileManagerImpl implements FileManager {
 
         try {
             // 将文件存入用户文件表中，忽略抛出的异常
-            diskFileService.insert(userFile);
-            // 删除文件记录表中状态为被删除的数据
-            fileRecordService.deleteAction(ConstantConfig.FileRecordAction.ActionEnum.FILE.status, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status);
+            Integer insert = diskFileService.insert(userFile);
+            if (insert <= NumberConstant.INTEGER_ZERO) {
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_CREATE_FAILED);
+            }
+            // 删除文件记录表中指定文件的所有的状态为被删除的记录数据
+            fileRecordManager.deleteAction(null, userFile.getFileEtag(), ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(userFile);
             // 尝试通过token获取用户信息
@@ -264,6 +298,7 @@ public class FileManagerImpl implements FileManager {
      * @param name 需要更改的文件名
      */
     @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
     public void renameFile(DiskFile file, String name) {
         // 先修改数据库中的文件名
         Integer result = diskFileService.update(DiskFile.builder()
@@ -283,6 +318,86 @@ public class FileManagerImpl implements FileManager {
             String cacheKey = ConstantConfig.Cache.DISK_FILE_CACHE + file.getBusinessId();
             // 重命名成功后删除缓存中的文件信息
             cacheManagerConfig.removeCache(cacheKey);
+        }
+    }
+
+    /**
+     * 根据文件id批量删除文件或文件夹，如果是文件夹则删除文件夹下所有文件
+     * 删除失败时会抛出异常
+     *
+     * @param content 需要删除的文件或文件夹信息
+     * @param userId  需要删除的文件或文件夹所属用户标识
+     * @param sendMsg 是否发送MQ消息，用于删除文件(true:发送，false:不发送)
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
+    public void delete(List<DiskFile> content, String userId, boolean sendMsg) {
+        // 所有的文件标识信息集合
+        List<String> allFileIdList = new ArrayList<>();
+
+        // 其中所有的文件夹信息集合
+        List<String> fileFolderList = new ArrayList<>();
+
+        // 构建文件操作记录信息
+        List<FileRecord> fileRecordList = new ArrayList<>();
+
+        // 当前删除的文件大小总量
+        BigDecimal totalSize = BigDecimal.ZERO;
+
+        for (DiskFile diskFile : content) {
+            allFileIdList.add(diskFile.getBusinessId());
+            // 判断当前文件是否为文件夹
+            if (diskFile.getFileFolder()) {
+                fileFolderList.add(diskFile.getBusinessId());
+            } else {
+                // 构建文件操作记录信息，用于记录文件的删除操作
+                fileRecordList.add(fileRecordConvert.diskFileConvertFileRecord(diskFile, userId,
+                        ConstantConfig.FileRecordAction.ActionEnum.FILE.status,
+                        ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status));
+            }
+            // 计算当前删除的文件大小总量
+            totalSize = totalSize.add(new BigDecimal(diskFile.getFileSize()));
+        }
+
+        // 先删除最上层的所有文件数据
+        diskFileService.deleteBatch(allFileIdList, userId);
+
+        // 批量添加文件操作记录信息
+        fileRecordManager.insertBatch(fileRecordList);
+
+        // 原子性服务减去用户已用磁盘容量属性
+        if (totalSize.compareTo(BigDecimal.ZERO) > NumberConstant.INTEGER_ZERO) {
+            diskUserAttrService.deducted(userId, ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, totalSize.stripTrailingZeros().toPlainString());
+        }
+
+        // 发送MQ消息，用于删除子文件夹下的所有文件
+        if (sendMsg) {
+            // 使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userId)
+                    .businessId(fileFolderList)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                // 消息发送失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
+            }
+        }
+
+        // 批量删除es中的文件信息
+        for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_TEN_THOUSAND)) {
+            // 使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE_ES;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userId)
+                    .businessId(allFileId)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                // 消息发送失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
+            }
         }
     }
 
@@ -352,6 +467,30 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
+     * 获取指定文件节点下所有的子节点信息 （递归）
+     *
+     * @param userId   用户系统内唯一标识
+     * @param parentId 文件父级标识
+     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     */
+    @Override
+    public void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer) {
+        diskFileService.getUserFileAllNode(userId, parentId, consumer);
+    }
+
+    /**
+     * 根据文件业务标识批量查询用户文件信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @param fileId 文件业务标识
+     * @return 返回查找到的用户文件模块数据集合
+     */
+    @Override
+    public List<DiskFile> fileIdSearch(String userId, List<String> fileId) {
+        return diskFileService.fileIdSearch(userId, fileId);
+    }
+
+    /**
      * 文件的parentId校验机制，针对是否存在、是否与自己有关、是否为文件夹的校验
      *
      * @param userId   与parentId一致的用户id
@@ -364,7 +503,7 @@ public class FileManagerImpl implements FileManager {
             return;
         }
         // 根据文件标识查找文件对象
-        DiskFile diskFile = this.getDiskFile(userId, parentId);
+        DiskFile diskFile = diskFileService.getDiskFile(userId, parentId);
         if (diskFile == null || !diskFile.getUserId().equals(userId)) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.PARENT_ID_NOT_FOUND);
         }

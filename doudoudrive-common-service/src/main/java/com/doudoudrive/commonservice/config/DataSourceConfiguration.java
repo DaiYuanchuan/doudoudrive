@@ -220,7 +220,7 @@ public class DataSourceConfiguration implements Closeable {
         // 连接池的用户定义名称，主要出现在日志记录和JMX管理控制台中以识别池和池配置
         hikariDataSource.setPoolName("HikariCP-" + dataSourceProperties.getKey());
         // 连接最大存活时间，不等于0且小于30秒，会被重置为默认值30分钟.设置应该比mysql设置的超时时间短
-        hikariDataSource.setMaxLifetime(1800000);
+        hikariDataSource.setMaxLifetime(60000);
         // 连接超时时间：毫秒，默认值30秒
         hikariDataSource.setConnectionTimeout(30000);
         // 用于测试连接是否可用的查询语句

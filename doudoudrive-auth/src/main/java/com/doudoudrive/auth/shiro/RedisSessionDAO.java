@@ -115,7 +115,13 @@ public class RedisSessionDAO extends AbstractSessionDAO {
 
         Collection<ShiroSession> shiroSessionCollection = new ArrayList<>(keys.size());
         for (String key : keys) {
-            shiroSessionCollection.add(this.getSessionFromCache(key));
+            // 从缓存中获取到shiro鉴权对象
+            ShiroAuthenticationModel shiroAuthenticationModel = cacheManagerConfig.getCache(key);
+            Optional.ofNullable(shiroAuthenticationModel).ifPresent(shiroAuthModel -> {
+                // 反序列化其中的session对象
+                ShiroSession shiroSession = SERIALIZER.deserialize(shiroAuthModel.getSession());
+                Optional.ofNullable(shiroSession).ifPresent(shiroSessionCollection::add);
+            });
         }
 
         if (CollectionUtil.isEmpty(shiroSessionCollection)) {
