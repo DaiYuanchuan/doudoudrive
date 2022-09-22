@@ -14,8 +14,6 @@ import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.SysAuthorizationDao;
 import com.doudoudrive.commonservice.service.SysAuthorizationService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("sysAuthorizationService")
-@DataSource(DataSourceEnum.USERINFO)
 public class SysAuthorizationServiceImpl implements SysAuthorizationService {
 
     private SysAuthorizationDao sysAuthorizationDao;

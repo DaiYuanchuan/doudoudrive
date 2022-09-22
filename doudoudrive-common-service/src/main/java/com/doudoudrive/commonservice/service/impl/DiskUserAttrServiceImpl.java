@@ -15,6 +15,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("diskUserAttrService")
 public class DiskUserAttrServiceImpl implements DiskUserAttrService {
 

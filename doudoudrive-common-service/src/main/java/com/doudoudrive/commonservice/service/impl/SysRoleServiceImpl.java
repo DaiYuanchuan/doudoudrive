@@ -14,8 +14,6 @@ import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.SysRoleDao;
 import com.doudoudrive.commonservice.service.SysRoleService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("sysRoleService")
-@DataSource(DataSourceEnum.USERINFO)
 public class SysRoleServiceImpl implements SysRoleService {
 
     private SysRoleDao sysRoleDao;

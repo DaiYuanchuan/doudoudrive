@@ -3,8 +3,6 @@ package com.doudoudrive.commonservice.service.impl;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.pojo.LogLogin;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.LogLoginDao;
 import com.doudoudrive.commonservice.service.LogLoginService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Service;
  * @author Dan
  **/
 @Service("logLoginService")
-@DataSource(DataSourceEnum.LOG)
 public class LogLoginServiceImpl implements LogLoginService {
 
     private LogLoginDao logLoginDao;

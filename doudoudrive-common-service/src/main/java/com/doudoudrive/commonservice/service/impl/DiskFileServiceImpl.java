@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("diskFileService")
 public class DiskFileServiceImpl implements DiskFileService {
 

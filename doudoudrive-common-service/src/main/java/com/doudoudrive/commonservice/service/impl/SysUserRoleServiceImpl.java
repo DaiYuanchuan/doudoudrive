@@ -6,8 +6,6 @@ import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.pojo.SysUserRole;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.SysUserRoleDao;
 import com.doudoudrive.commonservice.service.SysUserRoleService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
  * @author Dan
  **/
 @Service("sysUserRoleService")
-@DataSource(DataSourceEnum.USERINFO)
 public class SysUserRoleServiceImpl implements SysUserRoleService {
 
     private SysUserRoleDao sysUserRoleDao;

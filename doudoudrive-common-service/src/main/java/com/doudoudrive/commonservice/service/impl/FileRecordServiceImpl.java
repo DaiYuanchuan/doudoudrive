@@ -19,6 +19,7 @@ import com.doudoudrive.commonservice.service.FileRecordService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("fileRecordService")
 public class FileRecordServiceImpl implements FileRecordService {
 
