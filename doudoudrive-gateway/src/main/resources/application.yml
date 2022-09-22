@@ -49,7 +49,7 @@ spring:
       eager: true
       transport:
         # 当前应用与Sentinel控制台交互的端口，应用本地会起一个该端口占用的HttpServer，通过此端口收发数据
-        port: 8719
+        port: ${ENV_SENTINEL_PORT:8719}
         # Sentinel控制台地址
         dashboard: 192.168.31.200:1080
       datasource:
