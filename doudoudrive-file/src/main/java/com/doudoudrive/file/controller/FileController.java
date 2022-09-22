@@ -246,7 +246,7 @@ public class FileController {
         DiskFile userFile = fileManager.createFile(createFile, fileId, totalDiskCapacity, usedDiskCapacity);
         DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(userFile);
         if (fileModel == null) {
-            return Result.build(StatusCodeEnum.SYSTEM_ERROR);
+            return Result.build(StatusCodeEnum.FILE_CREATE_FAILED);
         }
 
         // 获取文件访问Url
