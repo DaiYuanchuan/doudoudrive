@@ -517,6 +517,8 @@ public interface ConstantConfig {
         String USERINFO = "userinfo";
 
         String DISK_FILE = "disk_file";
+
+        String DISK_SHARE_FILE = "file_share";
     }
 
     /**
