@@ -48,7 +48,7 @@ public class SaveElasticsearchFileShareRequestDTO {
     /**
      * 提取码(为空时表示不需要提取码)
      */
-    @Size(max = 4, message = "提取码长度错误")
+    @Size(max = 6, message = "请输入6位数字或字母")
     private String sharePwd;
 
     /**

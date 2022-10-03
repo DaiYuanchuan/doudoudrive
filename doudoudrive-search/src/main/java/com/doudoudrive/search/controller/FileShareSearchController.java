@@ -122,11 +122,13 @@ public class FileShareSearchController {
             // 将搜索结果转换为响应结果
             FileShareModel fileShareModel = fileShareModelConvert.fileShareConvertFileShareModel(hit.getContent());
             // 浏览次数自增
-            fileShareModel.setViewCount(new BigDecimal(fileShareModel.getViewCount()).add(BigDecimal.ONE).stripTrailingZeros().toPlainString());
-            // 更新es中的浏览次数
-            fileShareSearchManager.updateFileShare(fileShareModel.getShareId(), FileShareDTO.builder()
-                    .viewCount(fileShareModel.getViewCount())
-                    .build());
+            if (shareIdRequest.getUpdateViewCount()) {
+                fileShareModel.setViewCount(new BigDecimal(fileShareModel.getViewCount()).add(BigDecimal.ONE).stripTrailingZeros().toPlainString());
+                // 更新es中的浏览次数
+                fileShareSearchManager.updateFileShare(fileShareModel.getShareId(), FileShareDTO.builder()
+                        .viewCount(fileShareModel.getViewCount())
+                        .build());
+            }
             content.add(fileShareModel);
         }
 
