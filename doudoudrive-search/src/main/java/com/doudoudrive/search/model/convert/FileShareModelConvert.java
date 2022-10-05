@@ -4,10 +4,7 @@ import com.doudoudrive.common.model.dto.model.FileShareModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileShareRequestDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchShareUserIdResponseDTO;
 import com.doudoudrive.search.model.elasticsearch.FileShareDTO;
-import org.mapstruct.Mapper;
-import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import org.springframework.data.elasticsearch.core.SearchHit;
 
 import java.util.List;
@@ -30,6 +27,7 @@ public interface FileShareModelConvert {
      * @param request 保存es文件分享信息时的请求数据模型
      * @return 用户文件分享模块信息ES数据模型
      */
+    @Mapping(target = "shareSalt", source = "salt")
     FileShareDTO saveEsFileShareRequestConvertFileShare(SaveElasticsearchFileShareRequestDTO request);
 
     /**
