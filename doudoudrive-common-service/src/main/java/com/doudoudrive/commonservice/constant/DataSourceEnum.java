@@ -36,7 +36,12 @@ public enum DataSourceEnum {
     /**
      * 文件系统配置中心数据源
      */
-    FILE("file", TransactionManagerConstant.FILE_TRANSACTION_MANAGER);
+    FILE("file", TransactionManagerConstant.FILE_TRANSACTION_MANAGER),
+
+    /**
+     * 文件分享系统配置中心数据源
+     */
+    FILE_SHARE("fileShare", TransactionManagerConstant.FILE_SHARE_TRANSACTION_MANAGER);
 
     /**
      * 数据源key

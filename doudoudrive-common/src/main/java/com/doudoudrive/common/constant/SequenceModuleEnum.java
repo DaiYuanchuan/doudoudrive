@@ -76,7 +76,12 @@ public enum SequenceModuleEnum {
     /**
      * 文件临时操作记录模块
      */
-    FILE_RECORD("13");
+    FILE_RECORD("13"),
+
+    /**
+     * 文件分享模块
+     */
+    FILE_SHARE("14");
 
     /**
      * 业务模块标识，固定为两位数字

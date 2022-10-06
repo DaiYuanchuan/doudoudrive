@@ -74,6 +74,11 @@ public interface NumberConstant {
     Long LONG_TWENTY = 20L;
 
     /**
+     * 常量 long 32
+     */
+    Long LONG_THIRTY_TWO = 32L;
+
+    /**
      * 常量 long 50
      */
     Long LONG_FIFTY = 50L;
@@ -169,6 +174,11 @@ public interface NumberConstant {
     Integer INTEGER_TWENTY = 20;
 
     /**
+     * 常量 integer 32
+     */
+    Integer INTEGER_THIRTY_TWO = 32;
+
+    /**
      * 常量 integer 50
      */
     Integer INTEGER_FIFTY = 50;
@@ -262,6 +272,11 @@ public interface NumberConstant {
      * 常量 string 20
      */
     String STRING_TWENTY = "20";
+
+    /**
+     * 常量 string 32
+     */
+    String STRING_THIRTY_TWO = "32";
 
     /**
      * 常量 string 50

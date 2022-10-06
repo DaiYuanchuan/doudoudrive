@@ -353,7 +353,7 @@
     <select id="fileIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
         SELECT
-        `business_id`, `file_size`, `file_etag`, `is_file_folder`
+        `business_id`, `file_name`, `file_size`, `file_etag`, `is_file_folder`
         FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <if test="null != userId and '' != userId">

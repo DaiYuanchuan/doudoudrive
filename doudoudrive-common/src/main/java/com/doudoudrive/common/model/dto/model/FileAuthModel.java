@@ -52,7 +52,7 @@ public class FileAuthModel implements Serializable {
     private String shareKey;
 
     /**
-     * 搜索时的排序值，用作下一页的游标
+     * 搜索时的排序值，用作下一页的游标，用作搜索时marker加密时使用
      */
     private List<Object> sortValues;
 

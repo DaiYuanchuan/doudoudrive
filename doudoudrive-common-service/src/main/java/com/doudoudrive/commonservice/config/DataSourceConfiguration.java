@@ -1,5 +1,6 @@
 package com.doudoudrive.commonservice.config;
 
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.DynamicDataSourceProperties;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import com.doudoudrive.commonservice.constant.DataSourceEnum;
@@ -237,7 +238,7 @@ public class DataSourceConfiguration implements Closeable {
      */
     private HikariDataSource getDefaultTargetDataSource() {
         List<DynamicDataSourceProperties> dynamicDataSourcePropertiesList = getDynamicDataSourceProperties();
-        return getHikariDataSource(dynamicDataSourcePropertiesList.get(0));
+        return getHikariDataSource(dynamicDataSourcePropertiesList.get(NumberConstant.INTEGER_ZERO));
     }
 
 }

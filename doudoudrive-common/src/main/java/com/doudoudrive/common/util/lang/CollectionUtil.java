@@ -49,6 +49,11 @@ public class CollectionUtil extends CollectionUtils {
         if (isEmpty(collections)) {
             return new ArrayList<>();
         }
+        // 集合数量小于最大任务数量时，直接返回
+        if (collections.size() <= maxBatchTasks) {
+            return new ArrayList<>(Collections.singletonList(new ArrayList<>(collections)));
+        }
+
         // 计算切分次数
         long limit = (collections.size() + maxBatchTasks - 1) / maxBatchTasks;
         return Stream.iterate(0, n -> n + 1)

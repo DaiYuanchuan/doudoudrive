@@ -408,13 +408,18 @@ public class FileController {
 
         // 构建ES文件查询请求
         QueryElasticsearchDiskFileRequestDTO queryElasticRequest = diskFileConvert.fileSearchRequestConvertQueryElasticRequest(requestDTO, userinfo.getBusinessId());
-        return Result.ok(fileManager.search(queryElasticRequest, requestDTO.getMarker()));
+        // 构建文件鉴权信息
+        FileAuthModel fileAuthModel = FileAuthModel.builder()
+                .userId(queryElasticRequest.getUserId())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        return Result.ok(fileManager.search(queryElasticRequest, fileAuthModel, requestDTO.getMarker()));
     }
 
     /**
      * 七牛云CDN鉴权专用
      * <p>
-     * CDN请求时的文件鉴权配置，这里主要操作是扣减用户流量，流量不足时返回异常的状态码
+     * CDN请求时的文件鉴权配置，这里主要操作是扣减用户流量，流量不足时返回异常的状态码，用户访问文件时需要先登录
      * <p>
      * 鉴权成功时响应 204 状态码，鉴权失败时响应 403 状态码
      *

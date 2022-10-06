@@ -62,7 +62,7 @@ public interface DiskFileSearchFeignClient {
      * @return 查询结果
      */
     @PostMapping(value = "/search/file/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearch(@RequestBody QueryElasticsearchDiskFileIdRequestDTO requestDTO);
+    Result<List<QueryElasticsearchDiskFileResponseDTO>> fileIdSearch(@RequestBody QueryElasticsearchDiskFileIdRequestDTO requestDTO);
 
     /**
      * 根据文件父级业务标识批量查询用户文件信息

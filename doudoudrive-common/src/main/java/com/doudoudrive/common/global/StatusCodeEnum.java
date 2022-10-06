@@ -21,6 +21,8 @@ public enum StatusCodeEnum {
     PHONE_NUMBER_FORMAT_ERROR(400, "手机号码格式不正确，请重新输入"),
     URL_FORMAT_ERROR(400, "URL格式不正确，请重新输入"),
     EMAIL_FORMAT_ERROR(400, "邮箱格式不正确，请重新输入"),
+    SHARE_PWD_LENGTH_INVALID(400, "请输入6位数字或字母"),
+    SHARE_ID_INVALID(400, "你打开的链接有误，请重试"),
 
     /**
      * 应用请求访问类:4xx
@@ -78,6 +80,11 @@ public enum StatusCodeEnum {
     INVALID_MARKER(707, "无效的marker"),
     TASK_ALREADY_EXIST(708, "当前有正在执行中的任务，请稍后重试"),
     FILE_CREATE_FAILED(709, "文件创建失败"),
+    SHARE_FILE_EXPIRE(710, "分享链接已失效"),
+    INVALID_KEY(711, "无效的key值"),
+    EXPIRE_TIME_INVALID(712, "无效的过期时间"),
+    SHARE_PWD_INVALID(713, "请输入提取码"),
+    SHARE_PWD_ERROR(714, "请输入正确的提取码"),
 
     /**
      * 接口类:8xx

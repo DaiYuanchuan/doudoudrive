@@ -1,5 +1,7 @@
 package com.doudoudrive.common.model.dto.request;
 
+import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,11 +34,37 @@ public class QueryElasticsearchFileShareIdRequestDTO {
     private Boolean updateViewCount;
 
     /**
+     * 上一页游标，为空时默认第一页
+     */
+    private List<Object> searchAfter;
+
+    /**
+     * 单次查询的数量、每页大小
+     */
+    private Integer count;
+
+    /**
+     * 排序配置
+     */
+    @Size(max = 3, message = "不支持的排序")
+    private List<OrderByBuilder> sort;
+
+    /**
      * 是否需要更新当前链接的浏览次数
      *
      * @return 默认为false 不更新
      */
     public Boolean getUpdateViewCount() {
         return Optional.ofNullable(updateViewCount).orElse(Boolean.FALSE);
+    }
+
+    /**
+     * 单次查询的数量、每页大小
+     *
+     * @return 返回每页的大小，默认为10，最小为1，最大10000
+     */
+    public Integer getCount() {
+        return Math.min(Math.max(Optional.ofNullable(count).orElse(NumberConstant.INTEGER_TEN),
+                NumberConstant.INTEGER_ONE), NumberConstant.INTEGER_TEN_THOUSAND);
     }
 }

@@ -347,6 +347,11 @@ public interface ConstantConfig {
          * OSS文件对象存储模块依据 file_etag 平均分 300 个表
          */
         Integer OSS_FILE = 300;
+
+        /**
+         * 文件分享记录详情模块 依据 share_id 平均分40个表
+         */
+        Integer FILE_SHARE = 40;
     }
 
     /**

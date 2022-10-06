@@ -1,6 +1,7 @@
 package com.doudoudrive.common.model.dto.request;
 
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +40,12 @@ public class QueryElasticsearchShareUserIdRequestDTO {
      * 单次查询的数量、每页大小
      */
     private Integer count;
+
+    /**
+     * 排序配置
+     */
+    @Size(max = 3, message = "不支持的排序")
+    private List<OrderByBuilder> sort;
 
     /**
      * 单次查询的数量、每页大小
