@@ -100,7 +100,7 @@ public class FileShareSearchController {
 
         // 文件信息搜索请求，获取搜索结果
         SearchHits<FileShareDTO> searchHit = fileShareSearchManager.shareUserIdSearch(userIdSearchRequest.getUserId(),
-                userIdSearchRequest.getSearchAfter(), userIdSearchRequest.getCount());
+                userIdSearchRequest.getSearchAfter(), userIdSearchRequest.getCount(), userIdSearchRequest.getSort());
         // 将搜索结果转换为响应结果
         return Result.ok(fileShareModelConvert.fileShareConvertQueryShareUserIdResponse(searchHit.getSearchHits()));
     }
@@ -115,7 +115,8 @@ public class FileShareSearchController {
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 用户文件分享标识数据搜索请求，获取搜索结果
-        List<SearchHit<FileShareDTO>> searchHit = fileShareSearchManager.shareIdSearch(shareIdRequest.getShareId()).getSearchHits();
+        List<SearchHit<FileShareDTO>> searchHit = fileShareSearchManager.shareIdSearch(shareIdRequest.getShareId(),
+                shareIdRequest.getSort(), shareIdRequest.getCount(), shareIdRequest.getSearchAfter()).getSearchHits();
         // 构建查询结果
         List<FileShareModel> content = Lists.newArrayListWithExpectedSize(searchHit.size());
         for (SearchHit<FileShareDTO> hit : searchHit) {

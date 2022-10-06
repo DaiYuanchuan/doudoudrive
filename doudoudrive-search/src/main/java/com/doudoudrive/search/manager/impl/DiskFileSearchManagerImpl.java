@@ -3,8 +3,6 @@ package com.doudoudrive.search.manager.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
-import com.doudoudrive.common.global.BusinessExceptionUtil;
-import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
@@ -12,12 +10,12 @@ import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.ReflectUtil;
 import com.doudoudrive.search.manager.DiskFileSearchManager;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
+import com.doudoudrive.search.util.ElasticUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +29,6 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -162,36 +159,8 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
                 .withQuery(builder);
-
-        // 游标不为空时，加入游标查询
-        if (CollectionUtil.isNotEmpty(requestDTO.getSearchAfter())) {
-            queryBuilder.withSearchAfter(requestDTO.getSearchAfter());
-        }
-
-        // 指定字段排序
-        List<SortBuilder<?>> fieldSortBuilderList = new ArrayList<>();
-        if (CollectionUtil.isEmpty(requestDTO.getSort())) {
-            // 添加默认排序字段，默认按照业务标识正序排列
-            fieldSortBuilderList.add(SortBuilders.fieldSort(AUTO_ID).order(SortOrder.ASC));
-        } else {
-            for (OrderByBuilder orderByBuilder : requestDTO.getSort()) {
-                if (StringUtils.isNotBlank(orderByBuilder.getOrderBy()) && StringUtils.isNotBlank(orderByBuilder.getOrderDirection())) {
-                    // 判断字段名是否存在于枚举中
-                    if (ConstantConfig.DiskFileSearchOrderBy.noneMatch(orderByBuilder.getOrderBy())
-                            || ConstantConfig.OrderDirection.noneMatch(orderByBuilder.getOrderDirection())) {
-                        BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.UNSUPPORTED_SORT);
-                    }
-                    fieldSortBuilderList.add(SortBuilders.fieldSort(orderByBuilder.getOrderBy())
-                            .order(ConstantConfig.OrderDirection.ASC.direction.equals(orderByBuilder.getOrderDirection()) ? SortOrder.ASC : SortOrder.DESC));
-                }
-            }
-        }
-
-        // 排序字段构建
-        queryBuilder.withSorts(fieldSortBuilderList);
-
-        // 构建分页语句
-        queryBuilder.withPageable(PageRequest.of(NumberConstant.INTEGER_ZERO, requestDTO.getCount()));
+        // 根据排序分页参数构建排序分页对象
+        ElasticUtil.builderSortPageable(requestDTO.getSort(), AUTO_ID, requestDTO.getSearchAfter(), requestDTO.getCount(), queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
@@ -200,11 +169,14 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
     /**
      * 根据文件业务标识批量查询用户文件信息
      *
-     * @param businessId 文件业务标识
+     * @param businessId  文件业务标识
+     * @param sort        排序字段
+     * @param count       每页数量
+     * @param searchAfter 游标
      * @return 用户文件实体信息ES数据模型
      */
     @Override
-    public SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId) {
+    public SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId, List<OrderByBuilder> sort, Integer count, List<Object> searchAfter) {
         // 查询信息构建
         IdsQueryBuilder builder = QueryBuilders.idsQuery();
         builder.addIds(businessId.toArray(String[]::new));
@@ -212,6 +184,9 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
                 .withQuery(builder);
+
+        // 根据排序分页参数构建排序分页对象
+        ElasticUtil.builderSortPageable(sort, AUTO_ID, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);

@@ -2,19 +2,16 @@ package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.constant.NumberConstant;
-import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import com.doudoudrive.common.util.lang.ReflectUtil;
 import com.doudoudrive.search.manager.FileShareSearchManager;
 import com.doudoudrive.search.model.elasticsearch.FileShareDTO;
+import com.doudoudrive.search.util.ElasticUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
@@ -110,27 +107,19 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
      * @param userId      用户系统内唯一标识
      * @param searchAfter 上一页游标，为空时默认第一页
      * @param count       单次查询的数量、每页大小
+     * @param sort        排序字段
      * @return 用户文件分享信息ES数据模型
      */
     @Override
-    public SearchHits<FileShareDTO> shareUserIdSearch(String userId, List<Object> searchAfter, Integer count) {
+    public SearchHits<FileShareDTO> shareUserIdSearch(String userId, List<Object> searchAfter, Integer count, List<OrderByBuilder> sort) {
         // 查询信息构建
         BoolQueryBuilder builder = QueryBuilders.boolQuery();
         builder.must(QueryBuilders.termQuery(USER_ID, userId));
 
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder().withQuery(builder);
-
-        // 游标不为空时，加入游标查询
-        if (CollectionUtil.isNotEmpty(searchAfter)) {
-            queryBuilder.withSearchAfter(searchAfter);
-        }
-
-        // 指定字段排序构建，默认按照创建时间倒叙排列
-        queryBuilder.withSorts(SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.DESC));
-
-        // 构建分页语句
-        queryBuilder.withPageable(PageRequest.of(NumberConstant.INTEGER_ZERO, count));
+        // 根据排序分页参数构建排序分页对象
+        ElasticUtil.builderSortPageable(sort, CREATE_TIME, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), FileShareDTO.class);
@@ -139,11 +128,14 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
     /**
      * 根据用户文件分享标识批量查询用户文件信息
      *
-     * @param shareId 用户文件分享标识
+     * @param shareId     用户文件分享标识
+     * @param sort        排序字段
+     * @param count       每页数量
+     * @param searchAfter 游标
      * @return 用户文件分享记录信息ES数据模型
      */
     @Override
-    public SearchHits<FileShareDTO> shareIdSearch(List<String> shareId) {
+    public SearchHits<FileShareDTO> shareIdSearch(List<String> shareId, List<OrderByBuilder> sort, Integer count, List<Object> searchAfter) {
         // 查询信息构建
         IdsQueryBuilder builder = QueryBuilders.idsQuery();
         builder.addIds(shareId.toArray(String[]::new));
@@ -151,6 +143,9 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
                 .withQuery(builder);
+
+        // 根据排序分页参数构建排序分页对象
+        ElasticUtil.builderSortPageable(sort, CREATE_TIME, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), FileShareDTO.class);

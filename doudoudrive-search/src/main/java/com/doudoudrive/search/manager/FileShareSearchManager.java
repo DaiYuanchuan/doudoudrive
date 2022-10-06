@@ -1,5 +1,6 @@
 package com.doudoudrive.search.manager;
 
+import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import com.doudoudrive.search.model.elasticsearch.FileShareDTO;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
@@ -49,16 +50,20 @@ public interface FileShareSearchManager {
      * @param userId      用户系统内唯一标识
      * @param searchAfter 上一页游标，为空时默认第一页
      * @param count       单次查询的数量、每页大小
+     * @param sort        排序字段
      * @return 用户文件分享信息ES数据模型
      */
-    SearchHits<FileShareDTO> shareUserIdSearch(String userId, List<Object> searchAfter, Integer count);
+    SearchHits<FileShareDTO> shareUserIdSearch(String userId, List<Object> searchAfter, Integer count, List<OrderByBuilder> sort);
 
     /**
      * 根据用户文件分享标识批量查询用户文件信息
      *
-     * @param shareId 用户文件分享标识
+     * @param shareId     用户文件分享标识
+     * @param sort        排序字段
+     * @param count       每页数量
+     * @param searchAfter 游标
      * @return 用户文件分享记录信息ES数据模型
      */
-    SearchHits<FileShareDTO> shareIdSearch(List<String> shareId);
+    SearchHits<FileShareDTO> shareIdSearch(List<String> shareId, List<OrderByBuilder> sort, Integer count, List<Object> searchAfter);
 
 }
