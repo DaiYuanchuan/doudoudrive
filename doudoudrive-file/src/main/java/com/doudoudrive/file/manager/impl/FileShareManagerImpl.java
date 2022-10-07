@@ -4,6 +4,7 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
+import com.doudoudrive.common.model.dto.model.FileShareDetailModel;
 import com.doudoudrive.common.model.dto.model.FileShareModel;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -301,7 +303,12 @@ public class FileShareManagerImpl implements FileShareManager {
         FileSearchResponseDTO fileSearchResponse = fileManager.accessUrl(shareAuthModel, queryElasticResponse.getData(), consumer ->
                 // 生成分享时的文件key值
                 consumer.setShareKey(DigestUtils.md5DigestAsHex((content.getShareSalt() + consumer.getFileId()).getBytes())));
-        response.setContent(fileShareConvert.diskFileConvertShareDetail(fileSearchResponse.getContent()));
+        List<FileShareDetailModel> fileShareDetailModelList = new ArrayList<>(queryElasticResponse.getData().size());
+        for (QueryElasticsearchDiskFileResponseDTO diskFile : queryElasticResponse.getData()) {
+            // 数据类型转换，同时生成分享时的文件key值
+            fileShareDetailModelList.add(fileShareConvert.diskFileConvertShareDetail(diskFile.getContent(), content));
+        }
+        response.setContent(fileShareDetailModelList);
         response.setMarker(fileSearchResponse.getMarker());
         return response;
     }

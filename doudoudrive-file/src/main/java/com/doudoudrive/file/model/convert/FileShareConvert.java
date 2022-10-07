@@ -18,7 +18,6 @@ import org.mapstruct.ReportingPolicy;
 import org.springframework.util.DigestUtils;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * <p>文件分享记录信息等相关的实体数据类型转换器</p>
@@ -80,7 +79,13 @@ public interface FileShareConvert {
      * 这里的key是将文件的业务id和salt值进行拼接后进行md5加密后的值
      *
      * @param diskFile 网盘文件数据模型
+     * @param share    文件分享记录信息
      * @return 网盘文件分享记录详情信息数据模型
      */
-    List<FileShareDetailModel> diskFileConvertShareDetail(List<DiskFileModel> diskFile);
+    @Mappings({
+            @Mapping(target = "createTime", source = "diskFile.createTime"),
+            @Mapping(target = "updateTime", source = "diskFile.updateTime"),
+            @Mapping(target = "key", expression = "java(DigestUtils.md5DigestAsHex((share.getShareSalt()+diskFile.getBusinessId()).getBytes()))")
+    })
+    FileShareDetailModel diskFileConvertShareDetail(DiskFileModel diskFile, FileShareModel share);
 }
