@@ -31,10 +31,11 @@ public interface FileShareSearchManager {
      *     先删库，然后再删es里存的用户文件分享信息
      * </pre>
      *
+     * @param userId  当前分享的用户标识
      * @param shareId 用户文件分享标识
      * @return 删除的文件信息
      */
-    ByQueryResponse cancelShare(List<String> shareId);
+    ByQueryResponse cancelShare(String userId, List<String> shareId);
 
     /**
      * 根据用户文件分享标识去更新用户文件分享信息

@@ -30,11 +30,12 @@ public interface FileShareDetailDao {
     /**
      * 根据分享的短链接标识(shareId)批量删除文件分享记录详情数据
      *
+     * @param userId      当前分享的用户标识
      * @param shareId     分享的短链接标识
      * @param tableSuffix 表后缀
      * @return 返回删除的条数
      */
-    Integer delete(@Param("list") List<String> shareId, @Param("tableSuffix") String tableSuffix);
+    Integer delete(@Param("userId") String userId, @Param("list") List<String> shareId, @Param("tableSuffix") String tableSuffix);
 
     /**
      * 根据分享的短链接标识(shareId)查找文件分享记录详情数据

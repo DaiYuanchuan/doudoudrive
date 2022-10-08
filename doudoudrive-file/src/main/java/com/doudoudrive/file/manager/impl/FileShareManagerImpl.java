@@ -3,13 +3,12 @@ package com.doudoudrive.file.manager.impl;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileShareDetailModel;
 import com.doudoudrive.common.model.dto.model.FileShareModel;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileIdRequestDTO;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchFileShareIdRequestDTO;
-import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileShareRequestDTO;
+import com.doudoudrive.common.model.dto.request.*;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
@@ -119,6 +118,31 @@ public class FileShareManagerImpl implements FileShareManager {
 
         // 构建返回的文件分享记录信息
         return fileShareConvert.saveFileShareConvertCreateFileShareResponse(saveFileShareRequest);
+    }
+
+    /**
+     * 取消文件分享链接
+     *
+     * @param shareId  分享链接标识
+     * @param userinfo 当前分享的用户信息
+     * @return 删除es文件分享记录信息时的响应数据模型
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_SHARE_TRANSACTION_MANAGER)
+    public DeleteElasticsearchFileShareResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo) {
+        // 根据短链接标识批量删除文件分享记录详情数据
+        fileShareDetailService.delete(shareId, userinfo.getBusinessId());
+        // 删除es文件分享记录信息
+        Result<DeleteElasticsearchFileShareResponseDTO> deleteElasticShareResult = diskFileSearchFeignClient.cancelShare(DeleteElasticsearchFileShareRequestDTO.builder()
+                .userId(userinfo.getBusinessId())
+                .shareId(shareId)
+                .build());
+        if (Result.isNotSuccess(deleteElasticShareResult)) {
+            BusinessExceptionUtil.throwBusinessException(deleteElasticShareResult);
+        }
+
+        // 返回删除es文件分享记录信息时的响应数据模型
+        return deleteElasticShareResult.getData();
     }
 
     /**

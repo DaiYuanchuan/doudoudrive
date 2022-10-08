@@ -82,7 +82,7 @@ public class FileShareSearchController {
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 删除es中的数据
-        ByQueryResponse deleteResponse = fileShareSearchManager.cancelShare(cancelShareRequest.getShareId());
+        ByQueryResponse deleteResponse = fileShareSearchManager.cancelShare(cancelShareRequest.getUserId(), cancelShareRequest.getShareId());
         return Result.ok(DeleteElasticsearchFileShareResponseDTO.builder()
                 .deleted(deleteResponse.getDeleted())
                 .took(deleteResponse.getTook())

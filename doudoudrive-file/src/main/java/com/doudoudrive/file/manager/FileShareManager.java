@@ -1,5 +1,7 @@
 package com.doudoudrive.file.manager;
 
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
@@ -26,6 +28,14 @@ public interface FileShareManager {
      * @return 网盘文件创建分享链接时的响应数据模型
      */
     CreateFileShareResponseDTO createShare(String userId, CreateFileShareRequestDTO createFileShareRequest, List<DiskFile> shareFileList);
+
+    /**
+     * 取消文件分享链接
+     *
+     * @param shareId  分享链接标识
+     * @param userinfo 当前分享的用户信息
+     */
+    DeleteElasticsearchFileShareResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo);
 
     /**
      * 根据分享链接的唯一标识获取分享链接的详细信息，包括分享的文件列表

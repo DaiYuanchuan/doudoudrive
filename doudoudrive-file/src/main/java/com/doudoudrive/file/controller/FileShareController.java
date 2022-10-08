@@ -7,11 +7,13 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileShareManager;
+import com.doudoudrive.file.model.dto.request.CancelFileShareRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileShareAnonymousRequestDTO;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
@@ -65,7 +67,7 @@ public class FileShareController {
 
     @SneakyThrows
     @ResponseBody
-    @OpLog(title = "文件分享记录", businessType = "新建")
+    @OpLog(title = "文件分享", businessType = "新建")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SHARE)
     @PostMapping(value = "/create", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<CreateFileShareResponseDTO> createShare(@RequestBody @Valid CreateFileShareRequestDTO createFileShareRequest,
@@ -102,7 +104,22 @@ public class FileShareController {
 
     @SneakyThrows
     @ResponseBody
-    @OpLog(title = "匿名访问分享记录", businessType = "查询")
+    @OpLog(title = "文件分享", businessType = "删除")
+    @PostMapping(value = "/cancel", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody @Valid CancelFileShareRequestDTO cancelShareRequest,
+                                                                       HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+        // 取消文件分享链接
+        return Result.ok(fileShareManager.cancelShare(cancelShareRequest.getShareId(), userinfo));
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "匿名访问分享链接", businessType = "查询")
     @PostMapping(value = "/anonymous", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<FileShareAnonymousResponseDTO> anonymous(@RequestBody @Valid FileShareAnonymousRequestDTO anonymousRequest,
                                                            HttpServletRequest request, HttpServletResponse response) {

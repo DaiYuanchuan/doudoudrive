@@ -22,6 +22,11 @@ import java.util.List;
 public class DeleteElasticsearchFileShareRequestDTO {
 
     /**
+     * 当前分享的用户标识
+     */
+    private String userId;
+
+    /**
      * 用户文件分享标识，也是es的id值，根据此值删除es数据
      */
     @NotEmpty(message = "参数集合为空")

@@ -34,9 +34,10 @@ import java.util.Map;
 public class FileShareSearchManagerImpl implements FileShareSearchManager {
 
     /**
-     * 用户标识、创建时间
+     * 用户标识、分享的短链接id、创建时间
      */
     private static final String USER_ID = ReflectUtil.property(FileShareDTO::getUserId);
+    private static final String SHARE_ID = ReflectUtil.property(FileShareDTO::getShareId);
     private static final String CREATE_TIME = ReflectUtil.property(FileShareDTO::getCreateTime);
     private ElasticsearchRestTemplate restTemplate;
 
@@ -67,14 +68,18 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
      *     先删库，然后再删es里存的用户文件分享信息
      * </pre>
      *
+     * @param userId  当前分享的用户标识
      * @param shareId 用户文件分享标识
      * @return 删除的文件信息
      */
     @Override
-    public ByQueryResponse cancelShare(List<String> shareId) {
+    public ByQueryResponse cancelShare(String userId, List<String> shareId) {
         // 查询信息构建
-        IdsQueryBuilder builder = QueryBuilders.idsQuery();
-        builder.addIds(shareId.toArray(String[]::new));
+        BoolQueryBuilder builder = QueryBuilders.boolQuery();
+
+        // 根据用户标识和分享标识删除
+        builder.must(QueryBuilders.termQuery(USER_ID, userId));
+        builder.must(QueryBuilders.termQuery(SHARE_ID, shareId));
 
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
