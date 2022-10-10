@@ -317,7 +317,7 @@ public class FileController {
                     .preview(fileModel.getPreview())
                     .download(fileModel.getDownload())
                     .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile, userToken,
-                            tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag(), System.currentTimeMillis()))
+                            tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag()))
                     .build());
 
             // 构建文件鉴权模型，拼接文件访问地址
