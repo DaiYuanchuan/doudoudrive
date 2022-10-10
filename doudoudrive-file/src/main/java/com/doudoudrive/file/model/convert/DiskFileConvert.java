@@ -156,11 +156,15 @@ public interface DiskFileConvert {
     /**
      * 将 DiskFile(用户文件模块实体类) 类型转换为 CreateFileAuthModel(创建文件时的鉴权参数模型)
      *
-     * @param diskFile 用户文件模块实体类
+     * @param diskFile     用户文件模块实体类
+     * @param token        用户当前token，会尝试使用token去更新
+     * @param callbackUrl  回调Url，文件上传成功后的回调地址，对接第三方使用
+     * @param originalEtag 用户原始etag，用户获取上传token时由前端生成的etag
+     * @param timestamp    时间戳，记录文件上传时间，也能保证后续生成的签名不断变换
      * @return 创建文件时的鉴权参数模型
      */
     @Mapping(target = "name", source = "fileName")
-    CreateFileAuthModel diskFileConvertCreateFileAuthModel(DiskFile diskFile);
+    CreateFileAuthModel diskFileConvertCreateFileAuthModel(DiskFile diskFile, String token, String callbackUrl, String originalEtag, Long timestamp);
 
     /**
      * 将 OssFile(OSS文件对象存储实体类) 类型转换为 CreateFileAuthModel(创建文件时的鉴权参数模型)

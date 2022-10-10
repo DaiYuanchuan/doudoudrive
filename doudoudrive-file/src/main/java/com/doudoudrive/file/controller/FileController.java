@@ -315,14 +315,17 @@ public class FileController {
             this.sendMessage(CreateFileConsumerRequestDTO.builder()
                     .fileId(fileId)
                     .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
-                    .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile))
+                    .preview(fileModel.getPreview())
+                    .download(fileModel.getDownload())
+                    .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile, userToken,
+                            tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag(), System.currentTimeMillis()))
                     .build());
 
             // 构建文件鉴权模型，拼接文件访问地址
             return Result.ok(FileUploadTokenResponseDTO.builder()
                     .fileInfo(fileManager.accessUrl(FileAuthModel.builder()
                             .userId(userInfo.getBusinessId())
-                            .build(), diskFileConvert.diskFileConvertDiskFileModel(diskFile)))
+                            .build(), fileModel))
                     .build());
         }
 
