@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.List;
@@ -24,6 +25,8 @@ public class DeleteElasticsearchFileShareRequestDTO {
     /**
      * 当前分享的用户标识
      */
+    @NotBlank(message = "用户标识不能为空")
+    @Size(max = 35, message = "用户标识长度错误")
     private String userId;
 
     /**

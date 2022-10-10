@@ -314,7 +314,6 @@ public class FileController {
             // 文件创建成功后的发送MQ消息
             this.sendMessage(CreateFileConsumerRequestDTO.builder()
                     .fileId(fileId)
-                    .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
                     .preview(fileModel.getPreview())
                     .download(fileModel.getDownload())
                     .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile, userToken,
