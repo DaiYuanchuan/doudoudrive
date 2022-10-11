@@ -24,10 +24,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
-import com.doudoudrive.file.manager.DiskUserAttrManager;
-import com.doudoudrive.file.manager.FileManager;
-import com.doudoudrive.file.manager.OssFileManager;
-import com.doudoudrive.file.manager.QiNiuManager;
+import com.doudoudrive.file.manager.*;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
@@ -70,6 +67,8 @@ public class FileController {
 
     private FileManager fileManager;
 
+    private FileShareManager fileShareManager;
+
     private DiskFileConvert diskFileConvert;
 
     private DiskUserAttrService diskUserAttrService;
@@ -100,6 +99,11 @@ public class FileController {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setFileShareManager(FileShareManager fileShareManager) {
+        this.fileShareManager = fileShareManager;
     }
 
     @Autowired(required = false)
@@ -458,7 +462,16 @@ public class FileController {
             return;
         }
 
-        // TODO: 2022/5/25 资源所属用户与当前登录用户不同时，需要校验分享短链、分享时的文件key值
+        // 资源所属用户与当前登录用户不同时，需要校验分享短链、分享时的文件key值
+        if (!userinfo.getUserInfo().getBusinessId().equals(fileAuth.getUserId())) {
+            if (StringUtils.isBlank(fileAuth.getShareShort())
+                    || StringUtils.isBlank(fileAuth.getShareKey())
+                    || !fileShareManager.verifyShareKey(fileAuth.getShareShort(), fileAuth.getFileId(), fileAuth.getShareKey())) {
+                // 分享短链、分享时的文件key值不存在、校验key值不正确
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                return;
+            }
+        }
 
         // 获取访问的文件对象
         DiskFile fileInfo = fileManager.getDiskFile(fileAuth.getUserId(), fileAuth.getFileId());

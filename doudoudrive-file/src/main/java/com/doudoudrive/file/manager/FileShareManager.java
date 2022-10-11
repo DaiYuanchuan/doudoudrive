@@ -45,4 +45,13 @@ public interface FileShareManager {
      */
     Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest);
 
+    /**
+     * 校验分享链接的key值是否正确
+     *
+     * @param shareId  分享短链
+     * @param fileId   分享的文件标识
+     * @param shareKey 分享key值
+     * @return true:校验通过，false:校验失败
+     */
+    Boolean verifyShareKey(String shareId, String fileId, String shareKey);
 }

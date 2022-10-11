@@ -153,19 +153,8 @@ public class FileShareManagerImpl implements FileShareManager {
      */
     @Override
     public Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest) {
-        // 根据短链接标识查询分享记录信息
-        Result<QueryElasticsearchFileShareIdResponseDTO> queryElasticShareIdResult = diskFileSearchFeignClient.shareIdResponse(QueryElasticsearchFileShareIdRequestDTO.builder()
-                .shareId(Collections.singletonList(anonymousRequest.getShareId()))
-                .updateViewCount(anonymousRequest.getUpdateViewCount())
-                .build());
-        // 判断查询结果是否为空
-        if (Result.isNotSuccess(queryElasticShareIdResult)
-                || CollectionUtil.isEmpty(queryElasticShareIdResult.getData().getContent())) {
-            return Result.build(StatusCodeEnum.SHARE_ID_INVALID);
-        }
-
-        // 获取到分享记录信息
-        FileShareModel content = queryElasticShareIdResult.getData().getContent().get(NumberConstant.INTEGER_ZERO);
+        // 根据短链接标识查询分享记录信息，获取到分享记录信息
+        FileShareModel content = this.getShareContent(anonymousRequest.getShareId(), anonymousRequest.getUpdateViewCount());
         if (content == null) {
             return Result.build(StatusCodeEnum.SHARE_ID_INVALID);
         }
@@ -201,6 +190,24 @@ public class FileShareManagerImpl implements FileShareManager {
 
         // 构建网盘文件分享记录详情信息数据列表
         return Result.ok(this.buildAnonymousResponse(anonymousRequest, response, content));
+    }
+
+    /**
+     * 校验分享链接的key值是否正确
+     *
+     * @param shareId  分享短链
+     * @param fileId   分享的文件标识
+     * @param shareKey 分享key值
+     * @return true:校验通过，false:校验失败
+     */
+    @Override
+    public Boolean verifyShareKey(String shareId, String fileId, String shareKey) {
+        // 根据短链接标识查询分享记录信息，获取到分享记录信息
+        FileShareModel content = this.getShareContent(shareId, Boolean.FALSE);
+        if (content == null) {
+            return Boolean.FALSE;
+        }
+        return this.verifyShareKey(content, fileId, shareKey);
     }
 
     // ==================================================== private ====================================================
@@ -277,8 +284,7 @@ public class FileShareManagerImpl implements FileShareManager {
         if (StringUtils.isNotBlank(request.getFileParentId())
                 && StringUtils.isNotBlank(request.getKey())) {
             // 校验key值是否正确，这里的key是将文件的业务id和salt值进行拼接后进行md5加密后的值
-            String characterSigned = DigestUtils.md5DigestAsHex((content.getShareSalt() + request.getFileParentId()).getBytes());
-            if (!characterSigned.equals(request.getKey())) {
+            if (!this.verifyShareKey(content, request.getFileParentId(), request.getKey())) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_KEY);
             }
 
@@ -335,5 +341,41 @@ public class FileShareManagerImpl implements FileShareManager {
         response.setContent(fileShareDetailModelList);
         response.setMarker(fileSearchResponse.getMarker());
         return response;
+    }
+
+    /**
+     * 校验分享链接的key值是否正确
+     *
+     * @param content  分享的文件信息
+     * @param fileId   分享的文件标识
+     * @param shareKey 分享的key值
+     * @return true:校验通过，false:校验失败
+     */
+    private Boolean verifyShareKey(FileShareModel content, String fileId, String shareKey) {
+        // 校验key值是否正确，这里的key是将文件的业务id和salt值进行拼接后进行md5加密后的值
+        return DigestUtils.md5DigestAsHex((content.getShareSalt() + fileId).getBytes()).equals(shareKey);
+    }
+
+    /**
+     * 根据分享链接标识查询分享的文件信息，如果查询失败或者分享链接不存在则返回null
+     *
+     * @param shareId         分享链接标识
+     * @param updateViewCount 是否更新分享链接的访问次数
+     * @return 分享的文件信息，不存在时返回null
+     */
+    private FileShareModel getShareContent(String shareId, Boolean updateViewCount) {
+        // 根据短链接标识查询分享记录信息
+        Result<QueryElasticsearchFileShareIdResponseDTO> queryElasticShareIdResult = diskFileSearchFeignClient.shareIdResponse(QueryElasticsearchFileShareIdRequestDTO.builder()
+                .shareId(Collections.singletonList(shareId))
+                .updateViewCount(updateViewCount)
+                .build());
+        // 判断查询结果是否为空
+        if (Result.isNotSuccess(queryElasticShareIdResult)
+                || CollectionUtil.isEmpty(queryElasticShareIdResult.getData().getContent())) {
+            return null;
+        }
+
+        // 获取到分享记录信息
+        return queryElasticShareIdResult.getData().getContent().get(NumberConstant.INTEGER_ZERO);
     }
 }
