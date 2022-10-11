@@ -8,7 +8,7 @@
         <result property="businessId" column="business_id"/>
         <result property="msgId" column="msg_id"/>
         <result property="offsetMsgId" column="offset_msg_id"/>
-        <result property="sendStatus" column="send_status"/>
+        <result property="retryCount" column="retry_count"/>
         <result property="topic" column="topic"/>
         <result property="tag" column="tag"/>
         <result property="brokerName" column="broker_name"/>
@@ -21,7 +21,8 @@
 
     <!-- sql字段信息 -->
     <sql id="rocketmqConsumerRecord">
-        `auto_id`, `business_id`, `msg_id`, `offset_msg_id`, `send_status`, `topic`, `tag`,
+        `auto_id`
+        , `business_id`, `msg_id`, `offset_msg_id`, `retry_count`, `topic`, `tag`,
         `broker_name`, `queue_id`, `queue_offset`, `send_time`, `create_time`, `update_time`
     </sql>
 
@@ -40,8 +41,8 @@
             <if test="null != record.offsetMsgId and '' != record.offsetMsgId">
                 `offset_msg_id`,
             </if>
-            <if test="null != record.sendStatus and '' != record.sendStatus">
-                `send_status`,
+            <if test="null != record.retryCount">
+                `retry_count`,
             </if>
             <if test="null != record.topic and '' != record.topic">
                 `topic`,
@@ -75,8 +76,8 @@
             <if test="null != record.offsetMsgId and '' != record.offsetMsgId">
                 #{record.offsetMsgId},
             </if>
-            <if test="null != record.sendStatus and '' != record.sendStatus">
-                #{record.sendStatus},
+            <if test="null != record.retryCount">
+                #{record.retryCount},
             </if>
             <if test="null != record.topic and '' != record.topic">
                 #{record.topic},
@@ -99,6 +100,51 @@
         </trim>
         )
     </insert>
+
+    <!-- 根据业务id(businessId)删除RocketMQ消费记录 -->
+    <delete id="delete" parameterType="java.lang.String" flushCache="true">
+        DELETE FROM `rocketmq_consumer_record_${tableSuffix}`
+        <where>
+            `business_id` = #{businessId}
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改RocketMQ消费记录 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.RocketmqConsumerRecord" flushCache="true">
+        UPDATE `rocketmq_consumer_record_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != rocketmqConsumerRecord.msgId and '' != rocketmqConsumerRecord.msgId">
+                `msg_id` = #{rocketmqConsumerRecord.msgId},
+            </if>
+            <if test="null != rocketmqConsumerRecord.offsetMsgId and '' != rocketmqConsumerRecord.offsetMsgId">
+                `offset_msg_id` = #{rocketmqConsumerRecord.offsetMsgId},
+            </if>
+            <if test="null != rocketmqConsumerRecord.retryCount">
+                `retry_count` = #{rocketmqConsumerRecord.retryCount},
+            </if>
+            <if test="null != rocketmqConsumerRecord.topic and '' != rocketmqConsumerRecord.topic">
+                `topic` = #{rocketmqConsumerRecord.topic},
+            </if>
+            <if test="null != rocketmqConsumerRecord.tag and '' != rocketmqConsumerRecord.tag">
+                `tag` = #{rocketmqConsumerRecord.tag},
+            </if>
+            <if test="null != rocketmqConsumerRecord.brokerName and '' != rocketmqConsumerRecord.brokerName">
+                `broker_name` = #{rocketmqConsumerRecord.brokerName},
+            </if>
+            <if test="null != rocketmqConsumerRecord.queueId and '' != rocketmqConsumerRecord.queueId">
+                `queue_id` = #{rocketmqConsumerRecord.queueId},
+            </if>
+            <if test="null != rocketmqConsumerRecord.queueOffset and '' != rocketmqConsumerRecord.queueOffset">
+                `queue_offset` = #{rocketmqConsumerRecord.queueOffset},
+            </if>
+            <if test="null != rocketmqConsumerRecord.sendTime">
+                `send_time` = #{rocketmqConsumerRecord.sendTime},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{rocketmqConsumerRecord.businessId}
+        </where>
+    </update>
 
     <!-- 根据业务id(businessId)查找RocketMQ消费记录 -->
     <select id="getRocketmqConsumerRecord" resultType="com.doudoudrive.common.model.pojo.RocketmqConsumerRecord"

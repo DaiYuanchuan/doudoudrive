@@ -43,6 +43,7 @@ import com.doudoudrive.file.manager.FileRecordManager;
 import com.doudoudrive.file.manager.OssFileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.convert.FileRecordConvert;
+import com.doudoudrive.file.model.dto.request.CreateFileRollbackConsumerRequestDTO;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
@@ -258,10 +259,20 @@ public class FileManagerImpl implements FileManager {
             });
             return userFile;
         } catch (Exception e) {
-            // 出现异常时手动减去用户已用磁盘容量
-            diskUserAttrService.deducted(userFile.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, ossFile.getSize());
-            // 手动删除用户文件
-            diskFileService.delete(userFile.getBusinessId(), userFile.getUserId());
+            // 发送MQ消息，异步回滚文件和用户磁盘容量数据
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE_ROLLBACK;
+            // 使用sync模式发送消息，保证消息发送成功
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(CreateFileRollbackConsumerRequestDTO.builder()
+                    .userId(userFile.getUserId())
+                    .fileId(userFile.getBusinessId())
+                    .size(ossFile.getSize())
+                    .retryCount(NumberConstant.INTEGER_ZERO)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                log.error("send to mq, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}, sendResult:{}, fileId:{}",
+                        destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage(), sendResult, userFile.getBusinessId());
+            }
             log.error(e.getMessage(), e);
             return null;
         }

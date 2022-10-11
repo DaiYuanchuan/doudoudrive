@@ -210,6 +210,11 @@ public interface ConstantConfig {
         String CREATE_FILE = "CREATE_FILE";
 
         /**
+         * 创建文件失败时异步回滚服务
+         */
+        String CREATE_FILE_ROLLBACK = "CREATE_FILE_ROLLBACK";
+
+        /**
          * 删除文件服务
          */
         String DELETE_FILE = "DELETE_FILE";
