@@ -77,8 +77,8 @@ public class LoginController {
     @SneakyThrows
     @OpLog(title = "密码登录", businessType = "用户登录")
     @PostMapping(value = "/login", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<?> login(@RequestBody @Valid UserLoginRequestDTO requestDTO,
-                           HttpServletRequest request, HttpServletResponse response) {
+    public Result<UserLoginResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO requestDTO,
+                                              HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
@@ -115,7 +115,7 @@ public class LoginController {
                 responseInfo.setUserBanTimeFormat(DateUtil.formatBetween(beginDate, userInfo.getUserUnlockTime(), BetweenFormatter.Level.SECOND));
             }
             saveLoginFail(StatusCodeEnum.ACCOUNT_FORBIDDEN.message, logLogin, future);
-            return Result.build(StatusCodeEnum.ACCOUNT_FORBIDDEN).data(responseInfo);
+            return Result.build(StatusCodeEnum.ACCOUNT_FORBIDDEN, responseInfo);
         } catch (UnknownAccountException e) {
             saveLoginFail(StatusCodeEnum.USER_NO_EXIST.message, logLogin, future);
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
