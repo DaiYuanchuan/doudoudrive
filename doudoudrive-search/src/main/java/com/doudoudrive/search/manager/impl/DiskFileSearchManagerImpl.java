@@ -14,7 +14,6 @@ import com.doudoudrive.search.util.ElasticUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
-import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -60,6 +59,11 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
     private static final String FILE_FOLDER = ReflectUtil.property(DiskFile::getFileFolder);
     private static final String COLLECT = ReflectUtil.property(DiskFile::getCollect);
     private static final String FILE_NAME = ReflectUtil.property(DiskFile::getFileName);
+
+    /**
+     * 模糊搜索文件名时的通配符
+     */
+    private static final String FUZZY_SEARCH = "*%s*";
 
     /**
      * 保存用户文件信息，es中保存用户文件信息
@@ -152,8 +156,8 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
         }
 
         if (StringUtils.isNotBlank(requestDTO.getFileName())) {
-            // 文件名使用分词查询，使用AND方式连接分词(我爱中华人民共和国国歌，我爱(AND|OR)国歌)
-            builder.must(QueryBuilders.matchQuery(FILE_NAME, requestDTO.getFileName()).operator(Operator.AND));
+            // 文件名使用模糊搜索
+            builder.must(QueryBuilders.wildcardQuery(FILE_NAME, String.format(FUZZY_SEARCH, requestDTO.getFileName())));
         }
 
         // 查询请求构建

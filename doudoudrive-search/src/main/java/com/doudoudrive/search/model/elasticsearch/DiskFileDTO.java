@@ -54,9 +54,9 @@ public class DiskFileDTO implements Serializable {
     private String userId;
 
     /**
-     * 文件名
+     * 文件名(支持模糊搜索)
      */
-    @Field(type = FieldType.Text, analyzer = ConstantConfig.Tokenizer.IK_MAX_WORD, searchAnalyzer = ConstantConfig.Tokenizer.IK_MAX_WORD)
+    @Field(type = FieldType.Wildcard)
     private String fileName;
 
     /**
