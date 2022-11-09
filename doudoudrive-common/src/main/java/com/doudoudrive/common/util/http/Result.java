@@ -2,6 +2,8 @@ package com.doudoudrive.common.util.http;
 
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
  * @author Dan
  **/
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Result<T> implements Serializable {
 
     @Serial
