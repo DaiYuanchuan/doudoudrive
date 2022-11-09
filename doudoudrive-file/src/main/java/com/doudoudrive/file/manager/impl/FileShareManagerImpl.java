@@ -3,10 +3,7 @@ package com.doudoudrive.file.manager.impl;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.DiskUserModel;
-import com.doudoudrive.common.model.dto.model.FileAuthModel;
-import com.doudoudrive.common.model.dto.model.FileShareDetailModel;
-import com.doudoudrive.common.model.dto.model.FileShareModel;
+import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.request.*;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
@@ -24,6 +21,7 @@ import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileShareManager;
 import com.doudoudrive.file.model.convert.FileShareConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileCopyRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileShareAnonymousRequestDTO;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
@@ -156,58 +154,61 @@ public class FileShareManagerImpl implements FileShareManager {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
         FileShareModel content = this.getShareContent(anonymousRequest.getShareId(), anonymousRequest.getUpdateViewCount());
         if (content == null) {
-            return Result.build(StatusCodeEnum.SHARE_ID_INVALID);
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
         }
 
-        // 判断分享记录信息是否已经过期
-        if (content.getExpired()) {
-            return Result.build(StatusCodeEnum.SHARE_FILE_EXPIRE);
-        }
-
-        // 过期时间不为空时判断是否在当前时间之后
-        if (content.getExpiration() != null && new Date().after(content.getExpiration())) {
-            // 过期时间在当前时间之前
-            return Result.build(StatusCodeEnum.SHARE_FILE_EXPIRE);
-        }
-
-        // 获取分享的用户信息
-        DiskUser userInfo = diskUserService.getDiskUser(content.getUserId());
-
-        // 构建请求返回数据模型
-        FileShareAnonymousResponseDTO response = fileShareConvert.fileShareModelConvertAnonymousResponse(userInfo, content);
-
-        // 判断是否需要输入提取码
-        if (StringUtils.isNotBlank(content.getSharePwd())) {
-            // 判断是否输入了提取码
-            if (StringUtils.isBlank(anonymousRequest.getSharePwd())) {
-                return Result.build(StatusCodeEnum.SHARE_PWD_INVALID, response);
-            }
-            // 判断提取码是否正确
-            if (!content.getSharePwd().equals(anonymousRequest.getSharePwd())) {
-                return Result.build(StatusCodeEnum.SHARE_PWD_ERROR, response);
-            }
-        }
+        // 分享链接基础信息校验
+        FileShareAnonymousResponseDTO response = this.basicInfoCheck(content, anonymousRequest.getSharePwd());
 
         // 构建网盘文件分享记录详情信息数据列表
         return Result.ok(this.buildAnonymousResponse(anonymousRequest, response, content));
     }
 
     /**
+     * 分享文件保存到我的
+     * <pre>
+     *     1.校验分享链接是否存在
+     *     2.校验分享链接是否过期
+     *     3.校验分享提取码是否正确
+     *     4.校验分享中文件key值是否正确
+     *     5.实现异步复制文件到指定文件目录下
+     * </pre>
+     *
+     * @param fileCopyRequest 文件复制(保存到我的)时的请求数据模型
+     * @param userinfo        当前登录的用户信息
+     */
+    @Override
+    public void copy(FileCopyRequestDTO fileCopyRequest, DiskUserModel userinfo) {
+        // 根据短链接标识查询分享记录信息，获取到分享记录信息
+        FileShareModel content = this.getShareContent(fileCopyRequest.getShareId(), Boolean.FALSE);
+        if (content == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
+        }
+
+        // 分享链接基础信息校验
+        this.basicInfoCheck(content, fileCopyRequest.getSharePwd());
+
+        // 校验分享链接的key值是否正确
+        if (!this.shareKeyCheck(content, fileCopyRequest.getFileInfo())) {
+            // 分享链接的key值不正确
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_KEY);
+        }
+
+        // TODO: 2022/11/9 校验目标文件夹是否存在，已经重名
+    }
+
+    /**
      * 校验分享链接的key值是否正确
      *
      * @param shareId  分享短链
-     * @param fileId   分享的文件标识
-     * @param shareKey 分享key值
+     * @param fileInfo 需要校验的文件信息
      * @return true:校验通过，false:校验失败
      */
     @Override
-    public Boolean verifyShareKey(String shareId, String fileId, String shareKey) {
+    public Boolean shareKeyCheck(String shareId, List<FileNestedModel> fileInfo) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
         FileShareModel content = this.getShareContent(shareId, Boolean.FALSE);
-        if (content == null) {
-            return Boolean.FALSE;
-        }
-        return this.verifyShareKey(content, fileId, shareKey);
+        return this.shareKeyCheck(content, fileInfo);
     }
 
     // ==================================================== private ====================================================
@@ -340,6 +341,80 @@ public class FileShareManagerImpl implements FileShareManager {
         }
         response.setContent(fileShareDetailModelList);
         response.setMarker(fileSearchResponse.getMarker());
+        return response;
+    }
+
+    /**
+     * 校验分享链接的key值是否正确
+     *
+     * @param content  网盘文件分享记录信息数据模型
+     * @param fileInfo 网盘文件信息数据模型
+     * @return true:校验通过，false:校验失败
+     */
+    private Boolean shareKeyCheck(FileShareModel content, List<FileNestedModel> fileInfo) {
+        if (CollectionUtil.isEmpty(fileInfo)) {
+            return Boolean.FALSE;
+        }
+
+        // 根据短链接标识查询分享记录信息，获取到分享记录信息
+        if (content == null) {
+            return Boolean.FALSE;
+        }
+
+        // 校验其中所有的文件信息是否都在分享的文件列表中，如果有一个不在则返回false
+        for (FileNestedModel nestedModel : fileInfo) {
+            if (!this.verifyShareKey(content, nestedModel.getFileId(), nestedModel.getKey())) {
+                return Boolean.FALSE;
+            }
+        }
+
+        // 返回校验通过
+        return Boolean.TRUE;
+    }
+
+    /**
+     * 分享链接基础信息校验，校验失败会抛出业务异常
+     * <pre>
+     *     1.校验分享链接是否存在
+     *     2.校验分享链接是否过期
+     *     3.校验分享提取码是否正确
+     *     4.校验分享中文件key值是否正确
+     * </pre>
+     *
+     * @param content  网盘文件分享记录信息数据模型
+     * @param sharePwd 分享提取码
+     * @return 返回匿名分享的文件响应数据模型
+     */
+    private FileShareAnonymousResponseDTO basicInfoCheck(FileShareModel content, String sharePwd) {
+        // 判断分享记录信息是否已经过期
+        if (content.getExpired()) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_FILE_EXPIRE);
+        }
+
+        // 过期时间不为空时判断是否在当前时间之后
+        if (content.getExpiration() != null && new Date().after(content.getExpiration())) {
+            // 过期时间在当前时间之前
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_FILE_EXPIRE);
+        }
+
+        // 获取分享的用户信息
+        DiskUser userInfo = diskUserService.getDiskUser(content.getUserId());
+
+        // 构建请求返回数据模型
+        FileShareAnonymousResponseDTO response = fileShareConvert.fileShareModelConvertAnonymousResponse(userInfo, content);
+
+        // 判断是否需要输入提取码
+        if (StringUtils.isNotBlank(content.getSharePwd())) {
+            // 判断是否输入了提取码
+            if (StringUtils.isBlank(sharePwd)) {
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_PWD_INVALID, response);
+            }
+            // 判断提取码是否正确
+            if (!content.getSharePwd().equals(sharePwd)) {
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_PWD_ERROR, response);
+            }
+        }
+
         return response;
     }
 

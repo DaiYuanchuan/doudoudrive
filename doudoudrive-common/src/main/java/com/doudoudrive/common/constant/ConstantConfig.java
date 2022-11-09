@@ -164,7 +164,7 @@ public interface ConstantConfig {
     interface Topic {
 
         /**
-         * 日志记录服务
+         * 业务接口的请求日志记录服务(业务日志入MySQL库)
          */
         String LOG_RECORD = "LOG_INFO_RECORD";
 
@@ -321,6 +321,7 @@ public interface ConstantConfig {
         String ENGLISH_COLON = ":";
         String COMMENT_SIGN = "#";
         String HYPHEN = "-";
+        String UNDERLINE = "_";
     }
 
     /**

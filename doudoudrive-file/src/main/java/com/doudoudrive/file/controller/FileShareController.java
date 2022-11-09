@@ -15,6 +15,7 @@ import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileShareManager;
 import com.doudoudrive.file.model.dto.request.CancelFileShareRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileCopyRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileShareAnonymousRequestDTO;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileShareAnonymousResponseDTO;
@@ -135,5 +136,22 @@ public class FileShareController {
 
         // 根据分享链接的唯一标识获取分享链接的详细信息，包括分享的文件列表
         return fileShareManager.anonymous(anonymousRequest);
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "保存到我的", businessType = "复制")
+    @PostMapping(value = "/copy", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<String> copy(@RequestBody @Valid FileCopyRequestDTO fileCopyRequest,
+                               HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 将分享文件保存到我的网盘中
+        fileShareManager.copy(fileCopyRequest, userinfo);
+        return Result.ok();
     }
 }

@@ -1,10 +1,12 @@
 package com.doudoudrive.file.manager;
 
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.FileNestedModel;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileCopyRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileShareAnonymousRequestDTO;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileShareAnonymousResponseDTO;
@@ -34,6 +36,7 @@ public interface FileShareManager {
      *
      * @param shareId  分享链接标识
      * @param userinfo 当前分享的用户信息
+     * @return 删除es文件分享记录信息时的响应数据模型
      */
     DeleteElasticsearchFileShareResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo);
 
@@ -46,12 +49,26 @@ public interface FileShareManager {
     Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest);
 
     /**
+     * 分享文件保存到我的
+     * <pre>
+     *     1.校验分享链接是否存在
+     *     2.校验分享链接是否过期
+     *     3.校验分享提取码是否正确
+     *     4.校验分享中文件key值是否正确
+     *     5.实现异步复制文件到指定文件目录下
+     * </pre>
+     *
+     * @param fileCopyRequest 文件复制(保存到我的)时的请求数据模型
+     * @param userinfo        当前登录的用户信息
+     */
+    void copy(FileCopyRequestDTO fileCopyRequest, DiskUserModel userinfo);
+
+    /**
      * 校验分享链接的key值是否正确
      *
      * @param shareId  分享短链
-     * @param fileId   分享的文件标识
-     * @param shareKey 分享key值
+     * @param fileInfo 需要校验的文件信息
      * @return true:校验通过，false:校验失败
      */
-    Boolean verifyShareKey(String shareId, String fileId, String shareKey);
+    Boolean shareKeyCheck(String shareId, List<FileNestedModel> fileInfo);
 }

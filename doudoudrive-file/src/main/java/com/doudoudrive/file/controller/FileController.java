@@ -8,10 +8,7 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
-import com.doudoudrive.common.model.dto.model.DiskFileModel;
-import com.doudoudrive.common.model.dto.model.DiskUserModel;
-import com.doudoudrive.common.model.dto.model.FileAuthModel;
+import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
@@ -47,6 +44,7 @@ import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -464,9 +462,12 @@ public class FileController {
 
         // 资源所属用户与当前登录用户不同时，需要校验分享短链、分享时的文件key值
         if (!userinfo.getUserInfo().getBusinessId().equals(fileAuth.getUserId())) {
-            if (StringUtils.isBlank(fileAuth.getShareShort())
-                    || StringUtils.isBlank(fileAuth.getShareKey())
-                    || !fileShareManager.verifyShareKey(fileAuth.getShareShort(), fileAuth.getFileId(), fileAuth.getShareKey())) {
+            // 构建分享文件的嵌套信息
+            List<FileNestedModel> nestedInfo = Collections.singletonList(FileNestedModel.builder()
+                    .fileId(fileAuth.getFileId()).key(fileAuth.getShareKey()).build());
+            // 分享短链、分享时的文件key值都存在时，校验分享链接的key值是否正确
+            if (StringUtils.isBlank(fileAuth.getShareShort()) || StringUtils.isBlank(fileAuth.getShareKey())
+                    || !fileShareManager.shareKeyCheck(fileAuth.getShareShort(), nestedInfo)) {
                 // 分享短链、分享时的文件key值不存在、校验key值不正确
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 return;

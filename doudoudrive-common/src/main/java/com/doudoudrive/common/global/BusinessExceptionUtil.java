@@ -26,7 +26,7 @@ public class BusinessExceptionUtil {
      *
      * @param result 通用面向对象基础返回数据类
      */
-    public static void throwBusinessException(Result<Object> result) {
+    public static void throwBusinessException(Result<?> result) {
         throw new BusinessException(result);
     }
 

@@ -29,7 +29,7 @@ public class BusinessException extends RuntimeException {
      */
     private Object data;
 
-    public BusinessException(Result<Object> result) {
+    public BusinessException(Result<?> result) {
         this(result.getCode(), result.getMessage(), result.getData());
     }
 
