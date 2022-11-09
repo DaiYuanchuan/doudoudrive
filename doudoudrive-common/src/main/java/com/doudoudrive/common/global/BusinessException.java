@@ -1,6 +1,5 @@
 package com.doudoudrive.common.global;
 
-import com.doudoudrive.common.util.http.Result;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,28 +14,32 @@ import lombok.EqualsAndHashCode;
 public class BusinessException extends RuntimeException {
 
     /**
-     * 业务异常状态码
+     * 业务异常错误码
      */
-    private Integer statusCode;
+    private StatusCodeEnum status;
 
     /**
      * 业务异常的原因
      */
     private String reason;
 
+    /**
+     * 任务对象
+     */
+    private Object data;
+
     public BusinessException(StatusCodeEnum statusCode) {
         this(statusCode, statusCode.message);
     }
 
-    public BusinessException(Result<?> result) {
-        super(result.getMessage());
-        this.statusCode = result.getCode();
-        this.reason = result.getMessage();
+    public BusinessException(StatusCodeEnum statusCode, String reason) {
+        this(statusCode, reason, null);
     }
 
-    public BusinessException(StatusCodeEnum statusCode, String reason) {
+    public BusinessException(StatusCodeEnum statusCode, String reason, Object data) {
         super(reason);
-        this.statusCode = statusCode.statusCode;
+        this.status = statusCode;
         this.reason = reason;
+        this.data = data;
     }
 }
