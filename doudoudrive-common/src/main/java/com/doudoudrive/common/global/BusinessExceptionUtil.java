@@ -1,5 +1,6 @@
 package com.doudoudrive.common.global;
 
+import com.doudoudrive.common.util.http.Result;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,6 +19,15 @@ public class BusinessExceptionUtil {
      */
     public static void throwBusinessException(StatusCodeEnum status) {
         throw new BusinessException(status);
+    }
+
+    /**
+     * 抛出业务异常
+     *
+     * @param result 通用面向对象基础返回数据类
+     */
+    public static void throwBusinessException(Result<Object> result) {
+        throw new BusinessException(result);
     }
 
     /**

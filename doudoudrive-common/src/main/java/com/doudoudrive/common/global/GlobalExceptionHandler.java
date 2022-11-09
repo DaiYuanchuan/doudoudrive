@@ -234,7 +234,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<?> businessExceptionHandler(BusinessException exception) {
         log.info(exception.getMessage(), exception);
-        return Result.build(exception.getStatus().statusCode, exception.getReason(), exception.getData());
+        return Result.build(exception.getStatusCode(), exception.getReason(), exception.getData());
     }
 
     /**
