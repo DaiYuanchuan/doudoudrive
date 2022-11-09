@@ -37,9 +37,6 @@ public class Result<T> implements Serializable {
      */
     private T data;
 
-    private Result() {
-    }
-
     private Result(Integer code, String message) {
         this.code = code;
         this.message = message;
@@ -52,14 +49,11 @@ public class Result<T> implements Serializable {
     }
 
     private Result(StatusCodeEnum statusCodeEnum) {
-        this.code = statusCodeEnum.statusCode;
-        this.message = statusCodeEnum.message;
+        this(statusCodeEnum.statusCode, statusCodeEnum.message);
     }
 
     private Result(StatusCodeEnum statusCodeEnum, T obj) {
-        this.code = statusCodeEnum.statusCode;
-        this.message = statusCodeEnum.message;
-        this.data = obj;
+        this(statusCodeEnum.statusCode, statusCodeEnum.message, obj);
     }
 
     /**
