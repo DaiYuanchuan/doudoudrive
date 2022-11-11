@@ -80,6 +80,10 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
         <hutool.version>5.8.6</hutool.version>
+        <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
+        <zstd.version>1.5.2-5</zstd.version>
+        <!-- protostuff序列化工具 -->
+        <protostuff.version>1.8.0</protostuff.version>
         <!-- fastjson 版本号 -->
         <fastjson.version>1.2.83</fastjson.version>
         <!-- es搜索 版本号 -->
@@ -216,7 +220,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.82.Final</version>
+            <version>4.1.84.Final</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -277,6 +281,22 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
             <version>${httpmime.version}</version>
+        </dependency>
+        <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
+        <dependency>
+            <groupId>com.github.luben</groupId>
+            <artifactId>zstd-jni</artifactId>
+            <version>${zstd.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
         </dependency>
         <!-- 工具包系列 -->
 

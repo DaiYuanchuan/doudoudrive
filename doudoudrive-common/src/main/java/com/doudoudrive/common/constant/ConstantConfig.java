@@ -322,6 +322,10 @@ public interface ConstantConfig {
         String COMMENT_SIGN = "#";
         String HYPHEN = "-";
         String UNDERLINE = "_";
+        String CURLY_BRACES = "{}";
+        String LEFT_BRACKET = "(";
+        String RIGHT_BRACKET = ")";
+        String ENTER_LINUX = "\n";
     }
 
     /**

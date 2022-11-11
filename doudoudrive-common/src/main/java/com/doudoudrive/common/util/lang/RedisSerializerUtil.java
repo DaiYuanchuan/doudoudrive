@@ -39,7 +39,7 @@ public class RedisSerializerUtil<T> implements RedisSerializer<T> {
         }
 
         // 序列化对象
-        return SerializeUtil.serialize(object);
+        return CompressionUtil.compress(SerializeUtil.serialize(object));
     }
 
     /**
@@ -55,6 +55,6 @@ public class RedisSerializerUtil<T> implements RedisSerializer<T> {
             return null;
         }
         // 反序列化对象
-        return SerializeUtil.deserialize(bytes);
+        return SerializeUtil.deserialize(CompressionUtil.decompressBytes(bytes));
     }
 }
