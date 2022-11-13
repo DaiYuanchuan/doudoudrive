@@ -95,7 +95,7 @@
         <!-- xxl-job定时任务调度中心版本号 -->
         <xxl-job.version>2.3.1</xxl-job.version>
         <!-- snakeyaml依赖包版本 -->
-        <snakeyaml.version>1.32</snakeyaml.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
         <!-- xnio-api依赖包版本 -->
         <xnio-api.version>3.8.8.Final</xnio-api.version>
         <!-- spring-data-elasticsearch依赖包版本 -->
@@ -155,7 +155,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>3.1.4</version>
+            <version>3.1.5</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -226,6 +226,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!-- 针对基于TCP/UDP协议的数据传输功能实现 -->
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-ip</artifactId>
+        </dependency>
         <!-- spring boot 依赖包 -->
 
         <!-- 工具包系列 -->
@@ -288,6 +293,7 @@
             <artifactId>zstd-jni</artifactId>
             <version>${zstd.version}</version>
         </dependency>
+        <!-- protostuff 序列化工具 -->
         <dependency>
             <groupId>io.protostuff</groupId>
             <artifactId>protostuff-core</artifactId>
