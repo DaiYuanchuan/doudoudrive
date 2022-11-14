@@ -91,3 +91,13 @@ mybatis:
   type-aliases-package: com.doudoudrive.pojo
   configuration:
     mapUnderscoreToCamelCase: true
+
+# 日志工蜂模块udp通信参数配置
+worker:
+  udp:
+    # udp通信服务地址
+    server: 127.0.0.1
+    # udp通信端口
+    port: 8001
+    # 是否需要进行长度检查，如果为true，数据包将包含一个长度，以便在接收端进行检查
+    lengthCheck: false

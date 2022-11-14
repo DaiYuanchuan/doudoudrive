@@ -11,10 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.stereotype.Component;
 
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +32,16 @@ public class TracerLogger implements CommandLineRunner {
 
     private LoadBalancerClient loadBalancerClient;
 
+    private UnicastSendingMessageHandler sendingMessageHandler;
+
     @Autowired
     public void setLoadBalancerClient(LoadBalancerClient loadBalancerClient) {
         this.loadBalancerClient = loadBalancerClient;
+    }
+
+    @Autowired
+    public void setSendingMessageHandler(UnicastSendingMessageHandler sendingMessageHandler) {
+        this.sendingMessageHandler = sendingMessageHandler;
     }
 
     /**
@@ -183,15 +189,8 @@ public class TracerLogger implements CommandLineRunner {
                 return;
             }
 
-            // udp请求worker(udp端口+1)
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(instance.getHost(), instance.getPort() + NumberConstant.INTEGER_ONE);
-            try (DatagramSocket datagramSocket = new DatagramSocket()) {
-                java.net.DatagramPacket datagramPacket = new java.net.DatagramPacket(compressBytes, compressBytes.length, inetSocketAddress);
-                datagramSocket.send(datagramPacket);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-
+            // 发送udp请求
+            sendingMessageHandler.handleMessage(org.springframework.messaging.support.MessageBuilder.withPayload(compressBytes).build());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
