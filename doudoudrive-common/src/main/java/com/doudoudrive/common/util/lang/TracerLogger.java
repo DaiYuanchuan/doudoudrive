@@ -169,11 +169,10 @@ public class TracerLogger implements CommandLineRunner {
             // 压缩字节流
             byte[] compressBytes = CompressionUtil.compress(bytes);
 
-            // 获取worker的地址
-            ServiceInstance instance = loadBalancerClient.choose(WORKER_SERVICE_NAME);
-
             // 判断字节流压缩完后是否过大，过大走http接口请求worker
             if (compressBytes.length >= MAX_COMPRESS_BYTES_LEN) {
+                // 获取worker的地址
+                ServiceInstance instance = loadBalancerClient.choose(WORKER_SERVICE_NAME);
                 // 请求最终构建的url,获取请求body
                 try (cn.hutool.http.HttpResponse execute = HttpRequest.post(String.format(WORKER_TCP_URL, instance.getUri().toString()))
                         .body(compressBytes)
