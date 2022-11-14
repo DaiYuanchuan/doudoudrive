@@ -12,6 +12,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.Closeable;
@@ -40,6 +41,11 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
     public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
         this.diskDictionaryService = diskDictionaryService;
     }
+
+    /**
+     * 自定义的线程池名称
+     */
+    private static final String THREAD_POOL_NAME = "%s-thread-";
 
     /**
      * 全局线程池对象Map
@@ -126,6 +132,7 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
                         .setAllowCoreThreadTimeOut(threadPool.getAllowCoreThreadTimeOut())
                         .setKeepAliveTime(threadPool.getKeepAliveTime())
                         .setHandler(ConstantConfig.ThreadPoolEnum.getExecutionHandler(threadPool.getName()))
+                        .setThreadFactory(new CustomizableThreadFactory(String.format(THREAD_POOL_NAME, threadPool.getName())))
                         .build();
                 SYS_GLOBAL_THREAD_POOL.put(threadPool.getName(), executorService);
             }
