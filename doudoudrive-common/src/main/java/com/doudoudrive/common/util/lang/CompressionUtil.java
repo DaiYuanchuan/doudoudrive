@@ -43,11 +43,12 @@ public class CompressionUtil {
      */
     public static byte[] decompressBytes(byte[] bytes) {
         if (CollectionUtil.isEmpty(bytes)) {
-            return new byte[NumberConstant.INTEGER_ZERO];
+            return bytes;
         }
         int size = (int) Zstd.decompressedSize(bytes);
+        // 可能使用的不是当前压缩算法，原样返回
         if (size == NumberConstant.INTEGER_ZERO) {
-            return new byte[NumberConstant.INTEGER_ZERO];
+            return bytes;
         }
         byte[] ob = new byte[size];
         Zstd.decompress(ob, bytes);
