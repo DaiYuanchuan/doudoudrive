@@ -333,6 +333,12 @@
             <artifactId>tlog-gateway-spring-boot-starter</artifactId>
             <version>${tlog.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.yomahub</groupId>
+            <artifactId>tlog-feign-spring-boot-starter</artifactId>
+            <version>${tlog.version}</version>
+        </dependency>
+        <!-- 微服务日志链路追踪 -->
 
     </dependencies>
     <!-- 项目公共依赖 -->
