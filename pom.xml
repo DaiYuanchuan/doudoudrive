@@ -104,6 +104,7 @@
         <nacos-client.version>2.1.1</nacos-client.version>
         <!-- google-guava依赖包版本 -->
         <guava.version>31.1-jre</guava.version>
+        <tlog.version>1.5.0</tlog.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -319,13 +320,18 @@
         <dependency>
             <groupId>com.yomahub</groupId>
             <artifactId>tlog-web-spring-boot-starter</artifactId>
-            <version>1.5.0</version>
+            <version>${tlog.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-beanutils</groupId>
                     <artifactId>commons-beanutils</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.yomahub</groupId>
+            <artifactId>tlog-gateway-spring-boot-starter</artifactId>
+            <version>${tlog.version}</version>
         </dependency>
 
     </dependencies>
