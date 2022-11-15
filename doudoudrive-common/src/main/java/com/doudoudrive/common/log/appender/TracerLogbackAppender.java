@@ -30,12 +30,17 @@ public class TracerLogbackAppender extends AppenderBase<ILoggingEvent> {
     /**
      * 从日志事件中获取追踪id
      */
-    private static final String TRACER_ID = "tracerId";
+    private static final String TRACER_ID = "tlogTraceId";
 
     /**
      * 从日志事件中获取调度id
      */
-    private static final String SPAN_ID = "spanId";
+    private static final String SPAN_ID = "tlogSpanId";
+
+    /**
+     * 当前ip地址
+     */
+    private static final String CURR_IP = "currIp";
 
     /**
      * StringBuilder日志异常消息字符初始容量
@@ -89,6 +94,7 @@ public class TracerLogbackAppender extends AppenderBase<ILoggingEvent> {
                 .content(getLogbackBody(event))
                 .level(event.getLevel().toString())
                 .appName(event.getLoggerContextVO().getPropertyMap().getOrDefault(APP_NAME, StringUtils.EMPTY))
+                .currIp(propertyMap.getOrDefault(CURR_IP, StringUtils.EMPTY))
                 .className(event.getLoggerName())
                 .methodName(methodName)
                 .threadName(event.getThreadName())

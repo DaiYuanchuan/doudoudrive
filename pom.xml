@@ -315,6 +315,19 @@
         </dependency>
         <!-- lombok -->
 
+        <!-- 微服务日志链路追踪 -->
+        <dependency>
+            <groupId>com.yomahub</groupId>
+            <artifactId>tlog-web-spring-boot-starter</artifactId>
+            <version>1.5.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
     </dependencies>
     <!-- 项目公共依赖 -->
 

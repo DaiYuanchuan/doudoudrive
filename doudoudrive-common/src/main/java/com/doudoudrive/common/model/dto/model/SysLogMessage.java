@@ -55,6 +55,11 @@ public class SysLogMessage implements Serializable {
     private String appName;
 
     /**
+     * 当前ip地址
+     */
+    private String currIp;
+
+    /**
      * 类名
      */
     private String className;
