@@ -104,7 +104,8 @@
         <nacos-client.version>2.1.1</nacos-client.version>
         <!-- google-guava依赖包版本 -->
         <guava.version>31.1-jre</guava.version>
-        <tlog.version>1.5.0</tlog.version>
+        <!-- TransmittableThreadLocal可以在线程池中传参 -->
+        <ttl.version>2.14.2</ttl.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -316,29 +317,13 @@
         </dependency>
         <!-- lombok -->
 
-        <!-- 微服务日志链路追踪 -->
+        <!-- TransmittableThreadLocal可以在线程池中传参 -->
         <dependency>
-            <groupId>com.yomahub</groupId>
-            <artifactId>tlog-web-spring-boot-starter</artifactId>
-            <version>${tlog.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-beanutils</groupId>
-                    <artifactId>commons-beanutils</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.alibaba</groupId>
+            <artifactId>transmittable-thread-local</artifactId>
+            <version>${ttl.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.yomahub</groupId>
-            <artifactId>tlog-gateway-spring-boot-starter</artifactId>
-            <version>${tlog.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yomahub</groupId>
-            <artifactId>tlog-feign-spring-boot-starter</artifactId>
-            <version>${tlog.version}</version>
-        </dependency>
-        <!-- 微服务日志链路追踪 -->
+        <!-- TransmittableThreadLocal可以在线程池中传参 -->
 
     </dependencies>
     <!-- 项目公共依赖 -->

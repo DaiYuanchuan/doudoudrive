@@ -305,6 +305,23 @@ public interface ConstantConfig {
     }
 
     /**
+     * 日志链路追踪通用常量
+     */
+    interface LogTracer {
+
+        /**
+         * 日志链路追踪id
+         */
+        String TRACER_ID = "tracerId";
+
+        /**
+         * 日志链路追踪调度id
+         */
+        String SPAN_ID = "spanId";
+
+    }
+
+    /**
      * 特殊符号
      */
     interface SpecialSymbols {

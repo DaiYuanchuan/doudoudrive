@@ -30,16 +30,6 @@ import java.util.Optional;
 public class TracerLogbackAppender extends AppenderBase<ILoggingEvent> {
 
     /**
-     * 从日志事件中获取追踪id
-     */
-    private static final String TRACER_ID = "tlogTraceId";
-
-    /**
-     * 从日志事件中获取调度id
-     */
-    private static final String SPAN_ID = "tlogSpanId";
-
-    /**
      * 获取本机网卡IP地址，这个地址为所有网卡中非回路地址的第一个
      */
     private static final String CURR_IP = Optional.ofNullable(IpUtils.getLocalhostStr()).orElse(StringUtils.EMPTY);
@@ -91,8 +81,8 @@ public class TracerLogbackAppender extends AppenderBase<ILoggingEvent> {
         // 构建系统日志消息实例对象
         return SysLogMessage.builder()
                 .businessId(SequenceUtil.nextId(SequenceModuleEnum.SYS_LOGBACK))
-                .tracerId(propertyMap.getOrDefault(TRACER_ID, StringUtils.EMPTY))
-                .spanId(propertyMap.getOrDefault(SPAN_ID, StringUtils.EMPTY))
+                .tracerId(propertyMap.getOrDefault(ConstantConfig.LogTracer.TRACER_ID, StringUtils.EMPTY))
+                .spanId(propertyMap.getOrDefault(ConstantConfig.LogTracer.SPAN_ID, StringUtils.EMPTY))
                 .content(getLogbackBody(event))
                 .level(event.getLevel().toString())
                 .appName(event.getLoggerContextVO().getPropertyMap().getOrDefault(APP_NAME, StringUtils.EMPTY))
