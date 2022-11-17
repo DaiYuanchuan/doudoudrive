@@ -8,6 +8,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.dto.model.SysLogMessage;
+import com.doudoudrive.common.util.ip.IpUtils;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.common.util.lang.TracerLogger;
@@ -18,6 +19,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * <p>Logback Appender组件，可以实现将Logback日志信息发送到远程</p>
@@ -38,9 +40,9 @@ public class TracerLogbackAppender extends AppenderBase<ILoggingEvent> {
     private static final String SPAN_ID = "tlogSpanId";
 
     /**
-     * 当前ip地址
+     * 获取本机网卡IP地址，这个地址为所有网卡中非回路地址的第一个
      */
-    private static final String CURR_IP = "currIp";
+    private static final String CURR_IP = Optional.ofNullable(IpUtils.getLocalhostStr()).orElse(StringUtils.EMPTY);
 
     /**
      * StringBuilder日志异常消息字符初始容量
@@ -94,7 +96,7 @@ public class TracerLogbackAppender extends AppenderBase<ILoggingEvent> {
                 .content(getLogbackBody(event))
                 .level(event.getLevel().toString())
                 .appName(event.getLoggerContextVO().getPropertyMap().getOrDefault(APP_NAME, StringUtils.EMPTY))
-                .currIp(propertyMap.getOrDefault(CURR_IP, StringUtils.EMPTY))
+                .currIp(CURR_IP)
                 .className(event.getLoggerName())
                 .methodName(methodName)
                 .threadName(event.getThreadName())
