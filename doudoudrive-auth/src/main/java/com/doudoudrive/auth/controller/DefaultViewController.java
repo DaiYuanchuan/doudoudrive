@@ -13,7 +13,7 @@ import org.springframework.core.Ordered;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 @Configuration
 @RestController
 @ImportResource(locations = {"classpath:spring-shiro.xml"})
-public class DefaultViewController extends WebMvcConfigurationSupport {
+public class DefaultViewController implements WebMvcConfigurer {
 
     private LoginManager loginManager;
 
@@ -58,11 +58,15 @@ public class DefaultViewController extends WebMvcConfigurationSupport {
         return Result.ok(userLoginInfo);
     }
 
+    /**
+     * 添加一个默认页面
+     *
+     * @param registry 视图控制器注册器
+     */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         // 默认页面
         registry.addViewController("/").setViewName("forward:/login");
         registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        super.addViewControllers(registry);
     }
 }
