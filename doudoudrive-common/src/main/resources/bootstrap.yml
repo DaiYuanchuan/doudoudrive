@@ -4,7 +4,7 @@ spring:
       # 服务注册与发现配置
       discovery:
         namespace: ${ENV_NAMESPACE:c0c51892-3ce5-482c-bed6-9d77e553516a}
-        server-addr: https://nacos.novelweb.cn
+        server-addr: ${SERVER_ADDR:https://nacos.novelweb.cn}
         ip: ${ENV_IP:}
         port: ${ENV_PORT:-1}
       config:
