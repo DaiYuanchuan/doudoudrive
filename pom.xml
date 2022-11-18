@@ -79,7 +79,7 @@
         <mapstruct.version>1.5.2.Final</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
-        <hutool.version>5.8.6</hutool.version>
+        <hutool.version>5.8.10</hutool.version>
         <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
         <zstd.version>1.5.2-5</zstd.version>
         <!-- protostuff序列化工具 -->
@@ -98,10 +98,12 @@
         <snakeyaml.version>1.33</snakeyaml.version>
         <!-- xnio-api依赖包版本 -->
         <xnio-api.version>3.8.8.Final</xnio-api.version>
+        <!-- jackson-databind 依赖包版本 -->
+        <jackson-databind.version>2.14.0</jackson-databind.version>
         <!-- spring-data-elasticsearch依赖包版本 -->
         <spring-data-elasticsearch.version>4.4.3</spring-data-elasticsearch.version>
         <!-- nacos客户端依赖包版本 -->
-        <nacos-client.version>2.1.1</nacos-client.version>
+        <nacos-client.version>2.1.2</nacos-client.version>
         <!-- google-guava依赖包版本 -->
         <guava.version>31.1-jre</guava.version>
         <!-- TransmittableThreadLocal可以在线程池中传参 -->
@@ -175,7 +177,16 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind.version}</version>
         </dependency>
         <!-- 引入undertow -->
         <dependency>
