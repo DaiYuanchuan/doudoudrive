@@ -55,11 +55,13 @@ public class MessageBuilder {
                 return null;
             }
 
-            // 设置日志追踪内容
-            TracerContextFactory.set(LogLabelModel.builder()
-                    .tracerId(messageModel.getTracerId())
-                    .spanId(messageModel.getSpanId())
-                    .build());
+            if (!StringUtils.isAnyBlank(messageModel.getTracerId(), messageModel.getSpanId())) {
+                // 链路追踪id和调度id不为空时，设置日志追踪内容
+                TracerContextFactory.set(LogLabelModel.builder()
+                        .tracerId(messageModel.getTracerId())
+                        .spanId(messageModel.getSpanId())
+                        .build());
+            }
             return messageModel.getMessage();
         } catch (Exception e) {
             return null;
