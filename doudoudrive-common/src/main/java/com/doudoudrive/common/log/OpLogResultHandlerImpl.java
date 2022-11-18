@@ -1,7 +1,6 @@
 package com.doudoudrive.common.log;
 
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
@@ -9,6 +8,7 @@ import com.doudoudrive.common.model.convert.LogOpInfoConvert;
 import com.doudoudrive.common.model.dto.model.OpLogInfo;
 import com.doudoudrive.common.model.dto.model.ShiroAuthenticationModel;
 import com.doudoudrive.common.model.pojo.LogOp;
+import com.doudoudrive.common.rocketmq.MessageBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +97,7 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
         String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.ACCESS_LOG_RECORD;
-        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(logOpInfo));
+        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(logOpInfo));
     }
 
     /**

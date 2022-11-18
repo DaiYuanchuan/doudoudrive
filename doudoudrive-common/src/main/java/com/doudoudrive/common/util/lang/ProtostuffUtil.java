@@ -54,6 +54,9 @@ public class ProtostuffUtil<T> {
      * @return 反序列化后的对象
      */
     public T deserialize(byte[] data, Class<T> clazz) {
+        if (CollectionUtil.isEmpty(data)) {
+            return null;
+        }
         Schema<T> schema = getSchema(clazz);
         T obj = schema.newMessage();
         ProtobufIOUtil.mergeFrom(data, obj, schema);

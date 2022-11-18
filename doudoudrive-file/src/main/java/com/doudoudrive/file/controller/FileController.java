@@ -1,7 +1,6 @@
 package com.doudoudrive.file.controller;
 
 import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.common.annotation.OpLog;
@@ -14,6 +13,7 @@ import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileReques
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
+import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -562,7 +562,7 @@ public class FileController {
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
         String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(consumerRequest));
+        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(consumerRequest));
     }
 
     /**

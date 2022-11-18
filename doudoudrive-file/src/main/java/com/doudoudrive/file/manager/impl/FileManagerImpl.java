@@ -3,7 +3,6 @@ package com.doudoudrive.file.manager.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
@@ -28,6 +27,7 @@ import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileRespo
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
+import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
@@ -262,7 +262,7 @@ public class FileManagerImpl implements FileManager {
             // 发送MQ消息，异步回滚文件和用户磁盘容量数据
             String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE_ROLLBACK;
             // 使用sync模式发送消息，保证消息发送成功
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(CreateFileRollbackConsumerRequestDTO.builder()
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(CreateFileRollbackConsumerRequestDTO.builder()
                     .userId(userFile.getUserId())
                     .fileId(userFile.getBusinessId())
                     .size(ossFile.getSize())
@@ -385,7 +385,7 @@ public class FileManagerImpl implements FileManager {
         if (sendMsg) {
             // 使用sync模式发送消息，保证消息发送成功
             String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
                     .userId(userId)
                     .businessId(fileFolderList)
                     .build()));
@@ -400,7 +400,7 @@ public class FileManagerImpl implements FileManager {
         for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_TEN_THOUSAND)) {
             // 使用sync模式发送消息，保证消息发送成功
             String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE_ES;
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, ObjectUtil.serialize(DeleteFileConsumerRequestDTO.builder()
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
                     .userId(userId)
                     .businessId(allFileId)
                     .build()));
