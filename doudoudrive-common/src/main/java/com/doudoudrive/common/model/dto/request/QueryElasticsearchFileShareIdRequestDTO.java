@@ -34,6 +34,11 @@ public class QueryElasticsearchFileShareIdRequestDTO {
     private Boolean updateViewCount;
 
     /**
+     * 是否需要更新当前链接的保存、转存次数
+     */
+    private Boolean updateSaveCount;
+
+    /**
      * 上一页游标，为空时默认第一页
      */
     private List<Object> searchAfter;
@@ -56,6 +61,15 @@ public class QueryElasticsearchFileShareIdRequestDTO {
      */
     public Boolean getUpdateViewCount() {
         return Optional.ofNullable(updateViewCount).orElse(Boolean.FALSE);
+    }
+
+    /**
+     * 是否需要更新当前链接的保存、转存次数
+     *
+     * @return 默认为false 不更新
+     */
+    public Boolean getUpdateSaveCount() {
+        return Optional.ofNullable(updateSaveCount).orElse(Boolean.FALSE);
     }
 
     /**
