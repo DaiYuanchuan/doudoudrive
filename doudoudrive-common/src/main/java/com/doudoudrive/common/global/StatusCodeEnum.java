@@ -41,7 +41,7 @@ public enum StatusCodeEnum {
     /**
      * 系统类:50x
      */
-    SYSTEM_ERROR(500, "系统异常"),
+    SYSTEM_ERROR(500, "系统繁忙"),
     SYSTEM_CONFIG_ERROR(501, "配置异常"),
     ABNORMAL_MAIL_SENDING(503, "邮件发送失败"),
     INVALID_USERINFO(504, "无法正确获取用户信息"),
