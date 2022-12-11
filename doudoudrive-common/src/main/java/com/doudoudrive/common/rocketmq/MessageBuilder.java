@@ -55,7 +55,7 @@ public class MessageBuilder {
                 return null;
             }
 
-            if (!StringUtils.isAnyBlank(messageModel.getTracerId(), messageModel.getSpanId())) {
+            if (StringUtils.isNoneBlank(messageModel.getTracerId(), messageModel.getSpanId())) {
                 // 链路追踪id和调度id不为空时，设置日志追踪内容
                 TracerContextFactory.set(LogLabelModel.builder()
                         .tracerId(messageModel.getTracerId())

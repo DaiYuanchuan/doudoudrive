@@ -94,10 +94,7 @@ mybatis:
 
 worker:
   tcp:
-    url:
-      - http://172.15.0.15:8000/receive
-      - http://172.15.0.16:8000/receive
-      - http://172.15.0.17:8000/receive
+    url: http://192.168.31.200:1082/receive
     enable: true
   # 日志工蜂模块udp通信参数配置
   udp:
@@ -107,5 +104,7 @@ worker:
     port: 1082
     # 是否需要进行长度检查，如果为true，数据包将包含一个长度，以便在接收端进行检查
     lengthCheck: false
+    # udp发送消息报文最大长度，udp 单个最大报文是 64kb(65536字节)，超过该长度需要采用tcp发送
+    max-compress-bytes: 60000
     # 是否启用udp消息发送
     enable: true

@@ -1,7 +1,8 @@
 package com.doudoudrive.common.config;
 
 import com.doudoudrive.common.model.dto.model.WorkerUdpProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
@@ -13,17 +14,17 @@ import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
  * @author Dan
  **/
 @Configuration
+@EnableConfigurationProperties(WorkerUdpProperties.class)
 public class UdpIntegrationClientConfig {
 
     /**
      * 获取配置类中worker模块的udp通信参数配置
-     *
-     * @return {@link WorkerUdpProperties} 日志工蜂模块udp通信参数配置
      */
-    @Bean
-    @ConfigurationProperties(prefix = "worker.udp")
-    public WorkerUdpProperties getWorkerUdpProperties() {
-        return WorkerUdpProperties.builder().build();
+    private WorkerUdpProperties workerUdpProperties;
+
+    @Autowired
+    public void setWorkerUdpProperties(WorkerUdpProperties workerUdpProperties) {
+        this.workerUdpProperties = workerUdpProperties;
     }
 
     /**
@@ -33,7 +34,6 @@ public class UdpIntegrationClientConfig {
      */
     @Bean
     public UnicastSendingMessageHandler sending() {
-        WorkerUdpProperties udpProperties = getWorkerUdpProperties();
-        return new UnicastSendingMessageHandler(udpProperties.getServer(), udpProperties.getPort(), udpProperties.getLengthCheck());
+        return new UnicastSendingMessageHandler(workerUdpProperties.getServer(), workerUdpProperties.getPort(), workerUdpProperties.getLengthCheck());
     }
 }

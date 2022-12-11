@@ -5,12 +5,13 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.SysLogMessage;
 import com.doudoudrive.common.model.dto.model.TracerLogbackModel;
+import com.doudoudrive.common.model.dto.model.WorkerTcpProperties;
+import com.doudoudrive.common.model.dto.model.WorkerUdpProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.stereotype.Component;
 
@@ -28,20 +29,34 @@ import java.util.concurrent.atomic.AtomicLong;
  **/
 @Slf4j
 @Component
+@EnableConfigurationProperties(value = {WorkerUdpProperties.class, WorkerTcpProperties.class})
 public class TracerLogger implements CommandLineRunner {
-
-    private LoadBalancerClient loadBalancerClient;
 
     private UnicastSendingMessageHandler sendingMessageHandler;
 
-    @Autowired
-    public void setLoadBalancerClient(LoadBalancerClient loadBalancerClient) {
-        this.loadBalancerClient = loadBalancerClient;
-    }
+    /**
+     * 获取配置类中worker模块的udp通信参数配置
+     */
+    private WorkerUdpProperties workerUdpProperties;
+
+    /**
+     * 获取配置类中worker模块的tcp通信参数配置
+     */
+    private WorkerTcpProperties workerTcpProperties;
 
     @Autowired
     public void setSendingMessageHandler(UnicastSendingMessageHandler sendingMessageHandler) {
         this.sendingMessageHandler = sendingMessageHandler;
+    }
+
+    @Autowired
+    public void setWorkerUdpProperties(WorkerUdpProperties workerUdpProperties) {
+        this.workerUdpProperties = workerUdpProperties;
+    }
+
+    @Autowired
+    public void setWorkerTcpProperties(WorkerTcpProperties workerTcpProperties) {
+        this.workerTcpProperties = workerTcpProperties;
     }
 
     /**
@@ -58,11 +73,6 @@ public class TracerLogger implements CommandLineRunner {
      * 每次上传、获取的日志数量
      */
     private static final Integer ELEMENTS_PER_LOG = 500;
-
-    /**
-     * udp发送消息报文最大长度，udp 单个最大报文是 64kb(65536字节)，超过该长度需要采用tcp发送
-     */
-    private static final Integer MAX_COMPRESS_BYTES_LEN = 60000;
 
     /**
      * 本地队列满了后丢弃的数量
@@ -88,16 +98,6 @@ public class TracerLogger implements CommandLineRunner {
      * 线程池用于异步推送系统日志
      */
     private ScheduledExecutorService executorService;
-
-    /**
-     * worker在微服务中注册的服务名
-     */
-    private static final String WORKER_SERVICE_NAME = "workerServer";
-
-    /**
-     * worker服务tcp地址
-     */
-    private static final String WORKER_TCP_URL = "%s/receive";
 
     /**
      * 私有化方法，防止外部实例化
@@ -170,11 +170,9 @@ public class TracerLogger implements CommandLineRunner {
             byte[] compressBytes = CompressionUtil.compress(bytes);
 
             // 判断字节流压缩完后是否过大，过大走http接口请求worker
-            if (compressBytes.length >= MAX_COMPRESS_BYTES_LEN) {
-                // 获取worker的地址
-                ServiceInstance instance = loadBalancerClient.choose(WORKER_SERVICE_NAME);
+            if (workerTcpProperties.getEnable() && compressBytes.length >= workerUdpProperties.getMaxCompressBytes()) {
                 // 请求最终构建的url,获取请求body
-                try (cn.hutool.http.HttpResponse execute = HttpRequest.post(String.format(WORKER_TCP_URL, instance.getUri().toString()))
+                try (cn.hutool.http.HttpResponse execute = HttpRequest.post(workerTcpProperties.getUrl())
                         .body(compressBytes)
                         .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
                         .charset(StandardCharsets.UTF_8)
@@ -188,8 +186,10 @@ public class TracerLogger implements CommandLineRunner {
                 return;
             }
 
-            // 发送udp请求
-            sendingMessageHandler.handleMessage(org.springframework.messaging.support.MessageBuilder.withPayload(compressBytes).build());
+            if (workerUdpProperties.getEnable()) {
+                // 发送udp请求
+                sendingMessageHandler.handleMessage(org.springframework.messaging.support.MessageBuilder.withPayload(compressBytes).build());
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
