@@ -56,7 +56,7 @@ spring:
         node1:
           nacos:
             # nacos服务器地址
-            server-addr: ${spring.cloud.nacos.discovery.server-addr}
+            server-addr: http://192.168.31.200:8848
             dataId: ${spring.application.name}-sentinel.json
             groupId: DEV_GROUP
             data-type: json
