@@ -83,6 +83,16 @@ public interface DiskFileService {
     Integer getRepeatFileName(String parentId, String fileName, String userId, Boolean fileFolder);
 
     /**
+     * 根据parentId批量查询指定目录下是否存在指定的文件名
+     *
+     * @param parentId   文件的父级标识
+     * @param userId     指定的用户标识
+     * @param queryParam 指定的查询参数，包含文件名、是否为文件夹
+     * @return 如果存在重名的文件信息，则返回查找到的文件数据集合，如果不存在则返回空集合
+     */
+    List<DiskFile> listRepeatFileName(String parentId, String userId, List<DiskFile> queryParam);
+
+    /**
      * 指定条件查找用户文件模块
      *
      * @param diskFile  需要查询的用户文件模块实体(这里不能为NULL，且必须包含用户id)

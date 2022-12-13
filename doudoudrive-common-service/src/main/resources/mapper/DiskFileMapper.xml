@@ -135,14 +135,30 @@
         `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
         `is_file_folder`, `is_forbidden`, `is_collect`, `status`
         )
-        VALUES
-        <foreach collection="list" item="item" index="index" separator=",">
-            (
-            #{item.businessId}, #{item.userId}, #{item.fileName}, #{item.fileParentId}, #{item.fileSize},
-            #{item.fileMimeType}, #{item.fileEtag}, #{item.fileFolder}, #{item.forbidden}, #{item.collect},
-            #{item.status}
-            )
-        </foreach>
+        <if test="null != parentId and '' != parentId and '0'.toString() != parentId">
+            SELECT `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+            `is_file_folder`, `is_forbidden`, `is_collect`, `status`
+            FROM
+            <foreach collection="list" item="item" index="index" open="(" separator="UNION ALL" close=") AS file">
+                SELECT
+                #{item.businessId} AS `business_id`, #{item.userId} AS `user_id`, #{item.fileName} AS `file_name`,
+                #{item.fileParentId} AS `file_parent_id`, #{item.fileSize} AS `file_size`,
+                #{item.fileMimeType} AS `file_mime_type`, #{item.fileEtag} AS `file_etag`,
+                #{item.fileFolder} AS `is_file_folder`, #{item.forbidden} AS `is_forbidden`,
+                #{item.collect} AS `is_collect`, #{item.status} AS `status`
+            </foreach>
+            WHERE EXISTS(SELECT 1 FROM `disk_file_${tableSuffix}` WHERE `business_id` = #{parentId});
+        </if>
+        <if test="null == parentId or '' == parentId or '0'.toString() == parentId">
+            VALUES
+            <foreach collection="list" item="item" index="index" separator=",">
+                (
+                #{item.businessId}, #{item.userId}, #{item.fileName}, #{item.fileParentId}, #{item.fileSize},
+                #{item.fileMimeType}, #{item.fileEtag}, #{item.fileFolder}, #{item.forbidden}, #{item.collect},
+                #{item.status}
+                )
+            </foreach>
+        </if>
     </insert>
 
     <!-- 根据业务id(businessId)删除用户文件模块 -->
@@ -297,15 +313,6 @@
         </where>
     </select>
 
-    <!-- 根据parentId查询指定目录下是否存在指定的文件名 -->
-    <select id="getRepeatFileName" resultType="java.lang.Integer">
-        SELECT 1 FROM `disk_file_${tableSuffix}`
-        <where>
-            `file_parent_id` = #{parentId} AND `file_name` = #{fileName} AND
-            `user_id` = #{userId} AND `is_file_folder` = #{fileFolder} LIMIT 1;
-        </where>
-    </select>
-
     <!-- 指定条件查找用户文件模块 -->
     <select id="listDiskFileToKey" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
@@ -362,6 +369,29 @@
             `business_id` IN
             <foreach collection="fileId" index="index" item="item" open="(" separator="," close=")">
                 #{item}
+            </foreach>
+        </trim>
+    </select>
+
+    <!-- 根据parentId查询指定目录下是否存在指定的文件名 -->
+    <select id="getRepeatFileName" resultType="java.lang.Integer">
+        SELECT 1 FROM `disk_file_${tableSuffix}`
+        <where>
+            `file_parent_id` = #{parentId} AND `file_name` = #{fileName} AND
+            `user_id` = #{userId} AND `is_file_folder` = #{fileFolder} LIMIT 1;
+        </where>
+    </select>
+
+    <!-- 根据parentId批量查询指定目录下是否存在指定的文件名 -->
+    <select id="listRepeatFileName" resultType="com.doudoudrive.common.model.pojo.DiskFile"
+            resultMap="diskFileResultMap">
+        SELECT
+        `business_id`, `file_name`, `is_file_folder`
+        FROM `disk_file_${tableSuffix}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            `file_parent_id` = #{parentId} AND `user_id` = #{userId} AND
+            <foreach collection="queryParam" index="index" item="item" open="((" separator=") OR (" close="))">
+                `file_name` = #{item.fileName} AND `is_file_folder` = #{item.fileFolder}
             </foreach>
         </trim>
     </select>
