@@ -1,22 +1,19 @@
 package com.doudoudrive.file.controller;
 
 import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
-import com.doudoudrive.common.model.dto.model.DiskFileModel;
-import com.doudoudrive.common.model.dto.model.DiskUserModel;
-import com.doudoudrive.common.model.dto.model.FileAuthModel;
+import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.OssFile;
+import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.http.UrlQueryUtil;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -24,10 +21,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
-import com.doudoudrive.file.manager.DiskUserAttrManager;
-import com.doudoudrive.file.manager.FileManager;
-import com.doudoudrive.file.manager.OssFileManager;
-import com.doudoudrive.file.manager.QiNiuManager;
+import com.doudoudrive.file.manager.*;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
@@ -50,6 +44,7 @@ import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,6 +64,8 @@ public class FileController {
     private LoginManager loginManager;
 
     private FileManager fileManager;
+
+    private FileShareManager fileShareManager;
 
     private DiskFileConvert diskFileConvert;
 
@@ -100,6 +97,11 @@ public class FileController {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setFileShareManager(FileShareManager fileShareManager) {
+        this.fileShareManager = fileShareManager;
     }
 
     @Autowired(required = false)
@@ -246,7 +248,7 @@ public class FileController {
         DiskFile userFile = fileManager.createFile(createFile, fileId, totalDiskCapacity, usedDiskCapacity);
         DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(userFile);
         if (fileModel == null) {
-            return Result.build(StatusCodeEnum.SYSTEM_ERROR);
+            return Result.build(StatusCodeEnum.FILE_CREATE_FAILED);
         }
 
         // 获取文件访问Url
@@ -314,15 +316,17 @@ public class FileController {
             // 文件创建成功后的发送MQ消息
             this.sendMessage(CreateFileConsumerRequestDTO.builder()
                     .fileId(fileId)
-                    .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
-                    .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile))
+                    .preview(fileModel.getPreview())
+                    .download(fileModel.getDownload())
+                    .fileInfo(diskFileConvert.diskFileConvertCreateFileAuthModel(diskFile, userToken,
+                            tokenRequest.getCallbackUrl(), tokenRequest.getFileEtag()))
                     .build());
 
             // 构建文件鉴权模型，拼接文件访问地址
             return Result.ok(FileUploadTokenResponseDTO.builder()
                     .fileInfo(fileManager.accessUrl(FileAuthModel.builder()
                             .userId(userInfo.getBusinessId())
-                            .build(), diskFileConvert.diskFileConvertDiskFileModel(diskFile)))
+                            .build(), fileModel))
                     .build());
         }
 
@@ -408,13 +412,18 @@ public class FileController {
 
         // 构建ES文件查询请求
         QueryElasticsearchDiskFileRequestDTO queryElasticRequest = diskFileConvert.fileSearchRequestConvertQueryElasticRequest(requestDTO, userinfo.getBusinessId());
-        return Result.ok(fileManager.search(queryElasticRequest, requestDTO.getMarker()));
+        // 构建文件鉴权信息
+        FileAuthModel fileAuthModel = FileAuthModel.builder()
+                .userId(queryElasticRequest.getUserId())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        return Result.ok(fileManager.search(queryElasticRequest, fileAuthModel, requestDTO.getMarker()));
     }
 
     /**
      * 七牛云CDN鉴权专用
      * <p>
-     * CDN请求时的文件鉴权配置，这里主要操作是扣减用户流量，流量不足时返回异常的状态码
+     * CDN请求时的文件鉴权配置，这里主要操作是扣减用户流量，流量不足时返回异常的状态码，用户访问文件时需要先登录
      * <p>
      * 鉴权成功时响应 204 状态码，鉴权失败时响应 403 状态码
      *
@@ -451,7 +460,19 @@ public class FileController {
             return;
         }
 
-        // TODO: 2022/5/25 资源所属用户与当前登录用户不同时，需要校验分享短链、分享时的文件key值
+        // 资源所属用户与当前登录用户不同时，需要校验分享短链、分享时的文件key值
+        if (!userinfo.getUserInfo().getBusinessId().equals(fileAuth.getUserId())) {
+            // 构建分享文件的嵌套信息
+            List<FileNestedModel> nestedInfo = Collections.singletonList(FileNestedModel.builder()
+                    .fileId(fileAuth.getFileId()).key(fileAuth.getShareKey()).build());
+            // 分享短链、分享时的文件key值都存在时，校验分享链接的key值是否正确
+            if (StringUtils.isBlank(fileAuth.getShareShort()) || StringUtils.isBlank(fileAuth.getShareKey())
+                    || !fileShareManager.shareKeyCheck(fileAuth.getShareShort(), nestedInfo)) {
+                // 分享短链、分享时的文件key值不存在、校验key值不正确
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                return;
+            }
+        }
 
         // 获取访问的文件对象
         DiskFile fileInfo = fileManager.getDiskFile(fileAuth.getUserId(), fileAuth.getFileId());
@@ -541,7 +562,7 @@ public class FileController {
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
         String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(consumerRequest));
+        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(consumerRequest));
     }
 
     /**

@@ -1,5 +1,5 @@
-#需要依赖 jdk:17 这个镜像(如果是首次打包，它会自动下载这个镜像)
-FROM openjdk:17-jdk-alpine
+#需要依赖 eclipse-temurin 这个镜像(如果是首次打包，它会自动下载这个镜像)
+FROM eclipse-temurin:17-jre
 #维护者、作者的信息
 MAINTAINER 兜兜网络
 #对Spring Boot应用程序为Tomcat创建的默认工作目录进行挂载(就是所有的jar默认放在/tmp下面)

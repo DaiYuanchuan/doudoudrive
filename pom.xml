@@ -11,7 +11,7 @@
     <!-- 1）主版本号：产品方向改变，或者大规模 API 不兼容，或者架构不兼容升级。 -->
     <!-- 2）次版本号：保持相对兼容性，增加主要功能特性，影响范围极小的 API 不兼容修改。 -->
     <!-- 3）修订号：保持完全兼容性，修复 BUG、新增次要功能特性等。-->
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 
     <!-- 子项目 -->
     <modules>
@@ -79,7 +79,11 @@
         <mapstruct.version>1.5.2.Final</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
-        <hutool.version>5.8.6</hutool.version>
+        <hutool.version>5.8.10</hutool.version>
+        <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
+        <zstd.version>1.5.2-5</zstd.version>
+        <!-- protostuff序列化工具 -->
+        <protostuff.version>1.8.0</protostuff.version>
         <!-- fastjson 版本号 -->
         <fastjson.version>1.2.83</fastjson.version>
         <!-- es搜索 版本号 -->
@@ -91,15 +95,19 @@
         <!-- xxl-job定时任务调度中心版本号 -->
         <xxl-job.version>2.3.1</xxl-job.version>
         <!-- snakeyaml依赖包版本 -->
-        <snakeyaml.version>1.32</snakeyaml.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
         <!-- xnio-api依赖包版本 -->
         <xnio-api.version>3.8.8.Final</xnio-api.version>
+        <!-- jackson-databind 依赖包版本 -->
+        <jackson-databind.version>2.14.0</jackson-databind.version>
         <!-- spring-data-elasticsearch依赖包版本 -->
         <spring-data-elasticsearch.version>4.4.3</spring-data-elasticsearch.version>
         <!-- nacos客户端依赖包版本 -->
-        <nacos-client.version>2.1.1</nacos-client.version>
+        <nacos-client.version>2.1.2</nacos-client.version>
         <!-- google-guava依赖包版本 -->
         <guava.version>31.1-jre</guava.version>
+        <!-- TransmittableThreadLocal可以在线程池中传参 -->
+        <ttl.version>2.14.2</ttl.version>
     </properties>
     <!-- 附带属性 -->
 
@@ -151,7 +159,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>3.1.4</version>
+            <version>3.1.5</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -169,7 +177,16 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind.version}</version>
         </dependency>
         <!-- 引入undertow -->
         <dependency>
@@ -216,11 +233,16 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.82.Final</version>
+            <version>4.1.84.Final</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- 针对基于TCP/UDP协议的数据传输功能实现 -->
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-ip</artifactId>
         </dependency>
         <!-- spring boot 依赖包 -->
 
@@ -278,6 +300,23 @@
             <artifactId>httpmime</artifactId>
             <version>${httpmime.version}</version>
         </dependency>
+        <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
+        <dependency>
+            <groupId>com.github.luben</groupId>
+            <artifactId>zstd-jni</artifactId>
+            <version>${zstd.version}</version>
+        </dependency>
+        <!-- protostuff 序列化工具 -->
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
         <!-- 工具包系列 -->
 
         <!-- lombok -->
@@ -288,6 +327,14 @@
             <scope>provided</scope>
         </dependency>
         <!-- lombok -->
+
+        <!-- TransmittableThreadLocal可以在线程池中传参 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>transmittable-thread-local</artifactId>
+            <version>${ttl.version}</version>
+        </dependency>
+        <!-- TransmittableThreadLocal可以在线程池中传参 -->
 
     </dependencies>
     <!-- 项目公共依赖 -->

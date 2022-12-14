@@ -374,12 +374,12 @@ CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
  `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
  `msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标识',
  `offset_msg_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息偏移id',
- `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci     NOT NULL DEFAULT '' COMMENT '消息发送状态(1:发送成功；2:刷新磁盘超时；3:刷新从属超时；4:从属服务器不可用)',
+ `retry_count` int(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '消息重试次数',
  `topic` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息主题',
  `tag` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'MQ消息标签',
  `broker_name` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ分片名',
- `queue_id` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
- `queue_offset` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
+ `queue_id` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
+ `queue_offset` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
  `send_time` timestamp(0) NOT NULL COMMENT '消息发送时间',
  `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
  `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -390,57 +390,57 @@ CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'RocketMQ消费记录' ROW_FORMAT = Dynamic;
 
 -- 日志表依据 创建时间 分表
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202201` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202202` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202203` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202204` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202205` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202206` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202207` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202208` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202209` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202210` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202211` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202212` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202301` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202302` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202303` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202304` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202305` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202306` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202307` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202308` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202309` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202310` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202311` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202312` LIKE `cloud-log`.`log_login`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202201` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202202` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202203` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202204` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202205` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202206` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202207` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202208` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202209` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202210` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202211` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202212` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202301` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202302` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202303` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202304` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202305` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202306` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202307` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202308` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202309` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202310` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202311` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202312` LIKE `cloud-log`.`log_op`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202201` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202202` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202203` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202204` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202205` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202206` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202207` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202208` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202209` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202210` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202211` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202212` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202301` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202302` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202303` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202304` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202305` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202306` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202307` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202308` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202309` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202310` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202311` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202312` LIKE `cloud-log`.`sms_send_record`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202201` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202202` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202203` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202204` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202205` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202206` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202207` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202208` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202209` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202210` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202211` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202212` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202301` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202302` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202303` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202304` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202305` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202306` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202307` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202308` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202309` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202310` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202311` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202312` LIKE `cloud-log`.`rocketmq_consumer_record`;
 
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-log`.`log_login`;
@@ -537,6 +537,76 @@ INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, 
 		"name": ""
 	}
 ]');
+
+/**
+ * ******************************************************* 文件分享库 *******************************************************
+ */
+
+-- 文件分享库
+CREATE DATABASE IF NOT EXISTS `cloud-share` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+USE `cloud-share`;
+
+-- 文件分享记录详情表 依据 share_id 分表
+DROP TABLE IF EXISTS `cloud-share`.`file_share_detail`;
+CREATE TABLE `cloud-share`.`file_share_detail`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+ `share_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '分享的短链接标识',
+ `file_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件标识',
+ `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ INDEX `idx_share_id`(`share_id`) USING BTREE COMMENT '分享的短链接标识'
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件分享记录详情' ROW_FORMAT = Dynamic;
+
+-- 文件分享记录详情表 依据 share_id 平均分40个表
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_01` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_02` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_03` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_04` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_05` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_06` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_07` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_08` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_09` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_10` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_11` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_12` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_13` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_14` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_15` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_16` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_17` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_18` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_19` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_20` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_21` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_22` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_23` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_24` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_25` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_26` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_27` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_28` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_29` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_30` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_31` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_32` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_33` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_34` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_35` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_36` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_37` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_38` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_39` LIKE `cloud-share`.`file_share_detail`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_40` LIKE `cloud-share`.`file_share_detail`;
+
+-- 删除原数据表
+DROP TABLE IF EXISTS `cloud-share`.`file_share_detail`;
+
 /**
  * ******************************************************* 文件库 *******************************************************
  */
@@ -1411,5 +1481,9 @@ CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_497` LIKE `cloud-file`.`disk_
 CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_498` LIKE `cloud-file`.`disk_file`;
 CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_499` LIKE `cloud-file`.`disk_file`;
 CREATE TABLE IF NOT EXISTS `cloud-file`.`disk_file_500` LIKE `cloud-file`.`disk_file`;
+
+-- 删除原数据表
+DROP TABLE IF EXISTS `cloud-file`.`oss_file`;
+DROP TABLE IF EXISTS `cloud-file`.`disk_file`;
 
 SET NAMES utf8mb4;

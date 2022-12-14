@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 public class BusinessException extends RuntimeException {
 
     /**
-     * 业务异常状态码
+     * 业务异常错误码
      */
     private Integer statusCode;
 
@@ -24,19 +24,31 @@ public class BusinessException extends RuntimeException {
      */
     private String reason;
 
+    /**
+     * 任务对象
+     */
+    private Object data;
+
+    public BusinessException(Result<?> result) {
+        this(result.getCode(), result.getMessage(), result.getData());
+    }
+
     public BusinessException(StatusCodeEnum statusCode) {
         this(statusCode, statusCode.message);
     }
 
-    public BusinessException(Result<?> result) {
-        super(result.getMessage());
-        this.statusCode = result.getCode();
-        this.reason = result.getMessage();
+    public BusinessException(StatusCodeEnum statusCode, String reason) {
+        this(statusCode, reason, null);
     }
 
-    public BusinessException(StatusCodeEnum statusCode, String reason) {
+    public BusinessException(StatusCodeEnum statusCode, String reason, Object data) {
+        this(statusCode.statusCode, reason, data);
+    }
+
+    public BusinessException(Integer statusCode, String reason, Object data) {
         super(reason);
-        this.statusCode = statusCode.statusCode;
+        this.statusCode = statusCode;
         this.reason = reason;
+        this.data = data;
     }
 }

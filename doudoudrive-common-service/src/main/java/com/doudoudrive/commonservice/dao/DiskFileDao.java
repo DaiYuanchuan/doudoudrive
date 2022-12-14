@@ -31,11 +31,14 @@ public interface DiskFileDao {
     /**
      * 批量新增用户文件模块
      *
+     * @param parentId    文件父级标识
      * @param list        需要新增的用户文件模块集合
      * @param tableSuffix 表后缀
      * @return 返回新增的条数
      */
-    Integer insertBatch(@Param("list") List<DiskFile> list, @Param("tableSuffix") String tableSuffix);
+    Integer insertBatch(@Param("parentId") String parentId,
+                        @Param("list") List<DiskFile> list,
+                        @Param("tableSuffix") String tableSuffix);
 
     /**
      * 删除用户文件模块
@@ -84,22 +87,6 @@ public interface DiskFileDao {
     DiskFile getDiskFile(@Param("userId") String userId,
                          @Param("businessId") String businessId,
                          @Param("tableSuffix") String tableSuffix);
-
-    /**
-     * 根据parentId查询指定目录下是否存在指定的文件名
-     *
-     * @param parentId    文件的父级标识
-     * @param fileName    文件、文件夹名称
-     * @param userId      指定的用户标识
-     * @param fileFolder  是否为文件夹
-     * @param tableSuffix 表后缀
-     * @return 在指定目录下存在相同的文件名时返回 1 ，否则返回 0 或者 null
-     */
-    Integer getRepeatFileName(@Param("parentId") String parentId,
-                              @Param("fileName") String fileName,
-                              @Param("userId") String userId,
-                              @Param("fileFolder") Boolean fileFolder,
-                              @Param("tableSuffix") String tableSuffix);
 
     /**
      * 指定条件查找用户文件模块
@@ -153,4 +140,34 @@ public interface DiskFileDao {
     List<DiskFile> fileIdSearch(@Param("userId") String userId,
                                 @Param("fileId") List<String> fileId,
                                 @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 根据parentId查询指定目录下是否存在指定的文件名
+     *
+     * @param parentId    文件的父级标识
+     * @param fileName    文件、文件夹名称
+     * @param userId      指定的用户标识
+     * @param fileFolder  是否为文件夹
+     * @param tableSuffix 表后缀
+     * @return 在指定目录下存在相同的文件名时返回 1 ，否则返回 0 或者 null
+     */
+    Integer getRepeatFileName(@Param("parentId") String parentId,
+                              @Param("fileName") String fileName,
+                              @Param("userId") String userId,
+                              @Param("fileFolder") Boolean fileFolder,
+                              @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 根据parentId批量查询指定目录下是否存在指定的文件名
+     *
+     * @param parentId    文件的父级标识
+     * @param userId      指定的用户标识
+     * @param queryParam  指定的查询参数，包含文件名、是否为文件夹
+     * @param tableSuffix 表后缀
+     * @return 如果存在重名的文件信息，则返回查找到的文件数据集合，如果不存在则返回空集合
+     */
+    List<DiskFile> listRepeatFileName(@Param("parentId") String parentId,
+                                      @Param("userId") String userId,
+                                      @Param("queryParam") List<DiskFile> queryParam,
+                                      @Param("tableSuffix") String tableSuffix);
 }

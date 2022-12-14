@@ -33,4 +33,9 @@ public class TransactionManagerConstant {
      */
     public static final String FILE_TRANSACTION_MANAGER = "fileTransactionManager";
 
+    /**
+     * 文件分享系统配置中心的事务管理器
+     */
+    public static final String FILE_SHARE_TRANSACTION_MANAGER = "fileShareTransactionManager";
+
 }

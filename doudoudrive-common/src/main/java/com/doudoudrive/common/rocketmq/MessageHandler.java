@@ -1,13 +1,11 @@
 package com.doudoudrive.common.rocketmq;
 
-import cn.hutool.core.convert.Convert;
 import com.doudoudrive.common.constant.ConsumeStatusEnum;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -36,7 +34,7 @@ public class MessageHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("开始消费，msgId={}，msg={}", msg.getMsgId(), msg);
                 }
-                listener.onMessage(convert(listener.getConsumerConfig().getTags().get(msg.getTags()), msg.getBody()), msg.getBody(), messageContext);
+                listener.onMessage(MessageBuilder.convert(msg.getBody()), msg.getBody(), messageContext);
                 if (log.isDebugEnabled()) {
                     log.debug("消费完成");
                 }
@@ -46,22 +44,5 @@ public class MessageHandler {
             return ConsumeStatusEnum.RETRY;
         }
         return ConsumeStatusEnum.SUCCESS;
-    }
-
-    /**
-     * byte字节数组类型换算
-     *
-     * @param type 需要转换的类型
-     * @param body 消息体
-     * @return 响应类型
-     */
-    public static Object convert(Class<?> type, byte[] body) {
-        if (type == null) {
-            return body;
-        }
-        if (String.class.equals(type)) {
-            return new String(body, StandardCharsets.UTF_8);
-        }
-        return Convert.convert(type, body);
     }
 }

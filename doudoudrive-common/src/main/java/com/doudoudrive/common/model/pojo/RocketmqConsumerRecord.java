@@ -47,9 +47,9 @@ public class RocketmqConsumerRecord implements Serializable {
     private String offsetMsgId;
 
     /**
-     * 消息发送状态(1:发送成功；2:刷新磁盘超时；3:刷新从属超时；4:从属服务器不可用)
+     * 消息重试次数
      */
-    private String sendStatus;
+    private Integer retryCount;
 
     /**
      * MQ消息主题

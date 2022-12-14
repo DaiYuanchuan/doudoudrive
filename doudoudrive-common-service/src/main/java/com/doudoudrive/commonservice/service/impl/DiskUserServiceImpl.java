@@ -5,13 +5,12 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskUserDao;
 import com.doudoudrive.commonservice.service.DiskUserService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 /**
@@ -20,8 +19,8 @@ import org.springframework.stereotype.Service;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("diskUserService")
-@DataSource(DataSourceEnum.USERINFO)
 public class DiskUserServiceImpl implements DiskUserService {
 
     private DiskUserDao diskUserDao;

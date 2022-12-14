@@ -3,7 +3,6 @@ package com.doudoudrive.auth.controller;
 import cn.hutool.core.date.BetweenFormatter;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.thread.ThreadUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
@@ -20,6 +19,7 @@ import com.doudoudrive.common.model.dto.model.UserSimpleModel;
 import com.doudoudrive.common.model.dto.request.UserLoginRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.LogLogin;
+import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.ip.IpUtils;
 import lombok.SneakyThrows;
@@ -77,8 +77,8 @@ public class LoginController {
     @SneakyThrows
     @OpLog(title = "密码登录", businessType = "用户登录")
     @PostMapping(value = "/login", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<?> login(@RequestBody @Valid UserLoginRequestDTO requestDTO,
-                           HttpServletRequest request, HttpServletResponse response) {
+    public Result<UserLoginResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO requestDTO,
+                                              HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
@@ -115,7 +115,7 @@ public class LoginController {
                 responseInfo.setUserBanTimeFormat(DateUtil.formatBetween(beginDate, userInfo.getUserUnlockTime(), BetweenFormatter.Level.SECOND));
             }
             saveLoginFail(StatusCodeEnum.ACCOUNT_FORBIDDEN.message, logLogin, future);
-            return Result.build(StatusCodeEnum.ACCOUNT_FORBIDDEN).data(responseInfo);
+            return Result.build(StatusCodeEnum.ACCOUNT_FORBIDDEN, responseInfo);
         } catch (UnknownAccountException e) {
             saveLoginFail(StatusCodeEnum.USER_NO_EXIST.message, logLogin, future);
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
@@ -148,7 +148,7 @@ public class LoginController {
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
         String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.LOGIN_LOG_RECORD;
-        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(logLogin));
+        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(logLogin));
 
         return Result.ok(userLoginInfo);
     }
@@ -211,7 +211,7 @@ public class LoginController {
         setLocation(logLogin, future);
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
         String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.LOGIN_LOG_RECORD;
-        rocketmqTemplate.sendOneWay(destination, ObjectUtil.serialize(logLogin));
+        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(logLogin));
     }
 
     /**

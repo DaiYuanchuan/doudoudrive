@@ -31,7 +31,7 @@ public class BusinessExceptionUtil {
     }
 
     /**
-     * 抛出业务异常
+     * 抛出业务异常，支持自定义错误信息
      *
      * @param status 错误码状态
      * @param reason 异常原因
@@ -41,13 +41,12 @@ public class BusinessExceptionUtil {
     }
 
     /**
-     * 抛出业务异常
+     * 抛出业务异常，支持自定义data数据
      *
-     * @param status    错误码状态
-     * @param throwable 原始异常或错误
+     * @param status 错误码状态
+     * @param data   任务对象
      */
-    public static void throwErrorCodeException(StatusCodeEnum status, Throwable throwable) {
-        log.error(throwable.getMessage(), throwable);
-        throw new BusinessException(status, throwable.getMessage());
+    public static void throwBusinessException(StatusCodeEnum status, Object data) {
+        throw new BusinessException(status, status.message, data);
     }
 }

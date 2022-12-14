@@ -4,7 +4,10 @@ import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
+import com.doudoudrive.common.model.dto.model.FileReviewConfig;
+import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 
@@ -71,10 +74,11 @@ public interface FileManager {
      * 文件信息翻页搜索
      *
      * @param queryElasticRequest 构建ES文件查询请求数据模型
+     * @param authModel           文件鉴权参数模型
      * @param marker              加密的游标数据
      * @return 文件信息翻页搜索结果
      */
-    FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, String marker);
+    FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, FileAuthModel authModel, String marker);
 
     /**
      * 获取指定文件节点下所有的子节点信息 （递归）
@@ -138,6 +142,22 @@ public interface FileManager {
     SymmetricCrypto getSymmetricCrypto();
 
     /**
+     * 加密游标数据
+     *
+     * @param marker 游标数据
+     * @return 加密后的游标数据
+     */
+    String encryptMarker(List<Object> marker);
+
+    /**
+     * 解密游标数据，marker不存在时返回null
+     *
+     * @param marker 加密的游标数据
+     * @return 解密后的游标数据
+     */
+    List<Object> decryptMarker(String marker);
+
+    /**
      * 获取文件访问Url
      *
      * @param authModel 文件鉴权参数
@@ -147,11 +167,26 @@ public interface FileManager {
     DiskFileModel accessUrl(FileAuthModel authModel, DiskFileModel fileModel);
 
     /**
-     * 批量获取文件访问Url
+     * 获取文件访问Url
      *
-     * @param authModel     文件鉴权参数
-     * @param fileModelList 文件模型集合
+     * @param authModel    文件鉴权参数
+     * @param fileModel    文件模型
+     * @param config       七牛云配置信息
+     * @param reviewConfig 文件审核配置
+     * @param consumer     生成访问Url时的回调函数，方便对文件鉴权模型进行扩展
+     * @return 重新赋值后的文件模型
+     */
+    DiskFileModel accessUrl(FileAuthModel authModel, DiskFileModel fileModel, QiNiuUploadConfig config,
+                            FileReviewConfig reviewConfig, Consumer<FileAuthModel> consumer);
+
+    /**
+     * 批量获取文件访问Url，同时加密下一页的游标数据
+     *
+     * @param authModel            文件鉴权参数
+     * @param queryElasticResponse 搜索es用户文件信息时的响应数据模型
+     * @param consumer             生成访问Url时的回调函数，方便对文件鉴权模型进行扩展
      * @return 重新赋值后的文件模型集合
      */
-    List<DiskFileModel> accessUrl(FileAuthModel authModel, List<DiskFileModel> fileModelList);
+    FileSearchResponseDTO accessUrl(FileAuthModel authModel, List<QueryElasticsearchDiskFileResponseDTO> queryElasticResponse,
+                                    Consumer<FileAuthModel> consumer);
 }

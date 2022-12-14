@@ -17,8 +17,6 @@ import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.ConvertUtil;
 import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.DiskDictionaryDao;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.google.common.collect.Maps;
@@ -42,7 +40,6 @@ import java.util.stream.Collectors;
  */
 @Scope("singleton")
 @Service("diskDictionaryService")
-@DataSource(DataSourceEnum.CONFIG)
 public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMessageSubscriber, CommandLineRunner {
 
     private DiskDictionaryDao diskDictionaryDao;

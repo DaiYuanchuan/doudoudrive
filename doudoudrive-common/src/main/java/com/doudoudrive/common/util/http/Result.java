@@ -2,6 +2,8 @@ package com.doudoudrive.common.util.http;
 
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
  * @author Dan
  **/
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Result<T> implements Serializable {
 
     @Serial
@@ -37,9 +40,6 @@ public class Result<T> implements Serializable {
      */
     private T data;
 
-    private Result() {
-    }
-
     private Result(Integer code, String message) {
         this.code = code;
         this.message = message;
@@ -52,14 +52,11 @@ public class Result<T> implements Serializable {
     }
 
     private Result(StatusCodeEnum statusCodeEnum) {
-        this.code = statusCodeEnum.statusCode;
-        this.message = statusCodeEnum.message;
+        this(statusCodeEnum.statusCode, statusCodeEnum.message);
     }
 
     private Result(StatusCodeEnum statusCodeEnum, T obj) {
-        this.code = statusCodeEnum.statusCode;
-        this.message = statusCodeEnum.message;
-        this.data = obj;
+        this(statusCodeEnum.statusCode, statusCodeEnum.message, obj);
     }
 
     /**
@@ -117,8 +114,12 @@ public class Result<T> implements Serializable {
         return new Result<>(statusCodeEnum);
     }
 
-    public static <T> Result<T> build(Integer code, String message) {
-        return new Result<>(code, message);
+    public static <T> Result<T> build(Integer code, String message, T data) {
+        return new Result<>(code, message, data);
+    }
+
+    public static <T> Result<T> build(StatusCodeEnum statusCodeEnum, T data) {
+        return new Result<>(statusCodeEnum, data);
     }
 
     public Integer getCode() {

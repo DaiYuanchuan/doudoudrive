@@ -64,9 +64,9 @@ public interface DiskUserAttrDao {
      * 原子性服务，增加指定字段的数量
      *
      * @param userId      需要进行操作的用户标识
-     * @param attrName    需要扣除的字段属性
-     * @param number      需要扣除的数量
-     * @param upperLimit  扣除上限
+     * @param attrName    需要增加的字段属性
+     * @param number      需要增加的数量
+     * @param upperLimit  增加的上限
      * @param tableSuffix 表后缀
      * @return 返回修改的条数，根据返回值判断是否修改成功
      */

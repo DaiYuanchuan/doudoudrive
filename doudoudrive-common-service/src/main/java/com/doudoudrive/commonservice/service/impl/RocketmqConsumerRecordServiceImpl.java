@@ -6,14 +6,13 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.common.util.lang.SequenceUtil;
-import com.doudoudrive.commonservice.annotation.DataSource;
-import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import com.doudoudrive.commonservice.dao.RocketmqConsumerRecordDao;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -25,7 +24,7 @@ import java.util.Date;
  * @author Dan
  **/
 @Slf4j
-@DataSource(DataSourceEnum.LOG)
+@Scope("singleton")
 @Service("rocketmqConsumerRecordService")
 public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecordService {
 

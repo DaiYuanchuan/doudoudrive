@@ -27,7 +27,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-@Setting(shards = 10, replicas = 0)
+@Setting(shards = 10, replicas = 0, indexStoreType = ConstantConfig.StoreType.NIO_FS)
 @Document(indexName = ConstantConfig.IndexName.DISK_FILE)
 public class DiskFileDTO implements Serializable {
 
@@ -54,9 +54,9 @@ public class DiskFileDTO implements Serializable {
     private String userId;
 
     /**
-     * 文件名
+     * 文件名(支持模糊搜索)
      */
-    @Field(type = FieldType.Text, analyzer = ConstantConfig.IkConstant.IK_MAX_WORD, searchAnalyzer = ConstantConfig.IkConstant.IK_MAX_WORD)
+    @Field(type = FieldType.Wildcard)
     private String fileName;
 
     /**

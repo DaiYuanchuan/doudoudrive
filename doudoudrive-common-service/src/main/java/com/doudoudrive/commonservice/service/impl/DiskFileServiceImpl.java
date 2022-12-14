@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("diskFileService")
 public class DiskFileServiceImpl implements DiskFileService {
 
@@ -78,22 +80,24 @@ public class DiskFileServiceImpl implements DiskFileService {
      */
     @Override
     public void insertBatch(List<DiskFile> list) {
-        CollectionUtil.collectionCutting(list, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(diskFile -> {
-            List<DiskFile> diskFileList = diskFile.stream().filter(ObjectUtils::isNotEmpty).toList();
-            for (DiskFile diskFileInfo : diskFileList) {
-                if (StringUtils.isBlank(diskFileInfo.getBusinessId())) {
-                    diskFileInfo.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE));
-                }
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+
+        for (DiskFile diskFileInfo : list) {
+            if (StringUtils.isBlank(diskFileInfo.getBusinessId())) {
+                diskFileInfo.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE));
             }
-            // 将 用户文件模块的集合 按照 用户分组
-            Map<String, List<DiskFile>> diskFileMap = diskFileList.stream().collect(Collectors.groupingBy(DiskFile::getUserId));
-            diskFileMap.forEach((key, value) -> {
-                // 获取表后缀
-                String tableSuffix = SequenceUtil.tableSuffix(key, ConstantConfig.TableSuffix.DISK_FILE);
-                if (CollectionUtil.isNotEmpty(value)) {
-                    diskFileDao.insertBatch(value, tableSuffix);
-                }
-            });
+        }
+        // 将 用户文件模块的集合 按照 用户分组
+        Map<String, List<DiskFile>> diskFileMap = list.stream().collect(Collectors.groupingBy(DiskFile::getUserId));
+        diskFileMap.forEach((key, value) -> {
+            // 获取表后缀
+            String tableSuffix = SequenceUtil.tableSuffix(key, ConstantConfig.TableSuffix.DISK_FILE);
+            // 将结果集按照文件父级标识(fileParentId)分组，这里代表的是同一个用户下的同一层级的文件
+            value.stream().collect(Collectors.groupingBy(DiskFile::getFileParentId)).forEach((parentId, fileList) ->
+                    // 将同一层级的文件集合分批次插入数据库
+                    CollectionUtil.collectionCutting(fileList, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(diskFile -> diskFileDao.insertBatch(parentId, diskFile, tableSuffix)));
         });
     }
 
@@ -204,6 +208,28 @@ public class DiskFileServiceImpl implements DiskFileService {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
         return diskFileDao.getRepeatFileName(parentId, fileName, userId, fileFolder, tableSuffix);
+    }
+
+    /**
+     * 根据parentId批量查询指定目录下是否存在指定的文件名
+     *
+     * @param parentId   文件的父级标识
+     * @param userId     指定的用户标识
+     * @param queryParam 指定的查询参数，包含文件名、是否为文件夹
+     * @return 如果存在重名的文件信息，则返回查找到的文件数据集合，如果不存在则返回空集合
+     */
+    @Override
+    public List<DiskFile> listRepeatFileName(String parentId, String userId, List<DiskFile> queryParam) {
+        // 获取表后缀
+        String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
+        List<DiskFile> batchQueryResult = Lists.newArrayListWithExpectedSize(queryParam.size());
+        CollectionUtil.collectionCutting(queryParam, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(param -> {
+            List<DiskFile> queryResult = diskFileDao.listRepeatFileName(parentId, userId, param, tableSuffix);
+            if (CollectionUtil.isNotEmpty(queryResult)) {
+                batchQueryResult.addAll(queryResult);
+            }
+        });
+        return batchQueryResult;
     }
 
     /**

@@ -15,6 +15,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  *
  * @author Dan
  **/
+@Scope("singleton")
 @Service("diskUserAttrService")
 public class DiskUserAttrServiceImpl implements DiskUserAttrService {
 
@@ -123,9 +125,9 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
      * 原子性服务，增加指定字段的数量
      *
      * @param userId       需要进行操作的用户标识
-     * @param userAttrEnum 需要扣除的字段属性枚举值
-     * @param size         需要扣除的数量
-     * @param upperLimit   扣除上限
+     * @param userAttrEnum 需要增加的字段属性枚举值
+     * @param size         需要增加的数量
+     * @param upperLimit   增加的上限
      * @return 返回修改的条数，根据返回值判断是否修改成功
      */
     @Override

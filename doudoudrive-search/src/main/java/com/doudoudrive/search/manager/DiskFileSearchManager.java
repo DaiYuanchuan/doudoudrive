@@ -1,5 +1,6 @@
 package com.doudoudrive.search.manager;
 
+import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -55,10 +56,13 @@ public interface DiskFileSearchManager {
     /**
      * 根据文件业务标识批量查询用户文件信息
      *
-     * @param businessId 文件业务标识
+     * @param businessId  文件业务标识
+     * @param sort        排序字段
+     * @param count       每页数量
+     * @param searchAfter 游标
      * @return 用户文件实体信息ES数据模型
      */
-    SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId);
+    SearchHits<DiskFileDTO> fileIdSearch(List<String> businessId, List<OrderByBuilder> sort, Integer count, List<Object> searchAfter);
 
     /**
      * 根据文件父级业务标识批量查询用户文件信息

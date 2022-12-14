@@ -2,9 +2,7 @@ package com.doudoudrive.file.client;
 
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.*;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileIdResponseDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
+import com.doudoudrive.common.model.dto.response.*;
 import com.doudoudrive.common.util.http.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,7 +62,7 @@ public interface DiskFileSearchFeignClient {
      * @return 查询结果
      */
     @PostMapping(value = "/search/file/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<QueryElasticsearchDiskFileIdResponseDTO> fileIdSearch(@RequestBody QueryElasticsearchDiskFileIdRequestDTO requestDTO);
+    Result<List<QueryElasticsearchDiskFileResponseDTO>> fileIdSearch(@RequestBody QueryElasticsearchDiskFileIdRequestDTO requestDTO);
 
     /**
      * 根据文件父级业务标识批量查询用户文件信息
@@ -74,5 +72,44 @@ public interface DiskFileSearchFeignClient {
      */
     @PostMapping(value = "/search/file/parent-id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<List<QueryElasticsearchDiskFileResponseDTO>> fileParentIdSearch(@RequestBody QueryElasticsearchDiskFileParentIdRequestDTO requestDTO);
+
+    // =============================================== 以下为分享文件搜索 ===============================================
+
+    /**
+     * 保存es文件分享记录信息
+     *
+     * @param saveFileShareRequest 保存es文件分享记录信息时的请求数据模型
+     * @return 通用状态返回类
+     */
+    @PostMapping(value = "/search/file-share/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<String> saveElasticsearchFileShare(@RequestBody SaveElasticsearchFileShareRequestDTO saveFileShareRequest);
+
+    /**
+     * 删除es文件分享记录信息
+     *
+     * @param cancelShareRequest 删除es文件分享记录信息时的请求数据模型
+     * @return 返回删除结果
+     */
+    @PostMapping(value = "/search/file-share/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody DeleteElasticsearchFileShareRequestDTO cancelShareRequest);
+
+    /**
+     * 根据用户标识搜索es文件分享记录信息
+     *
+     * @param userIdSearchRequest 用户标识搜索es文件分享记录信息时的请求数据模型
+     * @return 查询结果
+     */
+    @PostMapping(value = "/search/file-share/user-id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<List<QueryElasticsearchShareUserIdResponseDTO>> shareUserIdSearch(@RequestBody QueryElasticsearchShareUserIdRequestDTO userIdSearchRequest);
+
+    /**
+     * 搜索es用户文件分享标识数据
+     * 调用此接口时，必须传入用户标识，同时浏览量+1
+     *
+     * @param shareIdRequest 搜索es用户文件分享标识数据时的请求数据模型
+     * @return 查询结果
+     */
+    @PostMapping(value = "/search/file-share/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<QueryElasticsearchFileShareIdResponseDTO> shareIdResponse(@RequestBody QueryElasticsearchFileShareIdRequestDTO shareIdRequest);
 
 }

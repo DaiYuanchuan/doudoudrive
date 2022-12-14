@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.FileShareDetailDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.FileShareDetail" id="fileShareDetailResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="shareId" column="share_id"/>
+        <result property="fileId" column="file_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="fileShareDetail">
+        `auto_id`
+        ,`business_id`,`user_id`,`share_id`,`file_id`,`create_time`,`update_time`
+    </sql>
+
+    <!-- 批量新增文件分享记录详情 -->
+    <insert id="insertBatch" parameterType="java.util.List" flushCache="true">
+        INSERT INTO
+        `file_share_detail_${tableSuffix}` (
+        `auto_id`,
+        `business_id`,
+        `user_id`,
+        `share_id`,
+        `file_id`
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.autoId},
+            #{item.businessId},
+            #{item.userId},
+            #{item.shareId},
+            #{item.fileId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据分享的短链接标识(shareId)批量删除文件分享记录详情数据 -->
+    <delete id="delete" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `file_share_detail_${tableSuffix}`
+        <where>
+            `user_id` = #{userId} AND `share_id` IN
+            <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据分享的短链接标识(shareId)查找文件分享记录详情数据 -->
+    <select id="listFileShareDetail" resultType="com.doudoudrive.common.model.pojo.FileShareDetail"
+            resultMap="fileShareDetailResultMap">
+        SELECT
+        <include refid="fileShareDetail"/>
+        FROM `file_share_detail_${tableSuffix}`
+        <where>
+            `share_id` = #{shareId}
+        </where>
+    </select>
+
+</mapper>

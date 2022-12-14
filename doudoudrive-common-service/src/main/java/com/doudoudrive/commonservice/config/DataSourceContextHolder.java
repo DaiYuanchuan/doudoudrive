@@ -42,7 +42,7 @@ public class DataSourceContextHolder {
      * @param dataSource 数据源名称
      */
     public static void push(String dataSource) {
-        LOOKUP_KEY_HOLDER.get().push(StringUtils.isEmpty(dataSource) ? "" : dataSource);
+        LOOKUP_KEY_HOLDER.get().push(StringUtils.isEmpty(dataSource) ? StringUtils.EMPTY : dataSource);
     }
 
     /**
