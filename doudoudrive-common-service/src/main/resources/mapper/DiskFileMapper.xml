@@ -339,7 +339,8 @@
     <select id="fileParentIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
         SELECT
-        `business_id`, `file_size`, `file_etag`, `is_file_folder`
+        `auto_id`, `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+        `is_file_folder`, `is_forbidden`, `is_collect`, `status`
         FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <if test="null != autoId and 0 != autoId">
@@ -360,7 +361,8 @@
     <select id="fileIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
         SELECT
-        `business_id`, `file_name`, `file_size`, `file_etag`, `is_file_folder`
+        `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+        `is_file_folder`, `is_forbidden`, `is_collect`, `status`
         FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <if test="null != userId and '' != userId">
