@@ -319,8 +319,13 @@ public class DiskFileServiceImpl implements DiskFileService {
                 // 存在有文件夹时，继续递归查询
                 this.getUserFileAllNode(userId, parentFileList, consumer);
             }
-            // 回调函数
-            consumer.accept(queryParentIdResponse);
+
+            try {
+                // 回调函数
+                consumer.accept(queryParentIdResponse);
+            } catch (Exception ignored) {
+                // ignored
+            }
         });
     }
 
