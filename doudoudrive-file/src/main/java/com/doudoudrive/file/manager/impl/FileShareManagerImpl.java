@@ -1,5 +1,6 @@
 package com.doudoudrive.file.manager.impl;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
@@ -11,6 +12,7 @@ import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdRe
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.model.pojo.FileShareDetail;
+import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
@@ -27,17 +29,18 @@ import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileShareAnonymousResponseDTO;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * <p>用户文件分享记录信息服务的通用业务处理层接口实现</p>
@@ -57,11 +60,21 @@ public class FileShareManagerImpl implements FileShareManager {
      * 进行分享的文件名后缀-带文件夹
      */
     private static final String SHARE_FILE_NAME_SUFFIX_FILE_FOLDER = SHARE_FILE_NAME_SUFFIX_FILE + "(夹)";
+
     private DiskFileSearchFeignClient diskFileSearchFeignClient;
+
     private FileShareConvert fileShareConvert;
+
     private FileShareDetailService fileShareDetailService;
+
     private DiskUserService diskUserService;
+
     private FileManager fileManager;
+
+    /**
+     * RocketMQ消息模型
+     */
+    private RocketMQTemplate rocketmqTemplate;
 
     @Autowired
     public void setDiskFileSearchFeignClient(DiskFileSearchFeignClient diskFileSearchFeignClient) {
@@ -86,6 +99,11 @@ public class FileShareManagerImpl implements FileShareManager {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
+        this.rocketmqTemplate = rocketmqTemplate;
     }
 
     /**
@@ -152,7 +170,7 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     public Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
-        FileShareModel content = this.getShareContent(anonymousRequest.getShareId(), anonymousRequest.getUpdateViewCount());
+        FileShareModel content = this.getShareContent(anonymousRequest.getShareId(), anonymousRequest.getUpdateViewCount(), Boolean.FALSE);
         if (content == null) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
         }
@@ -180,7 +198,7 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     public void copy(FileCopyRequestDTO fileCopyRequest, DiskUserModel userinfo) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
-        FileShareModel content = this.getShareContent(fileCopyRequest.getShareId(), Boolean.FALSE);
+        FileShareModel content = this.getShareContent(fileCopyRequest.getShareId(), Boolean.FALSE, Boolean.TRUE);
         if (content == null) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
         }
@@ -194,7 +212,61 @@ public class FileShareManagerImpl implements FileShareManager {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_KEY);
         }
 
-        // TODO: 2022/11/9 校验目标文件夹是否存在，已经重名
+        // 校验目标文件夹是否存在
+        fileManager.checkTargetFolder(userinfo.getBusinessId(), fileCopyRequest.getTargetFolderId());
+
+        // 获取所有需要进行复制的源文件标识
+        List<String> sourceFileId = fileCopyRequest.getFileInfo().stream().map(FileNestedModel::getFileId).distinct().toList();
+
+        // 根据传入的文件业务标识查找是否存在对应的文件信息
+        List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(content.getUserId(), sourceFileId);
+
+        // 判断文件信息搜索请求响应结果是否为空
+        if (CollectionUtil.isEmpty(fileIdSearchResult)) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_NOT_FOUND);
+        }
+
+        // 文件名重复校验机制，如果存在重复的文件名，则会重置原始文件名
+        fileManager.verifyRepeat(fileCopyRequest.getTargetFolderId(), userinfo.getBusinessId(), fileIdSearchResult);
+
+        // 用来保存树形结构的Map<原有的数据标识, 新数据返回的数据标识>
+        Map<String, String> treeStructureMap = Maps.newHashMapWithExpectedSize(fileIdSearchResult.size());
+
+        // 筛选出其中所有的文件夹数据
+        List<String> fileFolderList = Lists.newArrayListWithExpectedSize(fileIdSearchResult.size());
+
+        for (DiskFile fileInfo : fileIdSearchResult) {
+            // 首次复制文件时，需要将 文件父级标识 与 目标文件夹标识 保存到map中
+            treeStructureMap.put(fileInfo.getFileParentId(), fileCopyRequest.getTargetFolderId());
+            if (fileInfo.getFileFolder()) {
+                fileFolderList.add(fileInfo.getBusinessId());
+            }
+        }
+
+        // 用户总磁盘容量
+        String totalDiskCapacity = userinfo.getUserAttr().getOrDefault(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.param, ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.defaultValue);
+
+        // 批量复制文件信息
+        Map<String, String> nodeMap = fileManager.batchCopyFile(userinfo.getBusinessId(), fileCopyRequest.getTargetFolderId(), treeStructureMap, fileIdSearchResult, totalDiskCapacity);
+
+        // 如果存在文件夹，则异步复制子文件夹下的文件信息
+        if (CollectionUtil.isNotEmpty(fileFolderList)) {
+            // 使用sync模式发送消息，保证消息发送成功
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.COPY_FILE;
+            // 发送MQ消息，用于复制文件夹下的所有文件
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(CopyFileConsumerRequestDTO.builder()
+                    .targetUserId(userinfo.getBusinessId())
+                    .fromUserId(content.getUserId())
+                    .targetFolderId(fileCopyRequest.getTargetFolderId())
+                    .treeStructureMap(nodeMap)
+                    .preCopyFileList(fileFolderList)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                // 消息发送失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
+            }
+        }
     }
 
     /**
@@ -207,7 +279,7 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     public Boolean shareKeyCheck(String shareId, List<FileNestedModel> fileInfo) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
-        FileShareModel content = this.getShareContent(shareId, Boolean.FALSE);
+        FileShareModel content = this.getShareContent(shareId, Boolean.FALSE, Boolean.FALSE);
         return this.shareKeyCheck(content, fileInfo);
     }
 
@@ -436,13 +508,15 @@ public class FileShareManagerImpl implements FileShareManager {
      *
      * @param shareId         分享链接标识
      * @param updateViewCount 是否更新分享链接的访问次数
+     * @param updateSaveCount 是否更新分享链接的保存、转存次数
      * @return 分享的文件信息，不存在时返回null
      */
-    private FileShareModel getShareContent(String shareId, Boolean updateViewCount) {
+    private FileShareModel getShareContent(String shareId, Boolean updateViewCount, Boolean updateSaveCount) {
         // 根据短链接标识查询分享记录信息
         Result<QueryElasticsearchFileShareIdResponseDTO> queryElasticShareIdResult = diskFileSearchFeignClient.shareIdResponse(QueryElasticsearchFileShareIdRequestDTO.builder()
                 .shareId(Collections.singletonList(shareId))
                 .updateViewCount(updateViewCount)
+                .updateSaveCount(updateSaveCount)
                 .build());
         // 判断查询结果是否为空
         if (Result.isNotSuccess(queryElasticShareIdResult)

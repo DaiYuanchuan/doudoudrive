@@ -220,6 +220,11 @@ public interface ConstantConfig {
         String DELETE_FILE = "DELETE_FILE";
 
         /**
+         * 复制文件服务
+         */
+        String COPY_FILE = "COPY_FILE";
+
+        /**
          * 删除文件ES服务
          */
         String DELETE_FILE_ES = "DELETE_FILE_ES";
@@ -485,6 +490,11 @@ public interface ConstantConfig {
          * OSS文件信息缓存
          */
         String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
+
+        /**
+         * 文件分享信息缓存
+         */
+        String FILE_SHARE_CACHE = "FILE_SHARE_CACHE:";
 
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替

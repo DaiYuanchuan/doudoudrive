@@ -132,7 +132,7 @@ public interface FileRecordService {
      * @param action     动作
      * @param actionType 动作对应的动作类型
      */
-    void deleteAction(String userId, String etag, String action, String actionType);
+    void deleteAction(String userId, List<String> etag, String action, String actionType);
 
     /**
      * 判断指定状态的文件操作记录是否存在

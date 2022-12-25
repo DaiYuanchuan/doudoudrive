@@ -275,7 +275,7 @@ public class FileRecordServiceImpl implements FileRecordService {
      * @param actionType 动作对应的动作类型
      */
     @Override
-    public void deleteAction(String userId, String etag, String action, String actionType) {
+    public void deleteAction(String userId, List<String> etag, String action, String actionType) {
         fileRecordDao.deleteAction(userId, etag, action, actionType);
     }
 

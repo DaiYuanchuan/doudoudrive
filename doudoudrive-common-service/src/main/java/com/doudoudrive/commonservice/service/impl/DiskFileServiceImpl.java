@@ -300,33 +300,18 @@ public class DiskFileServiceImpl implements DiskFileService {
     }
 
     /**
-     * 获取指定文件节点下所有的子节点信息 （递归）
+     * 获取指定父目录下的所有文件信息
      *
-     * @param userId   用户系统内唯一标识
-     * @param parentId 文件父级标识
-     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     * @param autoId       自增长标识，用于分页游标
+     * @param userId       用户系统内唯一标识
+     * @param parentFileId 文件父级标识
+     * @param consumer     回调函数中返回查找到的用户文件模块数据集合
      */
     @Override
-    public void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer) {
+    public void getAllFileInfo(Long autoId, String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
-        this.getAllFileInfo(null, userId, parentId, tableSuffix, queryParentIdResponse -> {
-            // 获取查询结果中的所有文件夹标识
-            List<String> parentFileList = queryParentIdResponse.stream()
-                    .filter(DiskFile::getFileFolder)
-                    .map(DiskFile::getBusinessId).toList();
-            if (CollectionUtil.isNotEmpty(parentFileList)) {
-                // 存在有文件夹时，继续递归查询
-                this.getUserFileAllNode(userId, parentFileList, consumer);
-            }
-
-            try {
-                // 回调函数
-                consumer.accept(queryParentIdResponse);
-            } catch (Exception ignored) {
-                // ignored
-            }
-        });
+        this.getAllFileInfo(autoId, userId, parentFileId, tableSuffix, consumer);
     }
 
     /**

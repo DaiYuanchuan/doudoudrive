@@ -9,6 +9,7 @@ import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
@@ -29,6 +30,8 @@ import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -393,7 +396,27 @@ public class FileController {
         }
 
         // 根据文件id批量删除文件或文件夹
-        fileManager.delete(fileIdSearchResult, userinfo.getBusinessId(), Boolean.TRUE);
+        fileManager.delete(fileIdSearchResult, userinfo.getBusinessId());
+
+        // 筛选出其中所有的文件夹数据
+        List<String> fileFolderList = fileIdSearchResult.stream()
+                .filter(DiskFile::getFileFolder)
+                .map(DiskFile::getBusinessId)
+                .toList();
+
+        if (CollectionUtil.isNotEmpty(fileFolderList)) {
+            // 使用sync模式发送消息，保证消息发送成功，用于删除子文件夹下的所有文件
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userinfo.getBusinessId())
+                    .businessId(fileFolderList)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                // 消息发送失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
+            }
+        }
         return Result.ok();
     }
 

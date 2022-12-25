@@ -10,15 +10,16 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
+import com.doudoudrive.common.model.dto.request.CopyFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.service.DiskFileService;
-import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
+import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
@@ -33,6 +34,7 @@ import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -62,7 +64,7 @@ public class FileServiceConsumer {
 
     private FileManager fileManager;
 
-    private DiskUserAttrService diskUserAttrService;
+    private DiskUserAttrManager diskUserAttrManager;
 
     private DiskFileService diskFileService;
 
@@ -97,8 +99,8 @@ public class FileServiceConsumer {
     }
 
     @Autowired
-    public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
-        this.diskUserAttrService = diskUserAttrService;
+    public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
+        this.diskUserAttrManager = diskUserAttrManager;
     }
 
     @Autowired
@@ -218,7 +220,7 @@ public class FileServiceConsumer {
 
         try {
             // 出现异常时手动减去用户已用磁盘容量
-            diskUserAttrService.deducted(consumerRequest.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, consumerRequest.getSize());
+            diskUserAttrManager.deducted(consumerRequest.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, consumerRequest.getSize());
             // 手动删除用户文件(这里直接调用delete方法是因为会出现增加了磁盘容量但是文件不存在的情况，所以不需要做幂等处理)
             diskFileService.delete(consumerRequest.getFileId(), consumerRequest.getUserId());
         } catch (Exception e) {
@@ -269,6 +271,20 @@ public class FileServiceConsumer {
     }
 
     /**
+     * 复制文件信息消费处理
+     *
+     * @param consumerRequest 删除文件时的消费者请求数据模型
+     * @param messageContext  mq消息内容
+     */
+    @RocketmqTagDistribution(messageClass = CopyFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.COPY_FILE)
+    public void copyFileConsumer(CopyFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
+        // 用户总磁盘容量
+        BigDecimal totalDiskCapacity = diskUserAttrManager.getUserAttrValue(consumerRequest.getTargetUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.GLOBAL_THREAD_POOL, () -> copyHandler(consumerRequest.getTargetUserId(), consumerRequest.getFromUserId(),
+                consumerRequest.getTargetFolderId(), consumerRequest.getTreeStructureMap(), consumerRequest.getPreCopyFileList(), totalDiskCapacity.stripTrailingZeros().toPlainString()));
+    }
+
+    /**
      * 删除文件消费处理程序
      *
      * @param content 文件内容
@@ -277,7 +293,7 @@ public class FileServiceConsumer {
     private void deleteHandler(List<DiskFile> content, String userId) {
         try {
             // 根据文件id批量删除文件或文件夹
-            fileManager.delete(content, userId, Boolean.FALSE);
+            fileManager.delete(content, userId);
         } catch (Exception e) {
             // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
             String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
@@ -291,5 +307,32 @@ public class FileServiceConsumer {
                         destination, sendResult.getMsgId(), sendResult.getSendStatus(), content.size(), e.getMessage(), sendResult);
             }
         }
+    }
+
+    /**
+     * 复制文件消费处理程序
+     *
+     * @param targetUserId      目标用户Id
+     * @param fromUserId        源用户Id
+     * @param targetFolderId    目标文件夹Id
+     * @param treeStructureMap  文件树结构
+     * @param parentId          父节点Id，需要复制的文件夹标识
+     * @param totalDiskCapacity 用户总磁盘容量
+     */
+    private void copyHandler(String targetUserId, String fromUserId, String targetFolderId, Map<String, String> treeStructureMap, List<String> parentId, String totalDiskCapacity) {
+        fileManager.getAllFileInfo(null, fromUserId, parentId, queryParentIdResponse -> {
+            // 获取查询结果中的所有文件夹标识
+            List<String> parentFileList = queryParentIdResponse.stream()
+                    .filter(DiskFile::getFileFolder)
+                    .map(DiskFile::getBusinessId).toList();
+
+            // 批量复制文件信息
+            Map<String, String> nodeMap = fileManager.batchCopyFile(targetUserId, targetFolderId, treeStructureMap, queryParentIdResponse, totalDiskCapacity);
+
+            if (CollectionUtil.isNotEmpty(parentFileList)) {
+                // 存在有文件夹时，继续递归查询
+                this.copyHandler(targetUserId, fromUserId, targetFolderId, nodeMap, parentFileList, totalDiskCapacity);
+            }
+        });
     }
 }

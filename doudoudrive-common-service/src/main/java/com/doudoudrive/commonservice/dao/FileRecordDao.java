@@ -126,7 +126,7 @@ public interface FileRecordDao {
      * @return 返回删除的条数
      */
     Integer deleteAction(@Param("userId") String userId,
-                         @Param("etag") String etag,
+                         @Param("etag") List<String> etag,
                          @Param("action") String action,
                          @Param("actionType") String actionType);
 

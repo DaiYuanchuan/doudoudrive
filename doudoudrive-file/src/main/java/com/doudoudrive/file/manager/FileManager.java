@@ -13,6 +13,7 @@ import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -66,9 +67,21 @@ public interface FileManager {
      *
      * @param content 需要删除的文件或文件夹信息
      * @param userId  需要删除的文件或文件夹所属用户标识
-     * @param sendMsg 是否发送MQ消息，用于删除文件(true:发送，false:不发送)
      */
-    void delete(List<DiskFile> content, String userId, boolean sendMsg);
+    void delete(List<DiskFile> content, String userId);
+
+    /**
+     * 批量复制文件信息
+     *
+     * @param targetUserId      目标文件夹所属的用户标识
+     * @param targetFolderId    目标文件夹的业务标识
+     * @param treeStructureMap  用来保存树形结构的Map<原有的数据标识, 新数据返回的数据标识>(上一轮循环中的数据)
+     * @param preCopyFileList   指定需要进行复制的文件信息
+     * @param totalDiskCapacity 用户总磁盘容量
+     * @return @return 本次循环中的用来保存树形结构的Map<原有的数据标识, 新数据返回的数据标识>
+     */
+    Map<String, String> batchCopyFile(String targetUserId, String targetFolderId, Map<String, String> treeStructureMap,
+                                      List<DiskFile> preCopyFileList, String totalDiskCapacity);
 
     /**
      * 文件信息翻页搜索
@@ -90,6 +103,16 @@ public interface FileManager {
     void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer);
 
     /**
+     * 获取指定父目录下的所有文件信息
+     *
+     * @param autoId       自增长标识，用于分页游标
+     * @param userId       用户系统内唯一标识
+     * @param parentFileId 文件父级标识
+     * @param consumer     回调函数中返回查找到的用户文件模块数据集合
+     */
+    void getAllFileInfo(Long autoId, String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer);
+
+    /**
      * 根据文件业务标识批量查询用户文件信息
      *
      * @param userId 用户系统内唯一标识
@@ -97,6 +120,16 @@ public interface FileManager {
      * @return 返回查找到的用户文件模块数据集合
      */
     List<DiskFile> fileIdSearch(String userId, List<String> fileId);
+
+    /**
+     * 文件 进行 移动、复制 时，需要对其目标文件夹进行校验
+     * 确保 目标文件夹 一定不为空，一定是文件夹，一定是归属于当前登录的用户
+     * 目标文件夹不符合条件时会抛出业务异常
+     *
+     * @param userId         用户系统内唯一标识
+     * @param targetFolderId 目标文件夹标识
+     */
+    void checkTargetFolder(String userId, String targetFolderId);
 
     /**
      * 文件的parentId校验机制，针对是否存在、是否与自己有关、是否为文件夹的校验
@@ -116,6 +149,16 @@ public interface FileManager {
      * @return true:目录下存在相同的文件 false:不存在相同的文件
      */
     Boolean verifyRepeat(String fileName, String userId, String parentId, boolean fileFolder);
+
+    /**
+     * 文件名重复批量校验机制，针对同一个目录下的文件、文件夹名称重复性的批量校验
+     * 如果存在重名的文件信息，则会重置原始文件名，将重置后的文件名返回，如果不存在重名的文件则原样返回数据集合
+     *
+     * @param parentId   文件的父级标识
+     * @param userId     指定的用户标识
+     * @param queryParam 指定的查询参数，包含文件名、是否为文件夹
+     */
+    void verifyRepeat(String parentId, String userId, List<DiskFile> queryParam);
 
     /**
      * 文件鉴权参数加密
