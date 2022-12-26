@@ -276,7 +276,12 @@ public class FileRecordServiceImpl implements FileRecordService {
      */
     @Override
     public void deleteAction(String userId, List<String> etag, String action, String actionType) {
-        fileRecordDao.deleteAction(userId, etag, action, actionType);
+        CollectionUtil.collectionCutting(etag, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(businessId -> {
+            List<String> businessIdList = businessId.stream().filter(StringUtils::isNotBlank).toList();
+            if (CollectionUtil.isNotEmpty(businessIdList)) {
+                fileRecordDao.deleteAction(userId, businessIdList, action, actionType);
+            }
+        });
     }
 
     /**
