@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,14 +55,13 @@ public class DiskFileSearchController {
     @ResponseBody
     @OpLog(title = "保存用户文件信息", businessType = "ES用户文件信息查询服务")
     @PostMapping(value = "/search/file/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<String> saveElasticsearchDiskFile(@RequestBody @Valid SaveElasticsearchDiskFileRequestDTO requestDTO,
+    public Result<String> saveElasticsearchDiskFile(@RequestBody @Valid SaveBatchElasticsearchDiskFileRequestDTO requestDTO,
                                                     HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // es中保存用户文件信息
-        DiskFileDTO diskFileInfo = diskFileModelConvert.saveElasticsearchDiskFileRequestConvertDiskFile(requestDTO);
-        diskFileSearchManager.saveDiskFile(Collections.singletonList(diskFileInfo));
+        diskFileSearchManager.saveDiskFile(diskFileModelConvert.saveElasticsearchDiskFileRequestConvertDiskFile(requestDTO.getFileInfo()));
         return Result.ok();
     }
 

@@ -228,6 +228,11 @@ public interface ConstantConfig {
          * 删除文件ES服务
          */
         String DELETE_FILE_ES = "DELETE_FILE_ES";
+
+        /**
+         * 保存文件ES服务
+         */
+        String SAVE_FILE_ES = "SAVE_FILE_ES";
     }
 
     /**

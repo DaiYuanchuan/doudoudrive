@@ -12,6 +12,7 @@ import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.lang.MimeTypes;
+import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileSearchRequestDTO;
 import org.mapstruct.Mapper;
@@ -20,6 +21,7 @@ import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * <p>用户文件信息等相关的实体数据类型转换器</p>
@@ -28,7 +30,7 @@ import java.util.Date;
  * @author Dan
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {Boolean.class, CharSequenceUtil.class, Date.class, ConstantConfig.class})
+        imports = {Boolean.class, CharSequenceUtil.class, Date.class, ConstantConfig.class, SequenceUtil.class})
 public interface DiskFileConvert {
 
     /**
@@ -79,11 +81,22 @@ public interface DiskFileConvert {
     DiskFile createFileConvert(String userId, String name, String parentId);
 
     /**
+     * 将 List<diskFile>(用户文件模块实体类) 类型转换为 List<SaveElasticsearchDiskFileRequestDTO>(保存es用户文件信息时的请求数据模型)
+     *
+     * @param diskFile 用户文件模块实体类
+     * @return 保存es用户文件信息时的请求数据模型
+     */
+    List<SaveElasticsearchDiskFileRequestDTO> diskFileConvertSaveElasticsearchDiskFileRequest(List<DiskFile> diskFile);
+
+    /**
      * 将 diskFile(用户文件模块实体类) 类型转换为 SaveElasticsearchDiskFileRequestDTO(保存es用户文件信息时的请求数据模型)
      *
      * @param diskFile 用户文件模块实体类
      * @return 保存es用户文件信息时的请求数据模型
      */
+    @Mappings({
+            @Mapping(target = "tableSuffix", expression = "java(SequenceUtil.tableSuffix(diskFile.getUserId(), ConstantConfig.TableSuffix.DISK_FILE))")
+    })
     SaveElasticsearchDiskFileRequestDTO diskFileConvertSaveElasticsearchDiskFileRequest(DiskFile diskFile);
 
     /**

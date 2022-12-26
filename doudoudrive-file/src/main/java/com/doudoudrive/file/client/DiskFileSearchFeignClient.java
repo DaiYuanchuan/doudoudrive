@@ -26,7 +26,7 @@ public interface DiskFileSearchFeignClient {
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<String> saveElasticsearchDiskFile(@RequestBody SaveElasticsearchDiskFileRequestDTO requestDTO);
+    Result<String> saveElasticsearchDiskFile(@RequestBody SaveBatchElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 删除es中保存的用户文件信息

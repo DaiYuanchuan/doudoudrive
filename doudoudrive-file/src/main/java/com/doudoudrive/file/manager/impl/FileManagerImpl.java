@@ -21,10 +21,7 @@ import com.doudoudrive.common.model.dto.model.DiskFileModel;
 import com.doudoudrive.common.model.dto.model.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
-import com.doudoudrive.common.model.dto.request.DeleteElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
-import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
-import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.request.*;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
@@ -205,10 +202,7 @@ public class FileManagerImpl implements FileManager {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_CREATE_FAILED);
         }
         // 用户文件信息先入库，然后入es
-        Result<String> saveElasticsearchResult = this.saveElasticsearchDiskFile(diskFile);
-        if (Result.isNotSuccess(saveElasticsearchResult)) {
-            BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
-        }
+        this.saveElasticsearchDiskFile(Collections.singletonList(diskFile));
         return diskFile;
     }
 
@@ -253,7 +247,7 @@ public class FileManagerImpl implements FileManager {
             fileRecordManager.deleteAction(null, Collections.singletonList(userFile.getFileEtag()),
                     ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
             // 用户文件信息先入库，然后入es
-            this.saveElasticsearchDiskFile(userFile);
+            this.saveElasticsearchDiskFile(Collections.singletonList(userFile));
             // 尝试通过token获取用户信息
             Optional.ofNullable(loginManager.getUserInfoToToken(fileInfo.getToken())).ifPresent(userInfo -> {
                 // 更新已用容量
@@ -466,6 +460,7 @@ public class FileManagerImpl implements FileManager {
         fileRecordManager.deleteAction(null, fileEtagList, ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
 
         // 批量新增es中的文件信息
+        this.saveElasticsearchDiskFile(preCopyFileList);
 
         // 返回本次循环中的用来保存树形结构的Map
         return nodeMap;
@@ -869,19 +864,34 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
-     * 在es中保存用户文件信息
+     * 在es中保存用户文件信息，保存失败时会写入MQ消息队列
      *
      * @param diskFile 用户文件模块实体类
-     * @return 保存es请求结果
      */
-    private Result<String> saveElasticsearchDiskFile(DiskFile diskFile) {
-        // 文件数据类型转换
-        SaveElasticsearchDiskFileRequestDTO requestDTO = diskFileConvert.diskFileConvertSaveElasticsearchDiskFileRequest(diskFile);
-        // 获取表后缀
-        String tableSuffix = SequenceUtil.tableSuffix(diskFile.getUserId(), ConstantConfig.TableSuffix.DISK_FILE);
-        requestDTO.setTableSuffix(tableSuffix);
-        // 用户文件信息先入库，然后入es
-        return diskFileSearchFeignClient.saveElasticsearchDiskFile(requestDTO);
+    private void saveElasticsearchDiskFile(List<DiskFile> diskFile) {
+        CollectionUtil.collectionCutting(diskFile, NumberConstant.LONG_ONE_THOUSAND).forEach(fileList -> {
+            // 文件数据类型转换
+            List<SaveElasticsearchDiskFileRequestDTO> fileInfo = diskFileConvert.diskFileConvertSaveElasticsearchDiskFileRequest(fileList);
+            try {
+                Result<String> saveElasticsearchResult = diskFileSearchFeignClient.saveElasticsearchDiskFile(SaveBatchElasticsearchDiskFileRequestDTO.builder()
+                        .fileInfo(fileInfo)
+                        .build());
+                if (Result.isNotSuccess(saveElasticsearchResult)) {
+                    BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
+                }
+            } catch (Exception e) {
+                // 出现异常时，使用sync模式发送MQ消息，保证数据会被添加到MQ消息队列中
+                String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.SAVE_FILE_ES;
+                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(SaveFileConsumerRequestDTO.builder()
+                        .fileInfo(fileInfo)
+                        .build()));
+                // 判断消息是否发送成功
+                if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                    // 消息发送失败，抛出异常
+                    BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
+                }
+            }
+        });
     }
 
     /**

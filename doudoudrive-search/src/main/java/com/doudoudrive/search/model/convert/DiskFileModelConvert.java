@@ -31,7 +31,7 @@ public interface DiskFileModelConvert {
      * @param requestDTO 保存es用户文件信息时的请求数据模型
      * @return 用户文件实体信息ES数据模型
      */
-    DiskFileDTO saveElasticsearchDiskFileRequestConvertDiskFile(SaveElasticsearchDiskFileRequestDTO requestDTO);
+    List<DiskFileDTO> saveElasticsearchDiskFileRequestConvertDiskFile(List<SaveElasticsearchDiskFileRequestDTO> requestDTO);
 
     /**
      * 将UpdateElasticsearchDiskFileRequestDTO(修改es用户文件信息时的请求数据模型) 类型转换为 DiskFileDTO(用户文件实体信息ES数据模型)
