@@ -9,9 +9,11 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -148,5 +150,80 @@ public class RedisTemplateClient {
      */
     public void publish(ConstantConfig.Cache.ChanelEnum channel, Object message) {
         redisTemplate.convertAndSend(channel.channel, message);
+    }
+
+    /**
+     * setNX key value 命令用于设置指定 key 的值
+     * 只在键 key 不存在的情况下， 将键 key 的值设置为 value
+     *
+     * @param key   键
+     * @param value 值
+     * @return 成功返回1(true)，失败返回0(false)
+     */
+    public Boolean setNx(String key, Object value) {
+        return redisTemplate.opsForValue().setIfAbsent(key, value);
+    }
+
+    /**
+     * incrBy key increment 命令，原子性操作将 key 中储存的数字值增加 increment
+     *
+     * @param key   键
+     * @param delta 增量，incrBy命令允许此值为负数
+     * @return 增加后的值
+     */
+    public Long increment(String key, Long delta) {
+        if (delta == null) {
+            // 当增量为null时，使用incr命令，增量默认为1
+            return redisTemplate.opsForValue().increment(key);
+        }
+        // 当增量不为null时，使用incrBy命令
+        return redisTemplate.opsForValue().increment(key, delta);
+    }
+
+    /**
+     * decrBy key decrement 命令，原子性操作将 key 中储存的数字值减少 decrement
+     *
+     * @param key   键
+     * @param delta 减量，decrBy命令允许此值为负数
+     * @return 减少后的值
+     */
+    public Long decrement(String key, Long delta) {
+        if (delta == null) {
+            // 当增量为null时，使用incr命令，增量默认为1
+            return redisTemplate.opsForValue().decrement(key);
+        }
+        // 当增量不为null时，使用incrBy命令
+        return redisTemplate.opsForValue().decrement(key, delta);
+    }
+
+    /**
+     * 该命令的作用是将 Lua 脚本交给 Redis 服务器执行，这个命令的语法如下：
+     * <pre>
+     *     eval script numKeys key [key ...] arg [arg ...]
+     *     该命令的第一个参数`script`是要执行的Lua脚本的内容
+     *     第二个参数`numKeys`是 Lua 脚本中使用的键的数量
+     *     第三个参数`key`是 Lua 脚本中将要使用的键
+     *     第四个参数`arg`是 Lua 脚本中将要使用的参数
+     * </pre>
+     * <p>
+     * 使用该命令时需要注意以下几点：
+     * <pre>
+     *     1. 脚本执行的时间会被限制在 5 秒之内，如果脚本执行时间超过 5 秒，会返回超时的错误信息。
+     *     2. 脚本的大小需要小于 512KB，否则会返回超过大小限制的错误信息。
+     *     3. 脚本中使用的键的数量需要小于 10000 个，否则会返回超过数量限制的错误信息。
+     *     4. 会将脚本中使用的键的值加载到脚本的环境中，并执行脚本，最后返回脚本的结果。
+     *     5. 执行脚本的过程是单线程的，这意味着在脚本执行期间，其他客户端的操作会被挂起，因此要尽量避免在脚本中执行耗时操作。
+     *     6. 在脚本中可以使用一些特殊的变量，这些变量由 Redis 内部使用，可以用来访问键的值和参数
+     *     例如，可以使用 KEYS 变量来访问脚本中使用的所有键，使用 ARGV 变量来访问脚本中使用的所有参数。
+     * </pre>
+     *
+     * @param script     要执行的lua脚本
+     * @param keys       需要传递给脚本的键值
+     * @param resultType 返回值的类型
+     * @param args       需要传递给脚本的参数
+     * @return 脚本的返回值，如果{@code resultType}为null，则脚本的返回值为null
+     */
+    public <T> T eval(String script, List<String> keys, Class<T> resultType, Object... args) {
+        return redisTemplate.execute(RedisScript.of(script, resultType), keys, args);
     }
 }
