@@ -6,7 +6,6 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.ConvertUtil;
-import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,11 +45,6 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
      * 当前jvm的本地缓存Map
      */
     private static TimedCache<String, Object> TIMED_LOCAL_CACHE = null;
-
-    /**
-     * 序列化工具
-     */
-    private static final RedisSerializerUtil<CacheRefreshModel> SERIALIZER = new RedisSerializerUtil<>();
 
     /**
      * 获取缓存中的值，本地缓存不存在时会从redis中获取，并将redis的值同步到本地缓存中去
@@ -250,7 +244,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
         // 缓存删除同步时触发
         if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE.channel.equals(channel)) {
             // 获取需要刷新的缓存
-            Optional.ofNullable(SERIALIZER.deserialize(message)).ifPresent(cacheRefreshModel -> {
+            Optional.ofNullable((CacheRefreshModel) redisTemplateClient.getValueSerializer().deserialize(message)).ifPresent(cacheRefreshModel -> {
                 // 获取本地缓存对象
                 TimedCache<String, Object> localCacheMap = getLocalCacheMap();
 

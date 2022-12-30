@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -150,6 +151,15 @@ public class RedisTemplateClient {
      */
     public void publish(ConstantConfig.Cache.ChanelEnum channel, Object message) {
         redisTemplate.convertAndSend(channel.channel, message);
+    }
+
+    /**
+     * 返回RedisTemplate模板使用的值序列化器
+     *
+     * @return 此模板使用的值序列化器
+     */
+    public RedisSerializer<?> getValueSerializer() {
+        return redisTemplate.getValueSerializer();
     }
 
     /**

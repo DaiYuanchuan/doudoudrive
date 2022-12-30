@@ -24,6 +24,9 @@ import java.util.Optional;
 @AllArgsConstructor
 public class QueryElasticsearchFileShareIdRequestDTO {
 
+    /**
+     * 分享短链标识
+     */
     @NotEmpty(message = "参数集合为空")
     @Size(max = 1000, message = "请不要一次性操作太多数据~")
     private List<String> shareId;
