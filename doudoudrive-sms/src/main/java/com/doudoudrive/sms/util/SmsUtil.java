@@ -47,7 +47,7 @@ public class SmsUtil {
 
         // 构建消息发送记录
         sendRecord.setSmsTitle(String.format("验证码：%s", securityCode));
-        sendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.WAIT.status);
+        sendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.WAIT.getStatus());
         SmsSendRecordModel sendRecordModel = recordService.insert(sendRecord);
 
         // 发送验证码
@@ -58,10 +58,10 @@ public class SmsUtil {
         cache.setData(securityCode);
         cache.setCreateTime(System.currentTimeMillis());
         // 获取当前时间偏移1分钟后的时间戳
-        cache.setTimestamp(cache.getCreateTime() + ConstantConfig.DateUnit.MINUTE.ms);
+        cache.setTimestamp(cache.getCreateTime() + ConstantConfig.DateUnit.MINUTE.getMs());
 
         // 插入缓存，设置缓存有效期为1天
-        cacheManagerConfig.putCache(cacheKey, cache, ConstantConfig.DateUnit.DAY.s);
+        cacheManagerConfig.putCache(cacheKey, cache, ConstantConfig.DateUnit.DAY.getS());
     }
 
     /**
@@ -82,7 +82,7 @@ public class SmsUtil {
         }
 
         // 获取缓存插入时间偏移5分钟后的时间戳
-        long validTime = cacheData.getCreateTime() + (NumberConstant.INTEGER_FIVE * ConstantConfig.DateUnit.MINUTE.ms);
+        long validTime = cacheData.getCreateTime() + (NumberConstant.INTEGER_FIVE * ConstantConfig.DateUnit.MINUTE.getMs());
         // 有效时间 < 当前的时间戳
         if (validTime < System.currentTimeMillis()) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.VERIFY_CODE_NOT_EXIST);

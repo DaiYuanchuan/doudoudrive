@@ -93,7 +93,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         // 批量注册基于模式匹配的topic(PatternTopic)
         for (ConstantConfig.Cache.ChanelEnum chanelEnum : ConstantConfig.Cache.ChanelEnum.values()) {
             // 订阅一个channel，可以添加多个messageListener，来订阅不同的channel
-            container.addMessageListener(messageListener(), new PatternTopic(chanelEnum.channel));
+            container.addMessageListener(messageListener(), new PatternTopic(chanelEnum.getChannel()));
         }
         return container;
     }

@@ -252,7 +252,7 @@ public class FileManagerImpl implements FileManager {
             Optional.ofNullable(loginManager.getUserInfoToToken(fileInfo.getToken())).ifPresent(userInfo -> {
                 // 更新已用容量
                 String usedCapacity = usedDiskCapacity.add(new BigDecimal(ossFile.getSize())).stripTrailingZeros().toPlainString();
-                userInfo.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.param, usedCapacity);
+                userInfo.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.getParam(), usedCapacity);
                 // 尝试更新用户缓存信息
                 loginManager.attemptUpdateUserSession(fileInfo.getToken(), userInfo);
             });
@@ -356,8 +356,8 @@ public class FileManagerImpl implements FileManager {
             if (!diskFile.getFileFolder()) {
                 // 构建文件操作记录信息，用于记录文件的删除操作
                 fileRecordList.add(fileRecordConvert.diskFileConvertFileRecord(diskFile, userId,
-                        ConstantConfig.FileRecordAction.ActionEnum.FILE.status,
-                        ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.status));
+                        ConstantConfig.FileRecordAction.ActionEnum.FILE.getStatus(),
+                        ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED.getStatus()));
             }
             // 计算当前删除的文件大小总量
             totalSize = totalSize.add(new BigDecimal(diskFile.getFileSize()));

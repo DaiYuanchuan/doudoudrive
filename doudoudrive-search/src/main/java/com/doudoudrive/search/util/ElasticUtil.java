@@ -68,7 +68,7 @@ public class ElasticUtil {
                         BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.UNSUPPORTED_SORT);
                     }
                     fieldSortBuilderList.add(SortBuilders.fieldSort(orderByBuilder.getOrderBy())
-                            .order(ConstantConfig.OrderDirection.ASC.direction.equals(orderByBuilder.getOrderDirection()) ? SortOrder.ASC : SortOrder.DESC));
+                            .order(ConstantConfig.OrderDirection.ASC.getDirection().equals(orderByBuilder.getOrderDirection()) ? SortOrder.ASC : SortOrder.DESC));
                 }
             }
         }

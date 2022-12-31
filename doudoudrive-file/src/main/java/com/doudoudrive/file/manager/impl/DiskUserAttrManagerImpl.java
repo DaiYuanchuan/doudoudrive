@@ -51,7 +51,7 @@ public class DiskUserAttrManagerImpl implements DiskUserAttrManager {
         DiskUserModel userInfo = loginManager.getUserInfoToToken(token);
         if (userInfo != null) {
             // 获取用户属性缓存Map
-            return new BigDecimal(userInfo.getUserAttr().get(attrName.param));
+            return new BigDecimal(userInfo.getUserAttr().get(attrName.getParam()));
         }
         return this.getUserAttrValue(userId, attrName);
     }

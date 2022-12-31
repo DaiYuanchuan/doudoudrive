@@ -1,6 +1,7 @@
 package com.doudoudrive.commonservice.constant;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import lombok.Getter;
 
 import java.util.stream.Stream;
 
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
  *
  * @author Dan
  **/
+@Getter
 public enum DataSourceEnum {
 
     /**
@@ -46,12 +48,12 @@ public enum DataSourceEnum {
     /**
      * 数据源key
      */
-    public final String dataSource;
+    private final String dataSource;
 
     /**
      * 数据源对应的事务Bean名称
      */
-    public final String transaction;
+    private final String transaction;
 
     DataSourceEnum(String dataSource, String transaction) {
         this.dataSource = dataSource;

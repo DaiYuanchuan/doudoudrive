@@ -90,9 +90,9 @@ public class MailManagerImpl implements SmsManager {
             Template mailTemplate = configuration.getTemplate(SmsConstant.MAIL_TEMPLATE);
             String content = FreeMarkerTemplateUtils.processTemplateIntoString(mailTemplate, model);
             MailUtil.send(getMailAccount(), smsSendRecordModel.getSmsRecipient(), smsSendRecordModel.getSmsTitle(), content, true);
-            mailSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.status);
+            mailSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.getStatus());
         } catch (Exception e) {
-            mailSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.status);
+            mailSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.getStatus());
             mailSendRecord.setSmsErrorReason(e.getMessage());
             // 判断消息发送失败时的异常原因字数是否达到最大值
             if (mailSendRecord.getSmsErrorReason().length() > NumberConstant.INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE) {
@@ -118,7 +118,7 @@ public class MailManagerImpl implements SmsManager {
 
         // 发送邮件
         SmsSendRecord smsSendRecord = this.send(model, smsSendRecordModel);
-        if (ConstantConfig.SmsStatusEnum.FAIL.status.equals(smsSendRecord.getSmsStatus())) {
+        if (ConstantConfig.SmsStatusEnum.FAIL.getStatus().equals(smsSendRecord.getSmsStatus())) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ABNORMAL_MAIL_SENDING);
         }
     }

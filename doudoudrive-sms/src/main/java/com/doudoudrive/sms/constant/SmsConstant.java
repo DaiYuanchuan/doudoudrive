@@ -4,6 +4,7 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateTime;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.util.date.DateUtils;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
@@ -118,6 +119,7 @@ public interface SmsConstant {
         /**
          * 请求头
          */
+        @Getter
         enum RequestHeaderEnum {
 
             /**
@@ -163,12 +165,12 @@ public interface SmsConstant {
             /**
              * 腾讯云短信配置参数
              */
-            public final String param;
+            private final String param;
 
             /**
              * 腾讯云短信配置参数的值
              */
-            public final String value;
+            private final String value;
 
             RequestHeaderEnum(String param, String value) {
                 this.param = param;
@@ -188,6 +190,7 @@ public interface SmsConstant {
     /**
      * 阿里大鱼短信配置枚举信息
      */
+    @Getter
     enum AliYunSmsConfigEnum {
 
         // ================================================= 系统参数 ===================================================
@@ -272,12 +275,12 @@ public interface SmsConstant {
         /**
          * 阿里大鱼短信配置参数
          */
-        public final String param;
+        private final String param;
 
         /**
          * 阿里大鱼短信配置参数的值
          */
-        public final String value;
+        private final String value;
 
         AliYunSmsConfigEnum(String param, String value) {
             this.param = param;

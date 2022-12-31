@@ -47,6 +47,6 @@ public class BusinessExceptionUtil {
      * @param data   任务对象
      */
     public static void throwBusinessException(StatusCodeEnum status, Object data) {
-        throw new BusinessException(status, status.message, data);
+        throw new BusinessException(status, status.getMessage(), data);
     }
 }

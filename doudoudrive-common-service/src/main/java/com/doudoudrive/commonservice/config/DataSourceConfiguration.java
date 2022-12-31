@@ -81,7 +81,7 @@ public class DataSourceConfiguration implements Closeable {
 
         DynamicRoutingDataSource dynamicRoutingDataSource = new DynamicRoutingDataSource();
         // 将第一个数据源作为默认数据源
-        dynamicRoutingDataSource.setDefaultTargetDataSource(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource));
+        dynamicRoutingDataSource.setDefaultTargetDataSource(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.getDataSource()));
         // 其余数据源作为指定的数据源
         dynamicRoutingDataSource.setTargetDataSources(targetDataSources);
         dynamicRoutingDataSource.afterPropertiesSet();
@@ -102,7 +102,7 @@ public class DataSourceConfiguration implements Closeable {
         Map<String, SqlSessionFactory> targetSqlSessionFactories = Maps.newLinkedHashMapWithExpectedSize(hikariDataSourceMap.size());
         hikariDataSourceMap.forEach((key, value) -> targetSqlSessionFactories.put(key, createSqlSessionFactory(value)));
 
-        MySqlSessionTemplate sqlSessionTemplate = new MySqlSessionTemplate(createSqlSessionFactory(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource)));
+        MySqlSessionTemplate sqlSessionTemplate = new MySqlSessionTemplate(createSqlSessionFactory(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.getDataSource())));
         sqlSessionTemplate.setTargetSqlSessionFactories(targetSqlSessionFactories);
         return sqlSessionTemplate;
     }
@@ -120,7 +120,7 @@ public class DataSourceConfiguration implements Closeable {
         Map<String, HikariDataSource> hikariDataSourceMap = getHikariDataSourceConfig();
         hikariDataSourceMap.forEach((key, value) -> {
             // 不获取默认数据源
-            if (!DataSourceEnum.DEFAULT.dataSource.equals(key)) {
+            if (!DataSourceEnum.DEFAULT.getDataSource().equals(key)) {
                 // 配置事务管理器
                 PlatformTransactionManager transactionManager = new DataSourceTransactionManager(value);
                 // 向spring中动态的注册Bean
@@ -128,7 +128,7 @@ public class DataSourceConfiguration implements Closeable {
             }
         });
         // 响应一个默认数据源
-        return new DataSourceTransactionManager(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.dataSource));
+        return new DataSourceTransactionManager(hikariDataSourceMap.get(DataSourceEnum.DEFAULT.getDataSource()));
     }
 
     /**
@@ -179,9 +179,9 @@ public class DataSourceConfiguration implements Closeable {
         }
 
         // 查看默认数据源配置是否存在
-        if (HIKARI_DATA_SOURCE.get(DataSourceEnum.DEFAULT.dataSource) == null) {
+        if (HIKARI_DATA_SOURCE.get(DataSourceEnum.DEFAULT.getDataSource()) == null) {
             // 初始化默认数据源
-            HIKARI_DATA_SOURCE.put(DataSourceEnum.DEFAULT.dataSource, getDefaultTargetDataSource());
+            HIKARI_DATA_SOURCE.put(DataSourceEnum.DEFAULT.getDataSource(), getDefaultTargetDataSource());
         }
 
         // 构建 HikariDataSource 数据源配置

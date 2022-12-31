@@ -242,7 +242,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
     @Override
     public void receiveMessage(byte[] message, String channel) {
         // 缓存删除同步时触发
-        if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE.channel.equals(channel)) {
+        if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE.getChannel().equals(channel)) {
             // 获取需要刷新的缓存
             Optional.ofNullable((CacheRefreshModel) redisTemplateClient.getValueSerializer().deserialize(message)).ifPresent(cacheRefreshModel -> {
                 // 获取本地缓存对象

@@ -118,8 +118,8 @@ public class SmsController {
                 .smsRecipient(requestDTO.getSmsRecipient())
                 .smsDataId(SmsConstant.TencentCloudSmsTemplate.VERIFICATION_CODE)
                 .username(requestDTO.getUsername())
-                .smsType(ConstantConfig.SmsTypeEnum.SMS.type)
-                .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.status)
+                .smsType(ConstantConfig.SmsTypeEnum.SMS.getType())
+                .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.getStatus())
                 .build();
 
         // 生成6位数随机安全码

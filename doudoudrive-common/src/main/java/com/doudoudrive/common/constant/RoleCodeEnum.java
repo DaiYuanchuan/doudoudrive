@@ -1,6 +1,7 @@
 package com.doudoudrive.common.constant;
 
 import com.doudoudrive.common.model.pojo.SysUserRole;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  *
  * @author Dan
  **/
+@Getter
 public enum RoleCodeEnum {
 
     /**
@@ -31,17 +33,17 @@ public enum RoleCodeEnum {
     /**
      * 角色编码
      */
-    public final String roleCode;
+    private final String roleCode;
 
     /**
      * 描述
      */
-    public final String authName;
+    private final String authName;
 
     /**
      * 是否为用户注册时使用的默认权限
      */
-    public final Boolean isDefault;
+    private final Boolean isDefault;
 
     RoleCodeEnum(String roleCode, String authName, Boolean isDefault) {
         this.roleCode = roleCode;

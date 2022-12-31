@@ -76,7 +76,7 @@ public class SequenceUtil {
         // 生成序列id
         String sequenceId = timestamp
                 + LAST_TIMESTAMP.incrementAndGet()
-                + businessCode.code
+                + businessCode.getCode()
                 + WORKER_ID
                 + RandomUtil.randomNumbers(DEFAULT_RANDOM_NUMBER_LENGTH);
         if (sequenceId.length() > SEQUENCE_ID_MAX_LENGTH) {

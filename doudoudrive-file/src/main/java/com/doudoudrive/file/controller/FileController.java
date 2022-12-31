@@ -514,8 +514,8 @@ public class FileController {
 
         // 获取缓存中总流量、已用流量
         Map<String, String> userAttr = userinfo.getUserInfo().getUserAttr();
-        String total = userAttr.get(ConstantConfig.UserAttrEnum.TOTAL_TRAFFIC.param);
-        String usedTraffic = userAttr.get(ConstantConfig.UserAttrEnum.USED_TRAFFIC.param);
+        String total = userAttr.get(ConstantConfig.UserAttrEnum.TOTAL_TRAFFIC.getParam());
+        String usedTraffic = userAttr.get(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam());
         if (StringUtils.isBlank(usedTraffic) || StringUtils.isBlank(total)) {
             // 配置异常、用户属性中没有对应配置
             response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -541,7 +541,7 @@ public class FileController {
             if (NumberConstant.INTEGER_ZERO.equals(increase)) {
                 // 不等于 -1 时需要更新用户缓存信息，获取最新的已用数据
                 BigDecimal usedTrafficValue = diskUserAttrService.getDiskUserAttrValue(userinfo.getUserInfo().getBusinessId(), ConstantConfig.UserAttrEnum.USED_TRAFFIC);
-                userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.param, usedTrafficValue.add(fileSize).stripTrailingZeros().toPlainString());
+                userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficValue.add(fileSize).stripTrailingZeros().toPlainString());
                 loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
             }
             // 更新失败
@@ -550,7 +550,7 @@ public class FileController {
         }
 
         // 服务更新成功时需要更新用户缓存信息
-        userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.param, usedTrafficBigDecimal.add(fileSize).stripTrailingZeros().toPlainString());
+        userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficBigDecimal.add(fileSize).stripTrailingZeros().toPlainString());
         loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
 
         // 响应成功的状态码
@@ -599,7 +599,7 @@ public class FileController {
             if (CollectionUtil.isNotEmpty(validateResult)) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.PARAM_INVALID, validateResult.stream()
                         .map(ConstraintViolation::getMessage)
-                        .findAny().orElse(StatusCodeEnum.PARAM_INVALID.message));
+                        .findAny().orElse(StatusCodeEnum.PARAM_INVALID.getMessage()));
             }
         }
     }

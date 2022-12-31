@@ -1,5 +1,7 @@
 package com.doudoudrive.common.global;
 
+import lombok.Getter;
+
 /**
  * <p>业务异常错误码枚举类</p>
  * <p>定义业务异常错误码相关的枚举信息</p>
@@ -7,6 +9,7 @@ package com.doudoudrive.common.global;
  *
  * @author Dan
  **/
+@Getter
 public enum StatusCodeEnum {
 
     /**
@@ -99,8 +102,8 @@ public enum StatusCodeEnum {
     ROCKETMQ_SEND_MESSAGE_FAILED(901, "消息发送失败");
 
 
-    public final Integer statusCode;
-    public final String message;
+    private final Integer statusCode;
+    private final String message;
 
     StatusCodeEnum(Integer statusCode, String message) {
         this.statusCode = statusCode;

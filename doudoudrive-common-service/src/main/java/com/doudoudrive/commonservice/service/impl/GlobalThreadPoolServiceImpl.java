@@ -64,7 +64,7 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
     @Override
     public <T> Future<T> submit(ConstantConfig.ThreadPoolEnum threadPool, Callable<T> task) {
         // 获取线程池对象
-        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.name);
+        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.getName());
         if (null == executorService || executorService.isShutdown()) {
             return null;
         }
@@ -83,7 +83,7 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
     @Override
     public Future<?> submit(ConstantConfig.ThreadPoolEnum threadPool, Runnable runnable) {
         // 获取线程池对象
-        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.name);
+        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.getName());
         if (null == executorService || executorService.isShutdown()) {
             return null;
         }

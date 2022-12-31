@@ -244,7 +244,7 @@ public class FileShareManagerImpl implements FileShareManager {
         }
 
         // 用户总磁盘容量
-        String totalDiskCapacity = userinfo.getUserAttr().getOrDefault(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.param, ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.defaultValue);
+        String totalDiskCapacity = userinfo.getUserAttr().getOrDefault(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.getParam(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.getDefaultValue());
 
         // 批量复制文件信息
         Map<String, String> nodeMap = fileManager.batchCopyFile(userinfo.getBusinessId(), fileCopyRequest.getTargetFolderId(), treeStructureMap, fileIdSearchResult, totalDiskCapacity);

@@ -1,11 +1,14 @@
 package com.doudoudrive.common.constant;
 
+import lombok.Getter;
+
 /**
  * <p>序列模块枚举信息</p>
  * <p>2022-03-06 22:02</p>
  *
  * @author Dan
  **/
+@Getter
 public enum SequenceModuleEnum {
 
     /**
@@ -92,7 +95,7 @@ public enum SequenceModuleEnum {
      * 业务模块标识，固定为两位数字
      * 非特殊情况不支持修改，修改后对原有数据不兼容
      */
-    public final String code;
+    private final String code;
 
     SequenceModuleEnum(String code) {
         this.code = code;

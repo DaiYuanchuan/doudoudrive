@@ -4,6 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import com.doudoudrive.common.util.lang.ReflectUtil;
+import lombok.Getter;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.springframework.stereotype.Component;
 
@@ -264,6 +265,7 @@ public interface ConstantConfig {
     /**
      * MQ消息发送状态类型枚举
      */
+    @Getter
     enum MqMessageSendStatus {
 
         /**
@@ -289,12 +291,12 @@ public interface ConstantConfig {
         /**
          * 消息发送状态枚举值
          */
-        public final SendStatus sendStatus;
+        private final SendStatus sendStatus;
 
         /**
          * 消息发送状态枚举映射
          */
-        public final String status;
+        private final String status;
 
         MqMessageSendStatus(SendStatus sendStatus, String status) {
             this.sendStatus = sendStatus;
@@ -394,6 +396,7 @@ public interface ConstantConfig {
     /**
      * 日期时间单位，每个单位都是以毫秒为基数
      */
+    @Getter
     enum DateUnit {
         /**
          * 一毫秒 = 0.001 秒
@@ -428,12 +431,12 @@ public interface ConstantConfig {
         /**
          * 毫秒数
          */
-        public final Long ms;
+        private final Long ms;
 
         /**
          * 秒数
          */
-        public final Long s;
+        private final Long s;
 
         DateUnit(Long ms, Long s) {
             this.ms = ms;
@@ -504,6 +507,7 @@ public interface ConstantConfig {
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
          */
+        @Getter
         enum KeyEventEnum {
 
             /**
@@ -524,7 +528,7 @@ public interface ConstantConfig {
             /**
              * 监听的事件类型
              */
-            public final String event;
+            private final String event;
 
             KeyEventEnum(String event) {
                 this.event = event;
@@ -535,6 +539,7 @@ public interface ConstantConfig {
          * redis通道名称枚举(redis需要订阅的渠道名称)
          * redis 通过命令 PUBLISH channel message 来发布信息
          */
+        @Getter
         enum ChanelEnum {
             /**
              * redis刷新配置专用通道名
@@ -549,7 +554,7 @@ public interface ConstantConfig {
             /**
              * 通道名称
              */
-            public final String channel;
+            private final String channel;
 
             ChanelEnum(String channel) {
                 this.channel = channel;
@@ -619,6 +624,7 @@ public interface ConstantConfig {
     /**
      * SMS消息发送状态枚举
      */
+    @Getter
     enum SmsStatusEnum {
 
         /**
@@ -639,7 +645,7 @@ public interface ConstantConfig {
         /**
          * SMS消息发送状态
          */
-        public final String status;
+        private final String status;
 
         SmsStatusEnum(String status) {
             this.status = status;
@@ -649,6 +655,7 @@ public interface ConstantConfig {
     /**
      * 消息记录类型枚举
      */
+    @Getter
     enum SmsTypeEnum {
         /**
          * 邮箱
@@ -663,7 +670,7 @@ public interface ConstantConfig {
         /**
          * 消息记录类型
          */
-        public final String type;
+        private final String type;
 
         SmsTypeEnum(String type) {
             this.type = type;
@@ -673,6 +680,7 @@ public interface ConstantConfig {
     /**
      * 用户属性枚举
      */
+    @Getter
     enum UserAttrEnum {
 
         /**
@@ -698,12 +706,12 @@ public interface ConstantConfig {
         /**
          * 用户属性参数名称
          */
-        public final String param;
+        private final String param;
 
         /**
          * 用户属性参数的默认值
          */
-        public final String defaultValue;
+        private final String defaultValue;
 
         UserAttrEnum(String param, String defaultValue) {
             this.param = param;
@@ -745,6 +753,7 @@ public interface ConstantConfig {
         /**
          * 文件记录-动作
          */
+        @Getter
         enum ActionEnum {
 
             /**
@@ -770,7 +779,7 @@ public interface ConstantConfig {
             /**
              * 状态标识
              */
-            public final String status;
+            private final String status;
 
             ActionEnum(String status) {
                 this.status = status;
@@ -780,6 +789,7 @@ public interface ConstantConfig {
         /**
          * 文件记录-动作类型
          */
+        @Getter
         enum ActionTypeEnum {
 
             // Action为0时对应的动作类型
@@ -816,7 +826,7 @@ public interface ConstantConfig {
             /**
              * 状态标识
              */
-            public final String status;
+            private final String status;
 
             ActionTypeEnum(String status) {
                 this.status = status;
@@ -827,6 +837,7 @@ public interface ConstantConfig {
     /**
      * oss文件当前状态枚举类型
      */
+    @Getter
     enum OssFileStatusEnum {
 
         /**
@@ -849,7 +860,7 @@ public interface ConstantConfig {
          */
         SOURCE_FILE_DELETED("3");
 
-        public final String status;
+        private final String status;
 
         OssFileStatusEnum(String status) {
             this.status = status;
@@ -951,6 +962,7 @@ public interface ConstantConfig {
     /**
      * 文件搜索请求中指定支持排序的字段
      */
+    @Getter
     enum DiskFileSearchOrderBy {
 
         /**
@@ -971,7 +983,7 @@ public interface ConstantConfig {
         /**
          * 用户属性参数的默认值
          */
-        public final String fieldName;
+        private final String fieldName;
 
         DiskFileSearchOrderBy(String fieldName) {
             this.fieldName = fieldName;
@@ -991,6 +1003,7 @@ public interface ConstantConfig {
     /**
      * 排序字段
      */
+    @Getter
     enum OrderDirection {
         /**
          * 正序
@@ -1005,7 +1018,7 @@ public interface ConstantConfig {
         /**
          * 排序方向
          */
-        public final String direction;
+        private final String direction;
 
         OrderDirection(String direction) {
             this.direction = direction;
@@ -1025,6 +1038,7 @@ public interface ConstantConfig {
     /**
      * 线程池类型、使用场景相关配置
      */
+    @Getter
     enum ThreadPoolEnum {
         /**
          * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
@@ -1044,12 +1058,12 @@ public interface ConstantConfig {
         /**
          * 线程池名称
          */
-        public final String name;
+        private final String name;
 
         /**
          * 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
          */
-        public final RejectedExecutionHandler handler;
+        private final RejectedExecutionHandler handler;
 
         ThreadPoolEnum(String name, RejectedExecutionHandler handler) {
             this.name = name;

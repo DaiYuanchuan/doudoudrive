@@ -82,7 +82,7 @@ public class OssFileManagerImpl implements OssFileManager {
         if (isReview) {
             // 需要内容审核时将文件写入文件记录表中，状态标识为待审核
             FileRecord fileRecordModel = diskFileConvert.createFileAuthModelConvertFileRecord(createFile, fileId,
-                    ConstantConfig.FileRecordAction.ActionEnum.FILE_CONTENT.status, ConstantConfig.FileRecordAction.ActionTypeEnum.REVIEWED.status);
+                    ConstantConfig.FileRecordAction.ActionEnum.FILE_CONTENT.getStatus(), ConstantConfig.FileRecordAction.ActionTypeEnum.REVIEWED.getStatus());
             // 获取指定状态的文件操作记录数据
             FileRecord record = fileRecordManager.getFileRecordByAction(createFile.getUserId(),
                     createFile.getFileEtag(), fileRecordModel.getAction(), fileRecordModel.getActionType());
@@ -91,7 +91,7 @@ public class OssFileManagerImpl implements OssFileManager {
                 fileRecordManager.insert(fileRecordModel);
             }
             // 重置文件状态为待审核
-            ossFileInfo.setStatus(ConstantConfig.OssFileStatusEnum.PENDING_REVIEW.status);
+            ossFileInfo.setStatus(ConstantConfig.OssFileStatusEnum.PENDING_REVIEW.getStatus());
         }
 
         synchronized (this) {

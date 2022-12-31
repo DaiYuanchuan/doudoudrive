@@ -150,7 +150,7 @@ public class RedisTemplateClient {
      * @param message 需要发送的消息
      */
     public void publish(ConstantConfig.Cache.ChanelEnum channel, Object message) {
-        redisTemplate.convertAndSend(channel.channel, message);
+        redisTemplate.convertAndSend(channel.getChannel(), message);
     }
 
     /**
