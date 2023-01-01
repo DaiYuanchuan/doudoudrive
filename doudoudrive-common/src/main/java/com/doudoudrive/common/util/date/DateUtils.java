@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -296,5 +297,31 @@ public class DateUtils {
                 .map(time -> time.format(DateTimeFormatter.ofPattern(pattern)))
                 // 把流收集为List
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Date类型转为LocalDateTime类型，时区为系统默认时区
+     *
+     * @param date Date类型日期
+     * @return LocalDateTime类型日期
+     */
+    public static LocalDateTime toLocalDateTime(Date date) {
+        if (null == date) {
+            return null;
+        }
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+
+    /**
+     * LocalDateTime类型转为Date类型，时区为系统默认时区
+     *
+     * @param localDateTime LocalDateTime类型日期
+     * @return Date类型日期
+     */
+    public static Date toDate(LocalDateTime localDateTime) {
+        if (null == localDateTime) {
+            return null;
+        }
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 }
