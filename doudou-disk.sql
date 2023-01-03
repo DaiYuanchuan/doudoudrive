@@ -20,9 +20,9 @@ CREATE TABLE `cloud-user`.`disk_user`  (
  `is_available` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '当前账号是否可用(0:false,1:true)',
  `user_reason` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前账号不可用原因',
  `user_ban_time` int(10) NOT NULL DEFAULT 0 COMMENT '账号被封禁的时间(单位:秒)(-1:永久)最大2144448000',
- `user_unlock_time` timestamp(0) NULL DEFAULT NULL COMMENT '账号解封时间',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `user_unlock_time` datetime(0) NULL DEFAULT NULL COMMENT '账号解封时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -39,8 +39,8 @@ CREATE TABLE `cloud-user`.`disk_user_attr`  (
  `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
  `attribute_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户属性名称',
  `attribute_value` bigint(20) UNSIGNED NOT NULL DEFAULT '0' COMMENT '用户属性值',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -55,8 +55,8 @@ CREATE TABLE `cloud-user`.`sys_authorization`  (
  `auth_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '授权编码',
  `auth_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '授权名称',
  `auth_remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前权限的描述',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -79,8 +79,8 @@ CREATE TABLE `cloud-user`.`sys_role`  (
  `role_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色编码',
  `role_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '角色名称',
  `role_remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '角色描述',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -100,8 +100,8 @@ CREATE TABLE `cloud-user`.`sys_role_auth`  (
  `role_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色编码',
  `auth_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '权限编码',
  `remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '描述',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -126,8 +126,8 @@ CREATE TABLE `cloud-user`.`sys_user_role`  (
  `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
  `role_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色编码',
  `remarks` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '描述',
- `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
- `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -293,8 +293,8 @@ CREATE TABLE `cloud-log`.`log_login` (
   `is_success` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '是否使用密码登录(0:false,1:true)',
   `msg` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '提示消息',
   `session_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前用户登录请求的sessionId',
-  `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
-  `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+  `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`auto_id`) USING BTREE,
   UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
   UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -330,8 +330,8 @@ CREATE TABLE `cloud-log`.`log_op` (
   `error_msg` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问出现错误时获取到的异常信息',
   `error_cause` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问出现错误时获取到的异常原因',
   `is_success` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '访问的状态(0:false,1:true)',
-  `create_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '访问时间',
-  `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '访问时间',
+  `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前操作的用户名',
   PRIMARY KEY (`auto_id`) USING BTREE,
   UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识索引',
@@ -359,9 +359,9 @@ CREATE TABLE `cloud-log`.`sms_send_record` (
  `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前操作的用户名',
  `sms_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息类型(1:邮件；2:短信)',
  `sms_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消息发送状态(1:待分发；2:发送成功；3:发送失败)',
- `sms_send_time` timestamp(0) NOT NULL COMMENT '消息发送时间',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `sms_send_time` datetime(0) NOT NULL COMMENT '消息发送时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识'
@@ -380,9 +380,9 @@ CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
  `broker_name` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ分片名',
  `queue_id` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
  `queue_offset` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
- `send_time` timestamp(0) NOT NULL COMMENT '消息发送时间',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `send_time` datetime(0) NOT NULL COMMENT '消息发送时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -464,8 +464,8 @@ CREATE TABLE `cloud-config`.`disk_dictionary` (
  `dictionary_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字段名称',
  `dictionary_describe` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '字段描述',
  `dictionary_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '字段内容',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -546,6 +546,32 @@ INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, 
 CREATE DATABASE IF NOT EXISTS `cloud-share` CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 USE `cloud-share`;
 
+-- 文件分享记录表 依据 user_id 分表
+DROP TABLE IF EXISTS `cloud-share`.`file_share`;
+CREATE TABLE `cloud-share`.`file_share`  (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+ `share_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '分享的短链接标识',
+ `share_title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '分享的标题',
+ `share_pwd` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '分享链接的提取码',
+ `share_salt` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用于计算文件key的盐值',
+ `browse_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '浏览次数',
+ `save_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '保存、转存次数',
+ `download_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '下载次数',
+ `expiration` datetime(0) NULL DEFAULT NULL COMMENT '到期时间',
+ `expired` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已经过期(0:false；1:true)',
+ `folder` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否包含文件夹(0:false；1:true)',
+ `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '状态(0:正常；1:关闭)',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
+ INDEX `idx_user_id`(`user_id`) USING BTREE COMMENT '分享的用户标识',
+ INDEX `idx_share_id`(`share_id`) USING BTREE COMMENT '分享的短链接标识'
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件分享信息' ROW_FORMAT = Dynamic;
+
 -- 文件分享记录详情表 依据 share_id 分表
 DROP TABLE IF EXISTS `cloud-share`.`file_share_detail`;
 CREATE TABLE `cloud-share`.`file_share_detail`  (
@@ -554,13 +580,36 @@ CREATE TABLE `cloud-share`.`file_share_detail`  (
  `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
  `share_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '分享的短链接标识',
  `file_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件标识',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
  INDEX `idx_share_id`(`share_id`) USING BTREE COMMENT '分享的短链接标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件分享记录详情' ROW_FORMAT = Dynamic;
+
+-- 文件分享信息表 依据 user_id 平均分20个表
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_01` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_02` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_03` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_04` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_05` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_06` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_07` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_08` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_09` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_10` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_11` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_12` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_13` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_14` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_15` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_16` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_17` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_18` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_19` LIKE `cloud-share`.`file_share`;
+CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_20` LIKE `cloud-share`.`file_share`;
+
 
 -- 文件分享记录详情表 依据 share_id 平均分40个表
 CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_01` LIKE `cloud-share`.`file_share_detail`;
@@ -605,6 +654,7 @@ CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_39` LIKE `cloud-shar
 CREATE TABLE IF NOT EXISTS `cloud-share`.`file_share_detail_40` LIKE `cloud-share`.`file_share_detail`;
 
 -- 删除原数据表
+DROP TABLE IF EXISTS `cloud-share`.`file_share`;
 DROP TABLE IF EXISTS `cloud-share`.`file_share_detail`;
 
 /**
@@ -624,8 +674,8 @@ CREATE TABLE `cloud-file`.`oss_file`  (
  `size` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '文件大小(字节)',
  `mime_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的mime类型',
  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '文件当前状态(0:正常；1:待审核；2:审核失败；3:源文件已删除)',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -649,8 +699,8 @@ CREATE TABLE `cloud-file`.`disk_file`  (
  `is_forbidden` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前文件是否被禁止访问(0:false；1:true)',
  `is_collect` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前文件是否被收藏(0:false；1:true)',
  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '文件当前状态(0:已删除；1:正常)',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -670,12 +720,13 @@ CREATE TABLE `cloud-file`.`file_record`(
  `file_etag` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
  `action` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作(0:文件状态；1:文件内容状态；2:文件复制；3:文件删除)',
  `action_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作类型(action为0:{0:文件被删除}；action为1:{0:待审核；1:待删除}；action为2:{0:任务待处理；1:任务处理中}；action为3:{0:任务待处理；1:任务处理中})',
- `create_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
- INDEX `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引'
+ INDEX `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引',
+ INDEX `idx_file_etag`(`file_etag`) USING BTREE COMMENT '文件的ETag'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件操作记录' ROW_FORMAT = Dynamic;
 
 -- OSS文件对象存储表 根据 etag 平均分300个表
