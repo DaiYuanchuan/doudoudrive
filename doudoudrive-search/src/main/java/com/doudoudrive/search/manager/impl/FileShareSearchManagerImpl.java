@@ -9,7 +9,6 @@ import com.doudoudrive.search.model.elasticsearch.FileShareDTO;
 import com.doudoudrive.search.util.ElasticUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -118,17 +117,8 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
      */
     @Override
     public SearchHits<FileShareDTO> shareUserIdSearch(String userId, List<Object> searchAfter, Integer count, List<OrderByBuilder> sort) {
-        // 查询信息构建
-        BoolQueryBuilder builder = QueryBuilders.boolQuery();
-        builder.must(QueryBuilders.termQuery(USER_ID, userId));
-
-        // 查询请求构建
-        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder().withQuery(builder);
-        // 根据排序分页参数构建排序分页对象
-        ElasticUtil.builderSortPageable(sort, BUSINESS_ID, searchAfter, count, queryBuilder);
-
         // 执行搜素请求
-        return restTemplate.search(queryBuilder.build(), FileShareDTO.class);
+        return search(USER_ID, userId, searchAfter, count, sort);
     }
 
     /**
@@ -142,9 +132,24 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
      */
     @Override
     public SearchHits<FileShareDTO> shareIdSearch(List<String> shareId, List<OrderByBuilder> sort, Integer count, List<Object> searchAfter) {
+        // 执行搜素请求
+        return search(SHARE_ID, shareId, searchAfter, count, sort);
+    }
+
+    /**
+     * 执行用户下的文件分享信息的搜素请求
+     *
+     * @param name        字段名
+     * @param value       字段值
+     * @param searchAfter 上一页游标，为空时默认第一页
+     * @param count       单次查询的数量、每页大小
+     * @param sort        排序字段
+     * @return 用户文件分享信息ES数据模型
+     */
+    private SearchHits<FileShareDTO> search(String name, Object value, List<Object> searchAfter, Integer count, List<OrderByBuilder> sort) {
         // 查询信息构建
-        IdsQueryBuilder builder = QueryBuilders.idsQuery();
-        builder.addIds(shareId.toArray(String[]::new));
+        BoolQueryBuilder builder = QueryBuilders.boolQuery();
+        builder.must(QueryBuilders.termQuery(name, value));
 
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
