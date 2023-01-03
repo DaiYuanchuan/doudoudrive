@@ -556,6 +556,7 @@ CREATE TABLE `cloud-share`.`file_share`  (
  `share_title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '分享的标题',
  `share_pwd` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '分享链接的提取码',
  `share_salt` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用于计算文件key的盐值',
+ `file_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '分享的文件数量',
  `browse_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '浏览次数',
  `save_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '保存、转存次数',
  `download_count` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '下载次数',
