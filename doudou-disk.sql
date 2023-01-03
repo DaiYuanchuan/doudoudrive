@@ -568,8 +568,8 @@ CREATE TABLE `cloud-share`.`file_share`  (
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
- INDEX `idx_user_id`(`user_id`) USING BTREE COMMENT '分享的用户标识',
- INDEX `idx_share_id`(`share_id`) USING BTREE COMMENT '分享的短链接标识'
+ UNIQUE INDEX `uk_share_id`(`share_id`) USING BTREE COMMENT '分享的短链接标识',
+ INDEX `idx_user_id`(`user_id`) USING BTREE COMMENT '分享的用户标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件分享信息' ROW_FORMAT = Dynamic;
 
 -- 文件分享记录详情表 依据 share_id 分表
