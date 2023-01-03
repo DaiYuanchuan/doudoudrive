@@ -1004,6 +1004,11 @@ public interface ConstantConfig {
     enum DiskFileSearchOrderBy {
 
         /**
+         * 业务标识
+         */
+        BUSINESS_ID(ReflectUtil.property(DiskFile::getBusinessId)),
+
+        /**
          * 文件大小
          */
         FILE_SIZE(ReflectUtil.property(DiskFile::getFileSize)),
