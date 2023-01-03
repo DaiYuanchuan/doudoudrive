@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -77,7 +77,7 @@ public class FileShareController {
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 过期时间不为空时判断是否在当前时间之后
-        if (createFileShareRequest.getExpiration() != null && new Date().after(createFileShareRequest.getExpiration())) {
+        if (createFileShareRequest.getExpiration() != null && LocalDateTime.now().isAfter(createFileShareRequest.getExpiration())) {
             // 过期时间在当前时间之前
             return Result.build(StatusCodeEnum.EXPIRE_TIME_INVALID);
         }

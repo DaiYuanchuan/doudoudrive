@@ -1,5 +1,6 @@
 package com.doudoudrive.file.manager.impl;
 
+import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
@@ -11,6 +12,7 @@ import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileRespo
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUser;
+import com.doudoudrive.common.model.pojo.FileShare;
 import com.doudoudrive.common.model.pojo.FileShareDetail;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.http.Result;
@@ -18,6 +20,7 @@ import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskUserService;
 import com.doudoudrive.commonservice.service.FileShareDetailService;
+import com.doudoudrive.commonservice.service.FileShareService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileShareManager;
@@ -40,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -65,6 +69,8 @@ public class FileShareManagerImpl implements FileShareManager {
 
     private FileShareConvert fileShareConvert;
 
+    private FileShareService fileShareService;
+
     private FileShareDetailService fileShareDetailService;
 
     private DiskUserService diskUserService;
@@ -76,6 +82,11 @@ public class FileShareManagerImpl implements FileShareManager {
      */
     private RocketMQTemplate rocketmqTemplate;
 
+    /**
+     * 服务框架缓存实现
+     */
+    private CacheManagerConfig cacheManagerConfig;
+
     @Autowired
     public void setDiskFileSearchFeignClient(DiskFileSearchFeignClient diskFileSearchFeignClient) {
         this.diskFileSearchFeignClient = diskFileSearchFeignClient;
@@ -84,6 +95,11 @@ public class FileShareManagerImpl implements FileShareManager {
     @Autowired(required = false)
     public void setFileShareConvert(FileShareConvert fileShareConvert) {
         this.fileShareConvert = fileShareConvert;
+    }
+
+    @Autowired
+    public void setFileShareService(FileShareService fileShareService) {
+        this.fileShareService = fileShareService;
     }
 
     @Autowired
@@ -106,6 +122,11 @@ public class FileShareManagerImpl implements FileShareManager {
         this.rocketmqTemplate = rocketmqTemplate;
     }
 
+    @Autowired
+    public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
+        this.cacheManagerConfig = cacheManagerConfig;
+    }
+
     /**
      * 新增用户文件分享记录信息
      *
@@ -121,19 +142,32 @@ public class FileShareManagerImpl implements FileShareManager {
         // 判断分享的文件列表中是否包含文件夹
         boolean containFolder = shareFileList.stream().anyMatch(DiskFile::getFileFolder);
 
-        // 构建保存到elastic中的文件分享记录信息
-        String shareName = this.getShareName(shareFileList, containFolder);
-        SaveElasticsearchFileShareRequestDTO saveFileShareRequest = fileShareConvert
-                .fileShareConvertSaveFileShare(userId, shareName, containFolder, createFileShareRequest);
+        // 获取文件列表中的第一个文件名
+        String firstFileName = shareFileList.get(NumberConstant.INTEGER_ZERO).getFileName();
+
+        // 如果文件名大于32个字符，则截取前32个字符，最后拼接上省略号
+        if (firstFileName.length() > NumberConstant.INTEGER_THIRTY_TWO) {
+            firstFileName = firstFileName.substring(NumberConstant.INTEGER_ZERO, NumberConstant.INTEGER_THIRTY_TWO) + ConstantConfig.SpecialSymbols.ELLIPSIS;
+        }
+
+        // 获取分享文件的文件名
+        String shareTitle = this.getShareTitle(firstFileName, shareFileList.size(), containFolder);
+
+        // 构建文件分享信息实体
+        FileShare fileShare = fileShareConvert.fileShareConvert(userId, shareTitle, containFolder, shareFileList.size(), createFileShareRequest);
+        Integer insert = fileShareService.insert(fileShare);
+        if (insert <= NumberConstant.INTEGER_ZERO) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_SHARE_FAILED);
+        }
 
         // 保存分享的文件列表信息到分享详情表中
-        fileShareDetailService.insertBatch(this.getFileShareDetailList(userId, saveFileShareRequest.getShareId(), shareFileList));
+        fileShareDetailService.insertBatch(this.getFileShareDetailList(userId, fileShare.getShareId(), shareFileList));
 
         // 保存文件分享记录信息到elastic中
-        diskFileSearchFeignClient.saveElasticsearchFileShare(saveFileShareRequest);
+        diskFileSearchFeignClient.saveElasticsearchFileShare(fileShareConvert.fileShareConvertSaveFileShare(fileShare));
 
         // 构建返回的文件分享记录信息
-        return fileShareConvert.saveFileShareConvertCreateFileShareResponse(saveFileShareRequest);
+        return fileShareConvert.fileShareConvertCreateFileShareResponse(fileShare);
     }
 
     /**
@@ -146,8 +180,11 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_SHARE_TRANSACTION_MANAGER)
     public DeleteElasticsearchFileShareResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo) {
-        // 根据短链接标识批量删除文件分享记录详情数据
+        // 根据分享短链接标识批量删除分享记录信息
+        fileShareService.deleteBatch(shareId, userinfo.getBusinessId());
+        // 根据分享短链接标识批量删除分享记录详情数据
         fileShareDetailService.delete(shareId, userinfo.getBusinessId());
+
         // 删除es文件分享记录信息
         Result<DeleteElasticsearchFileShareResponseDTO> deleteElasticShareResult = diskFileSearchFeignClient.cancelShare(DeleteElasticsearchFileShareRequestDTO.builder()
                 .userId(userinfo.getBusinessId())
@@ -170,9 +207,14 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     public Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
-        FileShareModel content = this.getShareContent(anonymousRequest.getShareId(), anonymousRequest.getUpdateViewCount(), Boolean.FALSE);
+        FileShareModel content = this.getShareContent(anonymousRequest.getShareId());
         if (content == null) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
+        }
+
+        // 是否需要更新当前链接的浏览次数
+        if (anonymousRequest.getUpdateBrowseCount()) {
+            this.increase(content.getShareId(), ConstantConfig.FileShareIncreaseEnum.BROWSE_COUNT, content.getUserId());
         }
 
         // 分享链接基础信息校验
@@ -198,10 +240,13 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     public void copy(FileCopyRequestDTO fileCopyRequest, DiskUserModel userinfo) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
-        FileShareModel content = this.getShareContent(fileCopyRequest.getShareId(), Boolean.FALSE, Boolean.TRUE);
+        FileShareModel content = this.getShareContent(fileCopyRequest.getShareId());
         if (content == null) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
         }
+
+        // 保存、转存次数自增
+        this.increase(content.getShareId(), ConstantConfig.FileShareIncreaseEnum.SAVE_COUNT, content.getUserId());
 
         // 分享链接基础信息校验
         this.basicInfoCheck(content, fileCopyRequest.getSharePwd());
@@ -270,6 +315,19 @@ public class FileShareManagerImpl implements FileShareManager {
     }
 
     /**
+     * 对指定的字段自增，如: browse_count、save_count、download_count
+     *
+     * @param shareId   分享标识
+     * @param fieldName 字段名(browse_count、save_count、download_count)
+     * @param userId    所属的用户标识
+     */
+    @Override
+    public void increase(String shareId, ConstantConfig.FileShareIncreaseEnum fieldName, String userId) {
+        // 保存、转存次数自增
+        fileShareService.increase(shareId, fieldName, userId);
+    }
+
+    /**
      * 校验分享链接的key值是否正确
      *
      * @param shareId  分享短链
@@ -279,7 +337,7 @@ public class FileShareManagerImpl implements FileShareManager {
     @Override
     public Boolean shareKeyCheck(String shareId, List<FileNestedModel> fileInfo) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
-        FileShareModel content = this.getShareContent(shareId, Boolean.FALSE, Boolean.FALSE);
+        FileShareModel content = this.getShareContent(shareId);
         return this.shareKeyCheck(content, fileInfo);
     }
 
@@ -288,16 +346,14 @@ public class FileShareManagerImpl implements FileShareManager {
     /**
      * 从分享的文件列表中获取到进行分享的文件名
      *
-     * @param shareFileList   分享的文件列表
+     * @param firstFileName   文件列表中的第一个文件名
+     * @param fileCount       文件数量
      * @param isContainFolder 分享的文件列表中是否包含文件夹，true-包含，false-不包含
      * @return 进行分享的文件名
      */
-    private String getShareName(List<DiskFile> shareFileList, boolean isContainFolder) {
-        // 获取文件列表中的第一个文件名
-        String firstFileName = shareFileList.get(NumberConstant.INTEGER_ZERO).getFileName();
-
+    private String getShareTitle(String firstFileName, long fileCount, boolean isContainFolder) {
         // 判断文件列表中的文件数量是否大于1
-        if (shareFileList.size() <= NumberConstant.INTEGER_ONE) {
+        if (fileCount <= NumberConstant.INTEGER_ONE) {
             // 如果文件数量小于等于1，则直接返回文件名
             return firstFileName;
         }
@@ -305,11 +361,11 @@ public class FileShareManagerImpl implements FileShareManager {
         // 判断分享的文件列表中是否包含文件夹
         if (isContainFolder) {
             // 如果包含文件夹，则将文件名设置为“多个文件(夹)”
-            return String.format(SHARE_FILE_NAME_SUFFIX_FILE_FOLDER, firstFileName, shareFileList.size());
+            return String.format(SHARE_FILE_NAME_SUFFIX_FILE_FOLDER, firstFileName, fileCount);
         }
 
         // 如果不包含文件夹，则将文件名设置为“多个文件”
-        return String.format(SHARE_FILE_NAME_SUFFIX_FILE, firstFileName, shareFileList.size());
+        return String.format(SHARE_FILE_NAME_SUFFIX_FILE, firstFileName, fileCount);
     }
 
     /**
@@ -413,6 +469,14 @@ public class FileShareManagerImpl implements FileShareManager {
         }
         response.setContent(fileShareDetailModelList);
         response.setMarker(fileSearchResponse.getMarker());
+
+        // 判断分享的文件列表中是否包含文件夹
+        boolean containFolder = fileShareDetailModelList.stream().anyMatch(FileShareDetailModel::getFileFolder);
+
+        // 获取文件列表中的第一个文件名
+        String firstFileName = fileShareDetailModelList.get(NumberConstant.INTEGER_ZERO).getFileName();
+        // 获取分享文件的文件名
+        response.setShareTitle(this.getShareTitle(firstFileName, content.getFileCount(), containFolder));
         return response;
     }
 
@@ -464,7 +528,7 @@ public class FileShareManagerImpl implements FileShareManager {
         }
 
         // 过期时间不为空时判断是否在当前时间之后
-        if (content.getExpiration() != null && new Date().after(content.getExpiration())) {
+        if (content.getExpiration() != null && LocalDateTime.now().isAfter(content.getExpiration())) {
             // 过期时间在当前时间之前
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_FILE_EXPIRE);
         }
@@ -506,25 +570,35 @@ public class FileShareManagerImpl implements FileShareManager {
     /**
      * 根据分享链接标识查询分享的文件信息，如果查询失败或者分享链接不存在则返回null
      *
-     * @param shareId         分享链接标识
-     * @param updateViewCount 是否更新分享链接的访问次数
-     * @param updateSaveCount 是否更新分享链接的保存、转存次数
+     * @param shareId 分享链接标识
      * @return 分享的文件信息，不存在时返回null
      */
-    private FileShareModel getShareContent(String shareId, Boolean updateViewCount, Boolean updateSaveCount) {
-        // 根据短链接标识查询分享记录信息
-        Result<QueryElasticsearchFileShareIdResponseDTO> queryElasticShareIdResult = diskFileSearchFeignClient.shareIdResponse(QueryElasticsearchFileShareIdRequestDTO.builder()
-                .shareId(Collections.singletonList(shareId))
-                .updateViewCount(updateViewCount)
-                .updateSaveCount(updateSaveCount)
-                .build());
-        // 判断查询结果是否为空
-        if (Result.isNotSuccess(queryElasticShareIdResult)
-                || CollectionUtil.isEmpty(queryElasticShareIdResult.getData().getContent())) {
-            return null;
-        }
+    private FileShareModel getShareContent(String shareId) {
+        // 构建缓存key
+        String cacheKey = ConstantConfig.Cache.FILE_SHARE_CACHE + shareId;
+        // 优先从缓存中获取分享链接信息
+        return Optional.ofNullable((FileShareModel) cacheManagerConfig.getCache(cacheKey)).orElseGet(() -> {
+            // 缓存中不存在分享链接信息时从elastic库中查询
+            QueryElasticsearchFileShareIdRequestDTO queryFileShareIdRequest = QueryElasticsearchFileShareIdRequestDTO.builder()
+                    .shareId(Collections.singletonList(shareId))
+                    .build();
+            Result<QueryElasticsearchFileShareIdResponseDTO> queryElasticShareIdResult = diskFileSearchFeignClient.shareIdResponse(queryFileShareIdRequest);
+            // 判断查询结果是否为空
+            if (Result.isNotSuccess(queryElasticShareIdResult)
+                    || CollectionUtil.isEmpty(queryElasticShareIdResult.getData().getContent())) {
+                return null;
+            }
 
-        // 获取到分享记录信息
-        return queryElasticShareIdResult.getData().getContent().get(NumberConstant.INTEGER_ZERO);
+            // 获取分享链接信息
+            FileShareModel content = queryElasticShareIdResult.getData().getContent().get(NumberConstant.INTEGER_ZERO);
+
+            // 从数据库中查询文件分享信息，补全分享记录信息数据模型
+            FileShare fileShare = fileShareService.getFileShare(content.getBusinessId(), content.getUserId());
+            // 构建文件分享数据模型实体
+            FileShareModel fileShareModel = fileShareConvert.fileShareConvertFileShareModel(fileShare);
+            // 数据不为空时，将查询结果压入缓存
+            Optional.ofNullable(fileShareModel).ifPresent(shareModel -> cacheManagerConfig.putCache(cacheKey, shareModel, ConstantConfig.Cache.DEFAULT_EXPIRE));
+            return fileShareModel;
+        });
     }
 }

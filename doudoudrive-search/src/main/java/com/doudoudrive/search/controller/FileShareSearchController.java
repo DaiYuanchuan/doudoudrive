@@ -30,8 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -122,26 +120,7 @@ public class FileShareSearchController {
         List<FileShareModel> content = Lists.newArrayListWithExpectedSize(searchHit.size());
         for (SearchHit<FileShareDTO> hit : searchHit) {
             // 将搜索结果转换为响应结果
-            FileShareModel fileShareModel = fileShareModelConvert.fileShareConvertFileShareModel(hit.getContent());
-            // 浏览次数、保存次数自增
-            if (shareIdRequest.getUpdateViewCount() || shareIdRequest.getUpdateSaveCount()) {
-                // 更新浏览次数
-                if (shareIdRequest.getUpdateViewCount()) {
-                    fileShareModel.setViewCount(new BigDecimal(fileShareModel.getViewCount()).add(BigDecimal.ONE).stripTrailingZeros().toPlainString());
-                }
-                // 更新保存次数
-                if (shareIdRequest.getUpdateSaveCount()) {
-                    fileShareModel.setSaveCount(new BigDecimal(fileShareModel.getSaveCount()).add(BigDecimal.ONE).stripTrailingZeros().toPlainString());
-                }
-
-                // 更新es中的浏览次数
-                fileShareSearchManager.updateFileShare(fileShareModel.getShareId(), FileShareDTO.builder()
-                        .viewCount(fileShareModel.getViewCount())
-                        .saveCount(fileShareModel.getSaveCount())
-                        .updateTime(new Date())
-                        .build());
-            }
-            content.add(fileShareModel);
+            content.add(fileShareModelConvert.fileShareConvertFileShareModel(hit.getContent()));
         }
 
         // 将搜索结果转换为响应结果

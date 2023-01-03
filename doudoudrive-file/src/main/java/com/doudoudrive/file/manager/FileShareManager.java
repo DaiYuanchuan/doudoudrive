@@ -1,5 +1,6 @@
 package com.doudoudrive.file.manager;
 
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.FileNestedModel;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
@@ -62,6 +63,15 @@ public interface FileShareManager {
      * @param userinfo        当前登录的用户信息
      */
     void copy(FileCopyRequestDTO fileCopyRequest, DiskUserModel userinfo);
+
+    /**
+     * 对指定的字段自增，如: browse_count、save_count、download_count
+     *
+     * @param shareId   分享标识
+     * @param fieldName 字段名(browse_count、save_count、download_count)
+     * @param userId    所属的用户标识
+     */
+    void increase(String shareId, ConstantConfig.FileShareIncreaseEnum fieldName, String userId);
 
     /**
      * 校验分享链接的key值是否正确

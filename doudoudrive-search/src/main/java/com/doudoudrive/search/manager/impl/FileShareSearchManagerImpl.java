@@ -34,10 +34,12 @@ import java.util.Map;
 public class FileShareSearchManagerImpl implements FileShareSearchManager {
 
     /**
-     * 用户标识、分享的短链接id、创建时间
+     * 用户标识、业务标识、分享的短链接id
      */
     private static final String USER_ID = ReflectUtil.property(FileShareDTO::getUserId);
-    private static final String CREATE_TIME = ReflectUtil.property(FileShareDTO::getCreateTime);
+    private static final String BUSINESS_ID = ReflectUtil.property(FileShareDTO::getBusinessId);
+    private static final String SHARE_ID = ReflectUtil.property(FileShareDTO::getShareId);
+
     private ElasticsearchRestTemplate restTemplate;
 
     @Autowired
@@ -78,7 +80,7 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
 
         // 根据用户标识和分享标识删除
         builder.must(QueryBuilders.termQuery(USER_ID, userId));
-        builder.must(QueryBuilders.idsQuery().addIds(shareId.toArray(String[]::new)));
+        builder.must(QueryBuilders.termQuery(SHARE_ID, shareId));
 
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
@@ -123,7 +125,7 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder().withQuery(builder);
         // 根据排序分页参数构建排序分页对象
-        ElasticUtil.builderSortPageable(sort, CREATE_TIME, searchAfter, count, queryBuilder);
+        ElasticUtil.builderSortPageable(sort, BUSINESS_ID, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), FileShareDTO.class);
@@ -149,7 +151,7 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
                 .withQuery(builder);
 
         // 根据排序分页参数构建排序分页对象
-        ElasticUtil.builderSortPageable(sort, CREATE_TIME, searchAfter, count, queryBuilder);
+        ElasticUtil.builderSortPageable(sort, BUSINESS_ID, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), FileShareDTO.class);

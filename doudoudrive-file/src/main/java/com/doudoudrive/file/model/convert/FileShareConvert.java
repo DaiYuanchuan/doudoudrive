@@ -8,6 +8,8 @@ import com.doudoudrive.common.model.dto.model.FileShareDetailModel;
 import com.doudoudrive.common.model.dto.model.FileShareModel;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileShareRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
+import com.doudoudrive.common.model.pojo.FileShare;
+import com.doudoudrive.common.util.date.DateUtils;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileShareAnonymousResponseDTO;
@@ -17,7 +19,7 @@ import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.util.DigestUtils;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * <p>文件分享记录信息等相关的实体数据类型转换器</p>
@@ -26,38 +28,56 @@ import java.util.Date;
  * @author Dan
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {IdUtil.class, RandomUtil.class, NumberConstant.class, Boolean.class, Date.class, DigestUtils.class})
+        imports = {IdUtil.class, RandomUtil.class, NumberConstant.class, Boolean.class, LocalDateTime.class, DigestUtils.class, DateUtils.class})
 public interface FileShareConvert {
 
     /**
-     * 将 CreateFileShareRequestDTO(网盘文件创建分享链接时的请求数据模型) 类型转换为 SaveElasticsearchFileShareRequestDTO(保存es文件分享记录信息时的请求数据模型)
+     * 将 CreateFileShareRequestDTO(网盘文件创建分享链接时的请求数据模型) 类型转换为 FileShare(文件分享信息实体类) 类型
      *
      * @param userId                 进行分享的用户标识
-     * @param shareName              进行分享的文件名(取每次进行分享的第一个文件名)
+     * @param shareTitle             进行分享的文件名(取每次进行分享的第一个文件名)
      * @param folder                 分享的文件中是否包含文件夹(0:false,1:true)
+     * @param fileCount              分享的文件数量
      * @param createFileShareRequest 网盘文件创建分享链接时的请求数据模型
-     * @return 保存es文件分享记录信息时的请求数据模型
+     * @return FileShare(文件分享信息实体类)
      */
     @Mappings({
             @Mapping(target = "shareId", expression = "java(IdUtil.fastSimpleUUID())"),
-            @Mapping(target = "salt", expression = "java(RandomUtil.randomString(NumberConstant.INTEGER_THIRTY_TWO))"),
-            @Mapping(target = "viewCount", constant = NumberConstant.STRING_ZERO),
-            @Mapping(target = "saveCount", constant = NumberConstant.STRING_ZERO),
-            @Mapping(target = "expiration", source = "createFileShareRequest.expiration"),
+            @Mapping(target = "shareSalt", expression = "java(RandomUtil.randomString(NumberConstant.INTEGER_THIRTY_TWO))"),
+            @Mapping(target = "browseCount", expression = "java(NumberConstant.LONG_ZERO)"),
+            @Mapping(target = "saveCount", expression = "java(NumberConstant.LONG_ZERO)"),
+            @Mapping(target = "downloadCount", expression = "java(NumberConstant.LONG_ZERO)"),
             @Mapping(target = "expired", expression = "java(Boolean.FALSE)"),
-            @Mapping(target = "createTime", expression = "java(new Date())"),
-            @Mapping(target = "updateTime", expression = "java(new Date())")
+            @Mapping(target = "status", constant = NumberConstant.STRING_ZERO),
+            @Mapping(target = "createTime", expression = "java(LocalDateTime.now())"),
+            @Mapping(target = "updateTime", expression = "java(LocalDateTime.now())")
     })
-    SaveElasticsearchFileShareRequestDTO fileShareConvertSaveFileShare(String userId, String shareName, Boolean folder,
-                                                                       CreateFileShareRequestDTO createFileShareRequest);
+    FileShare fileShareConvert(String userId, String shareTitle, Boolean folder,
+                               Integer fileCount, CreateFileShareRequestDTO createFileShareRequest);
 
     /**
-     * 将 SaveElasticsearchFileShareRequestDTO(保存es文件分享记录信息时的请求数据模型) 类型转换为 CreateFileShareResponseDTO(网盘文件创建分享链接时的响应数据模型)
+     * 将 FileShare(文件分享信息实体类) 类型转换为 SaveElasticsearchFileShareRequestDTO(保存es文件分享记录信息时的请求数据模型)
      *
-     * @param saveFileShareRequest 保存es文件分享记录信息时的请求数据模型
+     * @param fileShare 文件分享信息实体类
+     * @return 保存es文件分享记录信息时的请求数据模型
+     */
+    SaveElasticsearchFileShareRequestDTO fileShareConvertSaveFileShare(FileShare fileShare);
+
+    /**
+     * 将 FileShare(文件分享信息实体类) 类型转换为 CreateFileShareResponseDTO(网盘文件创建分享链接时的响应数据模型)
+     *
+     * @param fileShare 文件分享信息实体类
      * @return 网盘文件创建分享链接时的响应数据模型
      */
-    CreateFileShareResponseDTO saveFileShareConvertCreateFileShareResponse(SaveElasticsearchFileShareRequestDTO saveFileShareRequest);
+    CreateFileShareResponseDTO fileShareConvertCreateFileShareResponse(FileShare fileShare);
+
+    /**
+     * 将 FileShare(文件分享信息实体类) 类型转换为 FileShareModel(文件分享记录信息数据模型)
+     *
+     * @param fileShare 文件分享信息实体类
+     * @return 文件分享记录信息数据模型
+     */
+    FileShareModel fileShareConvertFileShareModel(FileShare fileShare);
 
     /**
      * 将 FileShareModel(文件分享记录信息) 类型转换为 FileShareAnonymousResponseDTO(匿名用户访问分享链接时的响应数据模型)
@@ -83,9 +103,9 @@ public interface FileShareConvert {
      * @return 网盘文件分享记录详情信息数据模型
      */
     @Mappings({
-            @Mapping(target = "createTime", source = "diskFile.createTime"),
-            @Mapping(target = "updateTime", source = "diskFile.updateTime"),
-            @Mapping(target = "key", expression = "java(DigestUtils.md5DigestAsHex((share.getShareSalt()+diskFile.getBusinessId()).getBytes()))")
+            @Mapping(target = "businessId", source = "diskFile.businessId"),
+            @Mapping(target = "createTime", expression = "java(DateUtils.toLocalDateTime(diskFile.getCreateTime()))"),
+            @Mapping(target = "updateTime", expression = "java(DateUtils.toLocalDateTime(diskFile.getUpdateTime()))"),
     })
     FileShareDetailModel diskFileConvertShareDetail(DiskFileModel diskFile, FileShareModel share);
 }

@@ -495,6 +495,7 @@ public class FileController {
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 return;
             }
+
         }
 
         // 获取访问的文件对象

@@ -3,6 +3,7 @@ package com.doudoudrive.common.constant;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
+import com.doudoudrive.common.model.pojo.FileShare;
 import com.doudoudrive.common.util.lang.ReflectUtil;
 import lombok.Getter;
 import org.apache.rocketmq.client.producer.SendStatus;
@@ -338,6 +339,7 @@ public interface ConstantConfig {
      */
     interface SpecialSymbols {
         String DOT = ".";
+        String ELLIPSIS = "...";
         String ASTERISK = "*";
         String OR = "||";
         String QUESTION_MARK = "?";
@@ -388,9 +390,14 @@ public interface ConstantConfig {
         Integer OSS_FILE = 300;
 
         /**
+         * 文件分享信息模块 依据 user_id 平均分20个表
+         */
+        Integer FILE_SHARE = 20;
+
+        /**
          * 文件分享记录详情模块 依据 share_id 平均分40个表
          */
-        Integer FILE_SHARE = 40;
+        Integer FILE_SHARE_DETAIL = 40;
     }
 
     /**
@@ -876,6 +883,37 @@ public interface ConstantConfig {
             // 规定不可操作类型
             List<String> inoperableType = Arrays.asList(AUDIT_FAILURE.status, SOURCE_FILE_DELETED.status);
             return inoperableType.contains(fileStatus);
+        }
+    }
+
+    /**
+     * 文件分享自增字段枚举
+     */
+    @Getter
+    enum FileShareIncreaseEnum {
+
+        /**
+         * 浏览次数
+         */
+        BROWSE_COUNT(ReflectUtil.propertyToUnderline(FileShare::getBrowseCount)),
+
+        /**
+         * 保存、转存次数
+         */
+        SAVE_COUNT(ReflectUtil.propertyToUnderline(FileShare::getSaveCount)),
+
+        /**
+         * 下载次数
+         */
+        DOWNLOAD_COUNT(ReflectUtil.propertyToUnderline(FileShare::getSaveCount));
+
+        /**
+         * 自增字段对应的字段名称
+         */
+        private final String fieldName;
+
+        FileShareIncreaseEnum(String fieldName) {
+            this.fieldName = fieldName;
         }
     }
 

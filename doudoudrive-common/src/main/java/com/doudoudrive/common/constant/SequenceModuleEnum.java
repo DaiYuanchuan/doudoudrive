@@ -87,9 +87,14 @@ public enum SequenceModuleEnum {
     FILE_SHARE("14"),
 
     /**
+     * 文件分享记录详情模块
+     */
+    FILE_SHARE_DETAIL("15"),
+
+    /**
      * 系统日志消息模块
      */
-    SYS_LOGBACK("15");
+    SYS_LOGBACK("16");
 
     /**
      * 业务模块标识，固定为两位数字

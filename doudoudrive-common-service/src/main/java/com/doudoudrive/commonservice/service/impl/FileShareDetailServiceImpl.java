@@ -45,14 +45,14 @@ public class FileShareDetailServiceImpl implements FileShareDetailService {
             List<FileShareDetail> fileShareDetailList = fileShareDetail.stream().filter(ObjectUtils::isNotEmpty).toList();
             for (FileShareDetail fileShareDetailInfo : fileShareDetailList) {
                 if (StringUtils.isBlank(fileShareDetailInfo.getBusinessId())) {
-                    fileShareDetailInfo.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.FILE_SHARE));
+                    fileShareDetailInfo.setBusinessId(SequenceUtil.nextId(SequenceModuleEnum.FILE_SHARE_DETAIL));
                 }
             }
             // 将 文件分享记录详情的集合 按照 分享的短链接标识 分组
             Map<String, List<FileShareDetail>> fileShareDetailMap = fileShareDetailList.stream().collect(Collectors.groupingBy(FileShareDetail::getShareId));
             fileShareDetailMap.forEach((key, value) -> {
                 // 获取表后缀
-                String tableSuffix = SequenceUtil.asciiSuffix(key, ConstantConfig.TableSuffix.FILE_SHARE);
+                String tableSuffix = SequenceUtil.asciiSuffix(key, ConstantConfig.TableSuffix.FILE_SHARE_DETAIL);
                 if (CollectionUtil.isNotEmpty(value)) {
                     fileShareDetailDao.insertBatch(value, tableSuffix);
                 }
@@ -70,7 +70,7 @@ public class FileShareDetailServiceImpl implements FileShareDetailService {
     public void delete(List<String> shareId, String userId) {
         // 将 分享的短链接标识的集合 按照 分片路由 分组
         Map<String, List<String>> shareSuffixMap = shareId.stream().filter(StringUtils::isNotBlank)
-                .collect(Collectors.groupingBy(share -> SequenceUtil.asciiSuffix(share, ConstantConfig.TableSuffix.FILE_SHARE)));
+                .collect(Collectors.groupingBy(share -> SequenceUtil.asciiSuffix(share, ConstantConfig.TableSuffix.FILE_SHARE_DETAIL)));
         shareSuffixMap.forEach((key, value) -> fileShareDetailDao.delete(userId, value, key));
     }
 
@@ -83,7 +83,7 @@ public class FileShareDetailServiceImpl implements FileShareDetailService {
     @Override
     public List<FileShareDetail> listFileShareDetail(String shareId) {
         // 获取表后缀
-        String tableSuffix = SequenceUtil.asciiSuffix(shareId, ConstantConfig.TableSuffix.FILE_SHARE);
+        String tableSuffix = SequenceUtil.asciiSuffix(shareId, ConstantConfig.TableSuffix.FILE_SHARE_DETAIL);
         return fileShareDetailDao.listFileShareDetail(shareId, tableSuffix);
     }
 }

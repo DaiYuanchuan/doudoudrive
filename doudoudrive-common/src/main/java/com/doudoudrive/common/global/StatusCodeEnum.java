@@ -88,6 +88,7 @@ public enum StatusCodeEnum {
     EXPIRE_TIME_INVALID(712, "无效的过期时间"),
     SHARE_PWD_INVALID(713, "请输入提取码"),
     SHARE_PWD_ERROR(714, "请输入正确的提取码"),
+    FILE_SHARE_FAILED(715, "分享链接创建失败"),
 
     /**
      * 接口类:8xx

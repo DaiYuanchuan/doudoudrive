@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.doudoudrive.commonservice.dao.FileShareDao">
+
+    <!-- 实体映射 -->
+    <resultMap type="com.doudoudrive.common.model.pojo.FileShare" id="fileShareResultMap">
+        <id property="autoId" column="auto_id"/>
+        <result property="businessId" column="business_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="shareId" column="share_id"/>
+        <result property="shareTitle" column="share_title"/>
+        <result property="sharePwd" column="share_pwd"/>
+        <result property="shareSalt" column="share_salt"/>
+        <result property="fileCount" column="file_count"/>
+        <result property="browseCount" column="browse_count"/>
+        <result property="saveCount" column="save_count"/>
+        <result property="downloadCount" column="download_count"/>
+        <result property="expiration" column="expiration"/>
+        <result property="expired" column="expired"/>
+        <result property="folder" column="folder"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- sql字段信息 -->
+    <sql id="fileShare">
+        `auto_id`, `business_id`, `user_id`, `share_id`, `share_title`, `share_pwd`, `share_salt`, `file_count`, `browse_count`,
+        `save_count`, `download_count`, `expiration`, `expired`, `folder`, `status`, `create_time`, `update_time`
+    </sql>
+
+    <!-- 新增文件分享信息 -->
+    <insert id="insert" parameterType="com.doudoudrive.common.model.pojo.FileShare" flushCache="true"
+            useGeneratedKeys="true" keyProperty="fileShare.autoId">
+        INSERT INTO
+        `file_share_${tableSuffix}` (
+        <trim suffixOverrides=",">
+            <if test="null != fileShare.businessId and '' != fileShare.businessId">`business_id`,</if>
+            <if test="null != fileShare.userId and '' != fileShare.userId">`user_id`,</if>
+            <if test="null != fileShare.shareId and '' != fileShare.shareId">`share_id`,</if>
+            <if test="null != fileShare.shareTitle and '' != fileShare.shareTitle">`share_title`,</if>
+            <if test="null != fileShare.sharePwd and '' != fileShare.sharePwd">`share_pwd`,</if>
+            <if test="null != fileShare.shareSalt and '' != fileShare.shareSalt">`share_salt`,</if>
+            <if test="null != fileShare.fileCount and 0 != fileShare.fileCount">`file_count`,</if>
+            <if test="null != fileShare.browseCount and 0 != fileShare.browseCount">`browse_count`,</if>
+            <if test="null != fileShare.saveCount and 0 != fileShare.saveCount">`save_count`,</if>
+            <if test="null != fileShare.downloadCount and 0 != fileShare.downloadCount">`download_count`,</if>
+            <if test="null != fileShare.expiration">`expiration`,</if>
+            <if test="null != fileShare.expired">`expired`,</if>
+            <if test="null != fileShare.folder">`folder`,</if>
+            <if test="null != fileShare.status and '' != fileShare.status">`status`</if>
+        </trim>
+        )
+        VALUES
+        (
+        <trim suffixOverrides=",">
+            <if test="null != fileShare.businessId and '' != fileShare.businessId">#{fileShare.businessId},</if>
+            <if test="null != fileShare.userId and '' != fileShare.userId">#{fileShare.userId},</if>
+            <if test="null != fileShare.shareId and '' != fileShare.shareId">#{fileShare.shareId},</if>
+            <if test="null != fileShare.shareTitle and '' != fileShare.shareTitle">#{fileShare.shareTitle},</if>
+            <if test="null != fileShare.sharePwd and '' != fileShare.sharePwd">#{fileShare.sharePwd},</if>
+            <if test="null != fileShare.shareSalt and '' != fileShare.shareSalt">#{fileShare.shareSalt},</if>
+            <if test="null != fileShare.fileCount and 0 != fileShare.fileCount">#{fileShare.fileCount},</if>
+            <if test="null != fileShare.browseCount and 0 != fileShare.browseCount">#{fileShare.browseCount},</if>
+            <if test="null != fileShare.saveCount and 0 != fileShare.saveCount">#{fileShare.saveCount},</if>
+            <if test="null != fileShare.downloadCount and 0 != fileShare.downloadCount">#{fileShare.downloadCount},</if>
+            <if test="null != fileShare.expiration">#{fileShare.expiration},</if>
+            <if test="null != fileShare.expired">#{fileShare.expired},</if>
+            <if test="null != fileShare.folder">#{fileShare.folder},</if>
+            <if test="null != fileShare.status and '' != fileShare.status">#{fileShare.status}</if>
+        </trim>
+        )
+    </insert>
+
+    <!-- 根据业务id(businessId)批量删除文件分享信息 -->
+    <delete id="deleteBatch" parameterType="java.util.List" flushCache="true">
+        DELETE FROM `file_share_${tableSuffix}`
+        <where>
+            `share_id` IN
+            <foreach collection="shareId" index="index" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 根据业务id(businessId)修改文件分享信息 -->
+    <update id="update" parameterType="com.doudoudrive.common.model.pojo.FileShare" flushCache="true">
+        UPDATE `file_share_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="null != fileShare.userId and '' != fileShare.userId">
+                `user_id` = #{fileShare.userId},
+            </if>
+            <if test="null != fileShare.shareId and '' != fileShare.shareId">
+                `share_id` = #{fileShare.shareId},
+            </if>
+            <if test="null != fileShare.shareTitle and '' != fileShare.shareTitle">
+                `share_title` = #{fileShare.shareTitle},
+            </if>
+            <if test="null != fileShare.sharePwd and '' != fileShare.sharePwd">
+                `share_pwd` = #{fileShare.sharePwd},
+            </if>
+            <if test="null != fileShare.shareSalt and '' != fileShare.shareSalt">
+                `share_salt` = #{fileShare.shareSalt},
+            </if>
+            <if test="null != fileShare.fileCount and 0 != fileShare.fileCount">
+                `file_count` = #{fileShare.fileCount},
+            </if>
+            <if test="null != fileShare.browseCount and 0 != fileShare.browseCount">
+                `browse_count` = #{fileShare.browseCount},
+            </if>
+            <if test="null != fileShare.saveCount and 0 != fileShare.saveCount">
+                `save_count` = #{fileShare.saveCount},
+            </if>
+            <if test="null != fileShare.downloadCount and 0 != fileShare.downloadCount">
+                `download_count` = #{fileShare.downloadCount},
+            </if>
+            <if test="null != fileShare.expiration">
+                `expiration` = #{fileShare.expiration},
+            </if>
+            <if test="null != fileShare.expired">
+                `expired` = #{fileShare.expired},
+            </if>
+            <if test="null != fileShare.folder">
+                `folder` = #{fileShare.folder},
+            </if>
+            <if test="null != fileShare.status and '' != fileShare.status">
+                `status` = #{fileShare.status},
+            </if>
+        </trim>
+        <where>
+            `business_id` = #{fileShare.businessId}
+        </where>
+    </update>
+
+    <!-- 原子性服务，对指定的字段自增 -->
+    <update id="increase" flushCache="true">
+        UPDATE `file_share_${tableSuffix}`
+        <set>
+            `${fieldName}` = `${fieldName}` + 1
+        </set>
+        <where>
+            `share_id` = #{shareId};
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)查找文件分享信息 -->
+    <select id="getFileShare" resultType="com.doudoudrive.common.model.pojo.FileShare" resultMap="fileShareResultMap">
+        SELECT
+        <include refid="fileShare"/>
+        FROM `file_share_${tableSuffix}`
+        <where>
+            `business_id` = #{businessId};
+        </where>
+    </select>
+
+    <!-- 根据分享的短链接标识(shareId)批量查找文件分享信息 -->
+    <select id="listFileShare" resultType="com.doudoudrive.common.model.pojo.FileShare" resultMap="fileShareResultMap">
+        SELECT
+        <include refid="fileShare"/>
+        FROM `file_share_${tableSuffix}`
+        <where>
+            `share_id` IN
+            <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+</mapper>
