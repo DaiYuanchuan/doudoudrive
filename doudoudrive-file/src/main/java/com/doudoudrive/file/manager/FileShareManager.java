@@ -9,8 +9,10 @@ import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileCopyRequestDTO;
 import com.doudoudrive.file.model.dto.request.FileShareAnonymousRequestDTO;
+import com.doudoudrive.file.model.dto.request.FileShareSearchRequestDTO;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileShareAnonymousResponseDTO;
+import com.doudoudrive.file.model.dto.response.FileShareSearchResponseDTO;
 
 import java.util.List;
 
@@ -48,6 +50,15 @@ public interface FileShareManager {
      * @return 网盘文件分享链接匿名访问时的响应数据模型
      */
     Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest);
+
+    /**
+     * 文件分享信息搜索
+     *
+     * @param fileShareSearchRequest 文件分享数据搜索请求数据模型
+     * @param userinfo               当前登录的用户信息
+     * @return 文件分享数据搜索响应数据模型
+     */
+    FileShareSearchResponseDTO fileShareSearch(FileShareSearchRequestDTO fileShareSearchRequest, DiskUserModel userinfo);
 
     /**
      * 分享文件保存到我的

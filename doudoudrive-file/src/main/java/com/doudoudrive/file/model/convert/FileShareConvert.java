@@ -75,9 +75,11 @@ public interface FileShareConvert {
      * 将 FileShare(文件分享信息实体类) 类型转换为 FileShareModel(文件分享记录信息数据模型)
      *
      * @param fileShare 文件分享信息实体类
+     * @param shareSalt 用于计算分享文件key的盐值
      * @return 文件分享记录信息数据模型
      */
-    FileShareModel fileShareConvertFileShareModel(FileShare fileShare);
+    @Mapping(target = "shareSalt", source = "shareSalt")
+    FileShareModel fileShareConvertFileShareModel(FileShare fileShare, String shareSalt);
 
     /**
      * 将 FileShareModel(文件分享记录信息) 类型转换为 FileShareAnonymousResponseDTO(匿名用户访问分享链接时的响应数据模型)
