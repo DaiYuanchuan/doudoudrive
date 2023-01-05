@@ -39,7 +39,7 @@ public interface DiskFileModelConvert {
      * @param requestDTO 修改es用户文件信息时的请求数据模型
      * @return 用户文件实体信息ES数据模型
      */
-    DiskFileDTO updateElasticsearchDiskFileRequestConvertDiskFile(UpdateElasticsearchDiskFileRequestDTO requestDTO);
+    List<DiskFileDTO> updateElasticsearchDiskFileRequestConvertDiskFile(List<UpdateElasticsearchDiskFileRequestDTO> requestDTO);
 
     /**
      * 将List<SearchHit<DiskFileDTO>>(用户文件实体信息ES数据模型) 类型转换为 List<QueryElasticsearchDiskFileResponseDTO>(搜索es用户文件信息时的响应数据模型)

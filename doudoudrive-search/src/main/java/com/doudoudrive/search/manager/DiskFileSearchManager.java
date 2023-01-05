@@ -38,12 +38,14 @@ public interface DiskFileSearchManager {
     ByQueryResponse deleteDiskFile(List<String> businessId);
 
     /**
-     * 根据文件业务标识去更新用户文件信息
+     * 根据文件业务标识批量去更新用户文件信息
+     * <pre>
+     *     先更新库，然后再更新es里存的用户文件数据
+     * </pre>
      *
-     * @param id          用户系统内唯一标识
-     * @param diskFileDTO 用户文件实体信息ES数据模型
+     * @param diskFileList 用户文件实体信息ES数据模型
      */
-    void updateDiskFile(String id, DiskFileDTO diskFileDTO);
+    void updateDiskFile(List<DiskFileDTO> diskFileList);
 
     /**
      * 文件信息搜索，使用游标滚动翻页

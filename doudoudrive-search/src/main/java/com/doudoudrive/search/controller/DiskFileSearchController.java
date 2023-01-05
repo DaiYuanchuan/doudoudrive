@@ -85,14 +85,12 @@ public class DiskFileSearchController {
     @ResponseBody
     @OpLog(title = "更新用户文件信息", businessType = "ES用户文件信息查询服务")
     @PostMapping(value = "/search/file/update", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<String> updateElasticsearchDiskFile(@RequestBody @Valid UpdateElasticsearchDiskFileRequestDTO requestDTO,
+    public Result<String> updateElasticsearchDiskFile(@RequestBody @Valid UpdateBatchElasticsearchDiskFileRequestDTO requestDTO,
                                                       HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
-        // 需要更新的用户信息数据模型
-        DiskFileDTO diskFile = diskFileModelConvert.updateElasticsearchDiskFileRequestConvertDiskFile(requestDTO);
-        // 构建es更新请求
-        diskFileSearchManager.updateDiskFile(diskFile.getBusinessId(), diskFile);
+        // 构建es批量更新请求
+        diskFileSearchManager.updateDiskFile(diskFileModelConvert.updateElasticsearchDiskFileRequestConvertDiskFile(requestDTO.getFileInfo()));
         return Result.ok();
     }
 

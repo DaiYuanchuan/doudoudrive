@@ -1,7 +1,6 @@
 package com.doudoudrive.search.manager.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.OrderByBuilder;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
@@ -11,6 +10,7 @@ import com.doudoudrive.common.util.lang.ReflectUtil;
 import com.doudoudrive.search.manager.DiskFileSearchManager;
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
 import com.doudoudrive.search.util.ElasticUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -104,19 +103,26 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
 
     /**
      * 根据文件业务标识去更新用户文件信息
+     * <pre>
+     *     先更新库，然后再更新es里存的用户文件数据
+     * </pre>
      *
-     * @param id          用户系统内唯一标识
-     * @param diskFileDTO 用户文件实体信息ES数据模型
+     * @param diskFileList 用户文件实体信息ES数据模型
      */
     @Override
-    public void updateDiskFile(String id, DiskFileDTO diskFileDTO) {
-        // 将用户文件信息转为map
-        Map<String, Object> diskFileMap = BeanUtil.beanToMap(diskFileDTO, Boolean.FALSE, Boolean.TRUE);
-        // 构建更新的es请求
-        restTemplate.update(UpdateQuery
-                .builder(id)
-                .withDocument(Document.from(diskFileMap))
-                .build(), IndexCoordinates.of(ConstantConfig.IndexName.DISK_FILE));
+    public void updateDiskFile(List<DiskFileDTO> diskFileList) {
+        List<UpdateQuery> queries = Lists.newArrayListWithExpectedSize(diskFileList.size());
+        for (DiskFileDTO diskFile : diskFileList) {
+            // 将用户文件信息转为map
+            Map<String, Object> diskFileMap = BeanUtil.beanToMap(diskFile, Boolean.FALSE, Boolean.TRUE);
+            queries.add(UpdateQuery
+                    .builder(diskFile.getBusinessId())
+                    .withDocument(Document.from(diskFileMap))
+                    .build());
+        }
+
+        // 构建批量更新的es请求
+        restTemplate.bulkUpdate(queries, DiskFileDTO.class);
     }
 
     /**
