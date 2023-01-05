@@ -38,13 +38,13 @@ public interface DiskFileSearchFeignClient {
     Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
-     * 更新es中保存的用户文件信息
+     * 批量更新es中保存的用户文件信息
      *
-     * @param requestDTO 更新es用户文件信息时的请求数据模型
+     * @param requestDTO 批量更新es用户文件信息时的请求数据模型
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/update", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<String> updateElasticsearchDiskFile(@RequestBody UpdateElasticsearchDiskFileRequestDTO requestDTO);
+    Result<String> updateElasticsearchDiskFile(@RequestBody UpdateBatchElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 文件信息搜索，支持翻页

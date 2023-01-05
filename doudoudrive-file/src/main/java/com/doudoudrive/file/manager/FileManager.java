@@ -1,10 +1,7 @@
 package com.doudoudrive.file.manager;
 
 import cn.hutool.crypto.symmetric.SymmetricCrypto;
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
-import com.doudoudrive.common.model.dto.model.DiskFileModel;
-import com.doudoudrive.common.model.dto.model.FileAuthModel;
-import com.doudoudrive.common.model.dto.model.FileReviewConfig;
+import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
@@ -82,6 +79,15 @@ public interface FileManager {
      */
     Map<String, String> batchCopyFile(String targetUserId, String targetFolderId, Map<String, String> treeStructureMap,
                                       List<DiskFile> preCopyFileList, String totalDiskCapacity);
+
+    /**
+     * 将指定的文件移动到目标文件夹
+     *
+     * @param businessId     需要移动的文件标识
+     * @param targetFolderId 目标文件夹标识
+     * @param userinfo       当前登录的用户信息
+     */
+    void move(List<String> businessId, String targetFolderId, DiskUserModel userinfo);
 
     /**
      * 文件信息翻页搜索

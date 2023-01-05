@@ -241,6 +241,30 @@ public interface DiskFileConvert {
     QueryElasticsearchDiskFileRequestDTO fileSearchRequestConvertQueryElasticRequest(FileSearchRequestDTO requestDTO, String userId);
 
     /**
+     * 将 DiskFile (用户文件实体类) 类型转换为 DiskFile(用户文件实体类)，但是只保留了部分字段，用于更新文件信息
+     * 该方法主要用于移动文件信息时，将数据转换为用于更新文件信息的数据
+     *
+     * @param diskFile     用户文件实体类
+     * @param fileParentId 文件父级标识
+     * @return 用户文件实体类
+     */
+    @Mappings({
+            @Mapping(target = "autoId", ignore = true),
+            @Mapping(target = "fileName", ignore = true),
+            @Mapping(target = "fileParentId", source = "fileParentId"),
+            @Mapping(target = "fileSize", ignore = true),
+            @Mapping(target = "fileMimeType", ignore = true),
+            @Mapping(target = "fileEtag", ignore = true),
+            @Mapping(target = "fileFolder", ignore = true),
+            @Mapping(target = "forbidden", ignore = true),
+            @Mapping(target = "collect", ignore = true),
+            @Mapping(target = "status", ignore = true),
+            @Mapping(target = "createTime", ignore = true),
+            @Mapping(target = "updateTime", ignore = true)
+    })
+    DiskFile diskFileConvertMoveRequest(DiskFile diskFile, String fileParentId);
+
+    /**
      * 将DiskFile(用户文件模块实体类) 类型转换为 UpdateElasticsearchDiskFileRequestDTO(修改es用户文件信息时的请求数据模型)
      *
      * @param file 用户文件模块实体类

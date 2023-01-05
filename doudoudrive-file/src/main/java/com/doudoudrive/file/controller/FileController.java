@@ -422,6 +422,25 @@ public class FileController {
 
     @SneakyThrows
     @ResponseBody
+    @OpLog(title = "移动", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPDATE)
+    @PostMapping(value = "/move", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<String> move(@RequestBody @Valid MoveFileRequestDTO requestDTO,
+                               HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 将指定的文件移动到目标文件夹
+        fileManager.move(requestDTO.getBusinessId(), requestDTO.getTargetFolderId(), userinfo);
+
+        return Result.ok();
+    }
+
+    @SneakyThrows
+    @ResponseBody
     @OpLog(title = "搜索", businessType = "文件系统")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SELECT)
     @PostMapping(value = "/search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)

@@ -16,10 +16,7 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
-import com.doudoudrive.common.model.dto.model.DiskFileModel;
-import com.doudoudrive.common.model.dto.model.FileAuthModel;
-import com.doudoudrive.common.model.dto.model.FileReviewConfig;
+import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.*;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
@@ -45,6 +42,7 @@ import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.convert.FileRecordConvert;
 import com.doudoudrive.file.model.dto.request.CreateFileRollbackConsumerRequestDTO;
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
@@ -318,8 +316,11 @@ public class FileManagerImpl implements FileManager {
                 .build());
         if (result > NumberConstant.INTEGER_ZERO) {
             file.setFileName(name);
+            file.setUpdateTime(new Date());
             // 更新es信息
-            Result<String> updateElasticsearchResult = diskFileSearchFeignClient.updateElasticsearchDiskFile(diskFileConvert.diskFileConvertUpdateElasticRequest(file));
+            Result<String> updateElasticsearchResult = diskFileSearchFeignClient.updateElasticsearchDiskFile(UpdateBatchElasticsearchDiskFileRequestDTO.builder()
+                    .fileInfo(Collections.singletonList(diskFileConvert.diskFileConvertUpdateElasticRequest(file)))
+                    .build());
             if (Result.isNotSuccess(updateElasticsearchResult)) {
                 BusinessExceptionUtil.throwBusinessException(updateElasticsearchResult);
             }
@@ -464,6 +465,47 @@ public class FileManagerImpl implements FileManager {
 
         // 返回本次循环中的用来保存树形结构的Map
         return nodeMap;
+    }
+
+    /**
+     * 将指定的文件移动到目标文件夹
+     *
+     * @param businessId     需要移动的文件标识
+     * @param targetFolderId 目标文件夹标识
+     * @param userinfo       当前登录的用户信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_TRANSACTION_MANAGER)
+    public void move(List<String> businessId, String targetFolderId, DiskUserModel userinfo) {
+        // 根据传入的文件业务标识查找是否存在对应的文件信息
+        List<DiskFile> fileIdSearchResult = this.fileIdSearch(userinfo.getBusinessId(), businessId);
+        if (CollectionUtil.isEmpty(fileIdSearchResult)) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_NOT_FOUND);
+        }
+
+        // 校验目标文件夹是否存在
+        this.checkTargetFolder(userinfo.getBusinessId(), targetFolderId);
+
+        // 文件名重复校验机制，如果存在重复的文件名，则会重置原始文件名
+        this.verifyRepeat(targetFolderId, userinfo.getBusinessId(), fileIdSearchResult);
+
+        // 构建更新elastic中文件信息的参数
+        List<UpdateElasticsearchDiskFileRequestDTO> updateElasticFileRequest = Lists.newArrayListWithExpectedSize(fileIdSearchResult.size());
+
+        // 批量更新数据库中的文件父级标识
+        diskFileService.updateBatch(fileIdSearchResult.stream()
+                // 重新定义所有的文件父级标识
+                .map(fileInfo -> diskFileConvert.diskFileConvertMoveRequest(fileInfo, targetFolderId))
+                .peek(fileInfo -> updateElasticFileRequest.add(diskFileConvert.diskFileConvertUpdateElasticRequest(fileInfo)))
+                .toList());
+
+        // 更新es信息
+        Result<String> updateElasticsearchResult = diskFileSearchFeignClient.updateElasticsearchDiskFile(UpdateBatchElasticsearchDiskFileRequestDTO.builder()
+                .fileInfo(updateElasticFileRequest)
+                .build());
+        if (Result.isNotSuccess(updateElasticsearchResult)) {
+            BusinessExceptionUtil.throwBusinessException(updateElasticsearchResult);
+        }
     }
 
     /**
