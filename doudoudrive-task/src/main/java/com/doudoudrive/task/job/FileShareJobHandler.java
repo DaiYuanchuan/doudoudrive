@@ -2,7 +2,6 @@ package com.doudoudrive.task.job;
 
 import com.doudoudrive.commonservice.service.FileShareService;
 import com.xxl.job.core.biz.model.ReturnT;
-import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +33,9 @@ public class FileShareJobHandler {
     @XxlJob(value = "updateExpiredShareJobHandler")
     public ReturnT<String> updateExpiredShareJobHandler() {
         // 打印执行日志
-        XxlJobHelper.log("updateExpiredShareJobHandler start...");
+        log.info("updateExpiredShareJobHandler start...");
         fileShareService.updateExpiredShare();
-        XxlJobHelper.log("updateExpiredShareJobHandler end...");
+        log.info("updateExpiredShareJobHandler end...");
         return ReturnT.SUCCESS;
     }
 }
