@@ -69,8 +69,8 @@
         <!-- apache的commons系列工具包 -->
         <commons-io.version>2.11.0</commons-io.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <commons-net.version>3.8.0</commons-net.version>
-        <httpmime.version>4.5.13</httpmime.version>
+        <commons-net.version>3.9.0</commons-net.version>
+        <httpmime.version>4.5.14</httpmime.version>
         <!-- shiro权限框架版本号 -->
         <shiro.version>1.9.1</shiro.version>
         <!-- lombok 版本号 -->
@@ -79,7 +79,7 @@
         <mapstruct.version>1.5.2.Final</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
-        <hutool.version>5.8.10</hutool.version>
+        <hutool.version>5.8.11</hutool.version>
         <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
         <zstd.version>1.5.2-5</zstd.version>
         <!-- protostuff序列化工具 -->
