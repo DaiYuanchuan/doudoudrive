@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -104,6 +105,15 @@ public class FileShareServiceImpl implements FileShareService {
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.FILE_SHARE);
         // 对指定的字段自增
         fileShareDao.increase(shareId, fieldName.getFieldName(), tableSuffix);
+    }
+
+    /**
+     * 更新所有过期的分享链接
+     */
+    @Override
+    public void updateExpiredShare() {
+        List<String> tableSuffixList = SequenceUtil.tableSuffixList(ConstantConfig.TableSuffix.FILE_SHARE);
+        fileShareDao.updateExpiredShare(LocalDateTime.now(), tableSuffixList);
     }
 
     /**

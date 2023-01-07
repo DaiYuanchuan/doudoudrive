@@ -143,6 +143,19 @@
         </where>
     </update>
 
+    <!-- 更新所有过期的分享链接 -->
+    <update id="updateExpiredShare" flushCache="true">
+        <foreach collection="tableSuffix" index="index" item="item">
+            UPDATE `file_share_${item}`
+            <set>
+                `expired` = '1'
+            </set>
+            <where>
+                `expired` = '0' AND `expiration` &lt;= #{now};
+            </where>
+        </foreach>
+    </update>
+
     <!-- 根据业务id(businessId)查找文件分享信息 -->
     <select id="getFileShare" resultType="com.doudoudrive.common.model.pojo.FileShare" resultMap="fileShareResultMap">
         SELECT

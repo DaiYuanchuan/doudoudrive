@@ -9,7 +9,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 /**
  * <p>序列工具、用于获取表中唯一主键id</p>
@@ -138,6 +140,16 @@ public class SequenceUtil {
 
         // 对取余结果 +1 后补零
         return String.format(DOUBLE_DIGIT_ZERO_FILLING, complement.add(BigDecimal.ONE).longValue());
+    }
+
+    /**
+     * 指定分表数量，获取所有表后缀
+     *
+     * @param remainder 分表余数
+     * @return 所有的表后缀
+     */
+    public static List<String> tableSuffixList(Integer remainder) {
+        return IntStream.rangeClosed(NumberConstant.INTEGER_ONE, remainder).mapToObj(i -> String.format(DOUBLE_DIGIT_ZERO_FILLING, i)).toList();
     }
 
     /**

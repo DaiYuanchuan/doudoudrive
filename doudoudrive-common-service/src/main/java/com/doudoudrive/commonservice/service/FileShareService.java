@@ -48,6 +48,11 @@ public interface FileShareService {
     void increase(String shareId, ConstantConfig.FileShareIncreaseEnum fieldName, String userId);
 
     /**
+     * 更新所有过期的分享链接
+     */
+    void updateExpiredShare();
+
+    /**
      * 查找文件分享信息
      *
      * @param businessId 根据业务id(businessId)查找

@@ -6,6 +6,7 @@ import com.doudoudrive.commonservice.constant.DataSourceEnum;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -54,6 +55,15 @@ public interface FileShareDao {
      * @return 返回修改的条数
      */
     Integer increase(@Param("shareId") String shareId, @Param("fieldName") String fieldName, @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 更新所有过期的分享链接
+     *
+     * @param now         当前时间
+     * @param tableSuffix 所有的分表后缀
+     * @return 返回修改的条数
+     */
+    Integer updateExpiredShare(@Param("now") LocalDateTime now, @Param("tableSuffix") List<String> tableSuffix);
 
     /**
      * 查找文件分享信息
