@@ -1127,6 +1127,31 @@ public interface ConstantConfig {
     }
 
     /**
+     * 文件分享状态类型美枚举
+     */
+    @Getter
+    enum FileShareStatusEnum {
+        /**
+         * 正常
+         */
+        NORMAL("0"),
+
+        /**
+         * 关闭
+         */
+        CLOSE("1");
+
+        /**
+         * 文件分享状态
+         */
+        private final String status;
+
+        FileShareStatusEnum(String status) {
+            this.status = status;
+        }
+    }
+
+    /**
      * 最多一次性处理的任务数量
      */
     Long MAX_BATCH_TASKS_QUANTITY = 400L;

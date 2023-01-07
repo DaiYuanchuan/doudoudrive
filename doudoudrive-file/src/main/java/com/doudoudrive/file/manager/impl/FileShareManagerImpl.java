@@ -211,17 +211,14 @@ public class FileShareManagerImpl implements FileShareManager {
     public Result<FileShareAnonymousResponseDTO> anonymous(FileShareAnonymousRequestDTO anonymousRequest) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
         FileShareModel content = this.getShareContent(anonymousRequest.getShareId());
-        if (content == null) {
-            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
-        }
+
+        // 分享链接基础信息校验
+        FileShareAnonymousResponseDTO response = this.basicInfoCheck(content, anonymousRequest.getSharePwd());
 
         // 是否需要更新当前链接的浏览次数
         if (anonymousRequest.getUpdateBrowseCount()) {
             this.increase(content.getShareId(), ConstantConfig.FileShareIncreaseEnum.BROWSE_COUNT, content.getUserId());
         }
-
-        // 分享链接基础信息校验
-        FileShareAnonymousResponseDTO response = this.basicInfoCheck(content, anonymousRequest.getSharePwd());
 
         // 构建网盘文件分享记录详情信息数据列表
         return Result.ok(this.buildAnonymousResponse(anonymousRequest, response, content));
@@ -313,12 +310,6 @@ public class FileShareManagerImpl implements FileShareManager {
     public void copy(FileCopyRequestDTO fileCopyRequest, DiskUserModel userinfo) {
         // 根据短链接标识查询分享记录信息，获取到分享记录信息
         FileShareModel content = this.getShareContent(fileCopyRequest.getShareId());
-        if (content == null) {
-            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
-        }
-
-        // 保存、转存次数自增
-        this.increase(content.getShareId(), ConstantConfig.FileShareIncreaseEnum.SAVE_COUNT, content.getUserId());
 
         // 分享链接基础信息校验
         this.basicInfoCheck(content, fileCopyRequest.getSharePwd());
@@ -359,6 +350,9 @@ public class FileShareManagerImpl implements FileShareManager {
                 fileFolderList.add(fileInfo.getBusinessId());
             }
         }
+
+        // 保存、转存次数自增
+        this.increase(content.getShareId(), ConstantConfig.FileShareIncreaseEnum.SAVE_COUNT, content.getUserId());
 
         // 用户总磁盘容量
         String totalDiskCapacity = userinfo.getUserAttr().getOrDefault(ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.getParam(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY.getDefaultValue());
@@ -532,7 +526,7 @@ public class FileShareManagerImpl implements FileShareManager {
 
         // 构建文件分享详情信息数据模型
         FileSearchResponseDTO fileSearchResponse = fileManager.accessUrl(shareAuthModel, queryElasticResponse.getData(), consumer ->
-                // 生成分享时的文件key值
+                // 生成分享时的文件key值，这里是用来构建文件访问时的鉴权签名的
                 consumer.setShareKey(DigestUtils.md5DigestAsHex((content.getShareSalt() + consumer.getFileId()).getBytes())));
         List<FileShareDetailModel> fileShareDetailModelList = new ArrayList<>(queryElasticResponse.getData().size());
         for (QueryElasticsearchDiskFileResponseDTO diskFile : queryElasticResponse.getData()) {
@@ -584,9 +578,10 @@ public class FileShareManagerImpl implements FileShareManager {
      * 分享链接基础信息校验，校验失败会抛出业务异常
      * <pre>
      *     1.校验分享链接是否存在
-     *     2.校验分享链接是否过期
-     *     3.校验分享提取码是否正确
-     *     4.校验分享中文件key值是否正确
+     *     2.校验分享链接是否被禁用
+     *     3.校验分享链接是否过期
+     *     4.校验分享提取码是否正确
+     *     5.校验分享中文件key值是否正确
      * </pre>
      *
      * @param content  网盘文件分享记录信息数据模型
@@ -594,6 +589,15 @@ public class FileShareManagerImpl implements FileShareManager {
      * @return 返回匿名分享的文件响应数据模型
      */
     private FileShareAnonymousResponseDTO basicInfoCheck(FileShareModel content, String sharePwd) {
+        if (content == null) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_ID_INVALID);
+        }
+
+        // 文件分享链接被屏蔽时抛出异常
+        if (ConstantConfig.FileShareStatusEnum.CLOSE.getStatus().equals(content.getStatus())) {
+            BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.FILE_SHARE_BLOCKED);
+        }
+
         // 判断分享记录信息是否已经过期
         if (content.getExpired()) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SHARE_FILE_EXPIRE);

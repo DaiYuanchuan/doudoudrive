@@ -108,6 +108,7 @@ public interface FileShareConvert {
             @Mapping(target = "businessId", source = "diskFile.businessId"),
             @Mapping(target = "createTime", expression = "java(DateUtils.toLocalDateTime(diskFile.getCreateTime()))"),
             @Mapping(target = "updateTime", expression = "java(DateUtils.toLocalDateTime(diskFile.getUpdateTime()))"),
+            @Mapping(target = "key", expression = "java(DigestUtils.md5DigestAsHex((share.getShareSalt()+diskFile.getBusinessId()).getBytes()))")
     })
     FileShareDetailModel diskFileConvertShareDetail(DiskFileModel diskFile, FileShareModel share);
 }

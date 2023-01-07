@@ -789,8 +789,10 @@ public class FileManagerImpl implements FileManager {
     public DiskFileModel accessUrl(FileAuthModel authModel, DiskFileModel fileModel,
                                    QiNiuUploadConfig config, FileReviewConfig reviewConfig,
                                    Consumer<FileAuthModel> consumer) {
-        // 不对文件夹进行访问地址赋值
-        if (fileModel.getFileFolder() == null || fileModel.getFileFolder()) {
+        // 不对文件夹、被屏蔽的文件进行访问地址赋值
+        if (fileModel.getFileFolder() == null
+                || fileModel.getFileFolder()
+                || fileModel.getForbidden()) {
             return fileModel;
         }
 

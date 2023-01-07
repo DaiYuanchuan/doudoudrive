@@ -24,7 +24,7 @@ import java.util.List;
 public class FileAuthModel implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4040219110771933342L;
 
     /**
      * 当前资源所属用户id
