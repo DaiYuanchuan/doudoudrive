@@ -81,6 +81,27 @@ public class RedisTemplateClient {
     }
 
     /**
+     * 获取指定key对应value的以秒为单位的过期时间
+     *
+     * @param key 键
+     * @return 以秒为单位的过期时间，如果 key 不存在时返回 -2，没有设置过期时间时返回 -1
+     */
+    public Long ttl(String key) {
+        return redisTemplate.getExpire(key);
+    }
+
+    /**
+     * 获取指定key对应value的以秒为单位的过期时间
+     *
+     * @param key      键
+     * @param timeUnit 时间单位，秒、毫秒
+     * @return 以秒为单位的过期时间，如果 key 不存在或没有设置过期时间，则返回 -1
+     */
+    public Long ttl(String key, TimeUnit timeUnit) {
+        return redisTemplate.getExpire(key, timeUnit);
+    }
+
+    /**
      * 普通缓存放入
      *
      * @param key   键
