@@ -482,7 +482,8 @@ INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, 
 	"sslEnable": true,
 	"socketFactoryClass": "javax.net.ssl.SSLSocketFactory",
 	"timeout": 0,
-	"auth": true
+	"auth": true,
+	"sslProtocols": "TLSv1.2 TLSv1.3"
 }');
 INSERT INTO `cloud-config`.`disk_dictionary` (`business_id`, `dictionary_name`, `dictionary_describe`, `dictionary_content`) VALUES ('22042716251116510479117800011980439', 'throughput', '短信、邮件最大吞吐量配置', '{
 	"mail": 10,
