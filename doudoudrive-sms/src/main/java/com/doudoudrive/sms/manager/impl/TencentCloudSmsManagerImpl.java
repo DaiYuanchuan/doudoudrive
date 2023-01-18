@@ -35,8 +35,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -183,7 +183,7 @@ public class TencentCloudSmsManagerImpl implements SmsManager {
 
         // 构建sms发送记录
         SmsSendRecord smsSendRecord = new SmsSendRecord();
-        smsSendRecord.setSmsSendTime(new Date());
+        smsSendRecord.setSmsSendTime(LocalDateTime.now());
         smsSendRecord.setBusinessId(smsSendRecordModel.getBusinessId());
         smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.getStatus());
 

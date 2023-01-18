@@ -11,6 +11,8 @@ import com.doudoudrive.commonservice.service.SmsSendRecordService;
 import com.doudoudrive.sms.manager.SmsManager;
 import com.doudoudrive.sms.model.dto.SmsCache;
 
+import java.time.LocalDateTime;
+
 /**
  * <p>通讯平台常用工具类</p>
  * <p>2022-05-04 21:52</p>
@@ -48,6 +50,7 @@ public class SmsUtil {
         // 构建消息发送记录
         sendRecord.setSmsTitle(String.format("验证码：%s", securityCode));
         sendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.WAIT.getStatus());
+        sendRecord.setSmsSendTime(LocalDateTime.now());
         SmsSendRecordModel sendRecordModel = recordService.insert(sendRecord);
 
         // 发送验证码

@@ -26,8 +26,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -127,7 +127,7 @@ public class AliYunSmsManagerImpl implements SmsManager {
 
         // 构建sms发送记录
         SmsSendRecord smsSendRecord = new SmsSendRecord();
-        smsSendRecord.setSmsSendTime(new Date());
+        smsSendRecord.setSmsSendTime(LocalDateTime.now());
         smsSendRecord.setBusinessId(smsSendRecordModel.getBusinessId());
         smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.getStatus());
 

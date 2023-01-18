@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * <p>SMS发送记录实体类</p>
@@ -74,15 +74,15 @@ public class SmsSendRecord implements Serializable {
     /**
      * 消息发送时间
      */
-    private Date smsSendTime;
+    private LocalDateTime smsSendTime;
 
     /**
      * 创建时间
      */
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
-    private Date updateTime;
+    private LocalDateTime updateTime;
 }

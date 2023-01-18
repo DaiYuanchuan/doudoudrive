@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -83,7 +83,7 @@ public class MailManagerImpl implements SmsManager {
         // 构建邮件发送记录
         SmsSendRecord mailSendRecord = new SmsSendRecord();
         mailSendRecord.setBusinessId(smsSendRecordModel.getBusinessId());
-        mailSendRecord.setSmsSendTime(new Date());
+        mailSendRecord.setSmsSendTime(LocalDateTime.now());
 
         try {
             // 加载据模型文件，同时对指定内容进行渲染
