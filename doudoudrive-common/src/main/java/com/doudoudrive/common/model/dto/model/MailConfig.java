@@ -68,4 +68,9 @@ public class MailConfig implements Serializable {
      */
     private Boolean auth;
 
+    /**
+     * SSL协议，多个协议用空格分隔
+     */
+    private String sslProtocols;
+
 }
