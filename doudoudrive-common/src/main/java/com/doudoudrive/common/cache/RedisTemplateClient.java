@@ -196,6 +196,20 @@ public class RedisTemplateClient {
     }
 
     /**
+     * setNX key value 命令用于设置指定 key 的值，同时设置过期时间
+     * 只在键 key 不存在的情况下， 将键 key 的值设置为 value
+     *
+     * @param key     键
+     * @param value   值
+     * @param timeout 过期时间
+     * @param unit    时间单位
+     * @return 成功返回1(true)，失败返回0(false)
+     */
+    public Boolean setNx(String key, Object value, long timeout, TimeUnit unit) {
+        return redisTemplate.opsForValue().setIfAbsent(key, value, timeout, unit);
+    }
+
+    /**
      * incrBy key increment 命令，原子性操作将 key 中储存的数字值增加 increment
      *
      * @param key   键
