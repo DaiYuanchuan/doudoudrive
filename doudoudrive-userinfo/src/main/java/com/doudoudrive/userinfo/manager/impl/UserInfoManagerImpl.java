@@ -9,6 +9,7 @@ import com.doudoudrive.common.model.dto.model.SecretSaltingInfo;
 import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
+import com.doudoudrive.common.model.pojo.SysUserRole;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
@@ -21,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <p>用户信息服务的通用业务处理层接口实现</p>
@@ -104,8 +107,17 @@ public class UserInfoManagerImpl implements UserInfoManager {
         diskUserService.insert(diskUserInfo);
         // 为新用户绑定用户属性信息
         diskUserAttrService.insertBatch(ConstantConfig.UserAttrEnum.builderList(diskUserInfo.getBusinessId()));
-        // 为新用户绑定默认权限信息
-        sysUserRoleService.insertBatch(RoleCodeEnum.builderList(diskUserInfo.getBusinessId(), Boolean.TRUE));
+        // 为新用户绑定默认角色信息
+        List<SysUserRole> roleList = RoleCodeEnum.builderList(diskUserInfo.getBusinessId(), Boolean.TRUE);
+        // 如果手机号不为空，则为新用户绑定可分享的角色
+        if (StringUtils.isNotBlank(saveUserInfoRequestDTO.getUserTel())) {
+            roleList.add(SysUserRole.builder()
+                    .userId(diskUserInfo.getBusinessId())
+                    .roleCode(RoleCodeEnum.FILE_SHARE.getRoleCode())
+                    .remarks(RoleCodeEnum.FILE_SHARE.getAuthName())
+                    .build());
+        }
+        sysUserRoleService.insertBatch(roleList);
 
         // 获取表格后缀
         String tableSuffix = SequenceUtil.tableSuffix(diskUserInfo.getBusinessId(), ConstantConfig.TableSuffix.USERINFO);
