@@ -72,7 +72,7 @@
         <commons-net.version>3.9.0</commons-net.version>
         <httpmime.version>4.5.14</httpmime.version>
         <!-- shiro权限框架版本号 -->
-        <shiro.version>1.9.1</shiro.version>
+        <shiro.version>1.11.0</shiro.version>
         <!-- lombok 版本号 -->
         <lombok.version>1.18.24</lombok.version>
         <!-- mapstruct 版本号 -->
@@ -100,6 +100,7 @@
         <xnio-api.version>3.8.8.Final</xnio-api.version>
         <!-- jackson-databind 依赖包版本 -->
         <jackson-databind.version>2.14.0</jackson-databind.version>
+        <spring-web.version>6.0.4</spring-web.version>
         <!-- spring-data-elasticsearch依赖包版本 -->
         <spring-data-elasticsearch.version>4.4.3</spring-data-elasticsearch.version>
         <!-- nacos客户端依赖包版本 -->
@@ -181,7 +182,25 @@
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-webmvc</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring-web.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring-web.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
