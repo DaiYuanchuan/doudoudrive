@@ -177,7 +177,30 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
         // 生成锁的uuid
         String uuid = IdUtil.fastSimpleUUID();
         try {
-            this.lock(name, uuid, NumberConstant.INTEGER_MINUS_ONE, null, Boolean.FALSE);
+            this.lock(name, uuid, NumberConstant.INTEGER_MINUS_ONE, null);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException();
+        }
+        return uuid;
+    }
+
+    /**
+     * 获取定义{@code leaseTime}的锁，如果需要，等待直到锁可用，
+     * 锁定将在定义{@code leaseTime} 间隔后自动释放。
+     *
+     * @param name      锁的名称，缓存的key
+     * @param leaseTime 获取锁后持有锁的最大时间
+     *                  如果它还没有被释放，调用{@code unlock}方法
+     *                  如果{@code leaseTime}为-1，则持有锁直到显式解锁为止
+     * @param unit      时间单位
+     * @return 锁的value，用于释放锁
+     */
+    @Override
+    public String lock(String name, long leaseTime, TimeUnit unit) {
+        // 生成锁的uuid
+        String uuid = IdUtil.fastSimpleUUID();
+        try {
+            lock(name, uuid, leaseTime, unit);
         } catch (InterruptedException e) {
             throw new IllegalStateException();
         }
@@ -255,10 +278,9 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
      * @param value     锁的value，用于释放锁
      * @param leaseTime 持有锁的时间
      * @param unit      锁的过期时间单位
-     * @param interrupt 线程是否可被中断
      * @throws InterruptedException 线程被中断异常
      */
-    private void lock(String name, String value, long leaseTime, TimeUnit unit, boolean interrupt) throws InterruptedException {
+    private void lock(String name, String value, long leaseTime, TimeUnit unit) throws InterruptedException {
         // 获取当前需要加锁的线程id
         long threadId = Thread.currentThread().getId();
         // 尝试加锁，加锁成功返回null，失败返回锁的剩余超时时间
@@ -285,36 +307,22 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
 
                 // 获取锁失败，挂起当前线程等待锁的释放
                 if (ttl >= NumberConstant.INTEGER_ZERO) {
-                    try {
-                        // 尝试获取许可信号，如果获取不到，则阻塞当前线程，如果在获得许可证之前等待时间已过，则返回false
-                        latch.tryAcquire(ttl, TimeUnit.MILLISECONDS);
-                    } catch (InterruptedException e) {
-                        if (interrupt) {
-                            throw e;
+                    // 尝试获取许可信号，如果获取不到，则阻塞当前线程，如果在获得许可证之前等待时间已过，则返回false
+                    if (!latch.tryAcquire(ttl, TimeUnit.MILLISECONDS)) {
+                        // 等待时间已过，尝试再次获取锁
+                        ttl = tryAcquireLock(name, value, leaseTime, unit, threadId);
+                        // 获取锁成功，退出循环
+                        if (ttl == null) {
+                            break;
                         }
-                        latch.tryAcquire(ttl, TimeUnit.MILLISECONDS);
                     }
                 } else {
-                    if (interrupt) {
-                        latch.acquire();
-                    } else {
-                        latch.acquireUninterruptibly();
-                    }
+                    latch.acquireUninterruptibly();
                 }
             }
         } finally {
             // 因为是同步操作，所以无论加锁成功或失败，都要释放许可
-            latch.release();
-            ENTRIES.compute(name, (key, entryList) -> {
-                if (CollectionUtil.isEmpty(entryList)) {
-                    return null;
-                }
-                entryList.removeIf(redisLockEntry -> redisLockEntry.equals(latch));
-                if (CollectionUtil.isEmpty(entryList)) {
-                    return null;
-                }
-                return entryList;
-            });
+            this.unsubscribe(name, latch);
         }
     }
 
@@ -352,6 +360,28 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
             }
         }
         return ttl;
+    }
+
+    /**
+     * 释放锁的许可
+     *
+     * @param name  锁的名称
+     * @param latch 许可信号
+     */
+    private void unsubscribe(String name, Semaphore latch) {
+        // 释放许可
+        latch.release();
+        // 从map中移除许可
+        ENTRIES.compute(name, (key, entryList) -> {
+            if (CollectionUtil.isEmpty(entryList)) {
+                return null;
+            }
+            entryList.removeIf(redisLockEntry -> redisLockEntry.equals(latch));
+            if (CollectionUtil.isEmpty(entryList)) {
+                return null;
+            }
+            return entryList;
+        });
     }
 
     /**
