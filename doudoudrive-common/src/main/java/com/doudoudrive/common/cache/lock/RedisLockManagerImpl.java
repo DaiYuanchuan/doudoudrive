@@ -176,12 +176,23 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
     public String lock(String name) {
         // 生成锁的uuid
         String uuid = IdUtil.fastSimpleUUID();
+        this.lock(name, uuid);
+        return uuid;
+    }
+
+    /**
+     * 获取锁，如果锁不可用，则当前线程出于线程调度的目的将被禁用，并处于休眠状态，直到获得锁。
+     *
+     * @param name  锁的名称，缓存的key
+     * @param value 自定义锁的value，可用于重入锁
+     */
+    @Override
+    public void lock(String name, String value) {
         try {
-            this.lock(name, uuid, NumberConstant.INTEGER_MINUS_ONE, null);
+            this.acquireLock(name, value, NumberConstant.INTEGER_MINUS_ONE, null);
         } catch (InterruptedException e) {
             throw new IllegalStateException();
         }
-        return uuid;
     }
 
     /**
@@ -199,12 +210,28 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
     public String lock(String name, long leaseTime, TimeUnit unit) {
         // 生成锁的uuid
         String uuid = IdUtil.fastSimpleUUID();
+        this.lock(name, uuid, leaseTime, unit);
+        return uuid;
+    }
+
+    /**
+     * 获取定义{@code leaseTime}的锁，如果需要，等待直到锁可用，
+     * 锁定将在定义{@code leaseTime} 间隔后自动释放。
+     *
+     * @param name      锁的名称，缓存的key
+     * @param value     自定义锁的value，可用于重入锁
+     * @param leaseTime 获取锁后持有锁的最大时间
+     *                  如果它还没有被释放，调用{@code unlock}方法
+     *                  如果{@code leaseTime}为-1，则持有锁直到显式解锁为止
+     * @param unit      时间单位
+     */
+    @Override
+    public void lock(String name, String value, long leaseTime, TimeUnit unit) {
         try {
-            lock(name, uuid, leaseTime, unit);
+            this.acquireLock(name, value, leaseTime, unit);
         } catch (InterruptedException e) {
             throw new IllegalStateException();
         }
-        return uuid;
     }
 
     /**
@@ -280,7 +307,7 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
      * @param unit      锁的过期时间单位
      * @throws InterruptedException 线程被中断异常
      */
-    private void lock(String name, String value, long leaseTime, TimeUnit unit) throws InterruptedException {
+    private void acquireLock(String name, String value, long leaseTime, TimeUnit unit) throws InterruptedException {
         // 获取当前需要加锁的线程id
         long threadId = Thread.currentThread().getId();
         // 尝试加锁，加锁成功返回null，失败返回锁的剩余超时时间
