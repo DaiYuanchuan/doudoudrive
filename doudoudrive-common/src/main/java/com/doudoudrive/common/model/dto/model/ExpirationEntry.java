@@ -67,10 +67,6 @@ public class ExpirationEntry {
         return THREAD_IDS.keySet().iterator().next();
     }
 
-    public synchronized Map<Long, Integer> getThreadIds() {
-        return THREAD_IDS;
-    }
-
     /**
      * 删除一个线程id
      *
