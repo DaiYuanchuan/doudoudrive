@@ -556,7 +556,12 @@ public interface ConstantConfig {
             /**
              * redis缓存刷新同步专用通道名(redis需要订阅的渠道名称)
              */
-            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL");
+            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL"),
+
+            /**
+             * redis分布式锁专用通道名
+             */
+            REDIS_LOCK_CHANNEL("REDIS_LOCK_CHANNEL");
 
             /**
              * 通道名称
