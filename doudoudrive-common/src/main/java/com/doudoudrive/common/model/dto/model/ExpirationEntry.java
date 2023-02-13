@@ -24,7 +24,7 @@ public class ExpirationEntry {
     /**
      * 线程id -> 锁的数量
      */
-    private static final Map<Long, Integer> THREAD_IDS = Maps.newLinkedHashMap();
+    private final Map<Long, Integer> THREAD_IDS = Maps.newLinkedHashMap();
 
     /**
      * 指定的延迟之后执行的任务对象
@@ -65,6 +65,10 @@ public class ExpirationEntry {
             return null;
         }
         return THREAD_IDS.keySet().iterator().next();
+    }
+
+    public synchronized Map<Long, Integer> getThreadIds() {
+        return THREAD_IDS;
     }
 
     /**
