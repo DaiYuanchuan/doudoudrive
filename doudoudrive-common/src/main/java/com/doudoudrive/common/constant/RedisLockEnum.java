@@ -14,7 +14,12 @@ public enum RedisLockEnum {
     /**
      * 用户注册锁，防止短时间内用户重复注册
      */
-    USER_REGISTER("USER_REGISTER:");
+    USER_REGISTER("USER_REGISTER"),
+
+    /**
+     * oss文件对象存储信息加锁，防止短时间内重复插入
+     */
+    OSS_FILE_INSERT("OSS_FILE_INSERT");
 
     private final String lockName;
 

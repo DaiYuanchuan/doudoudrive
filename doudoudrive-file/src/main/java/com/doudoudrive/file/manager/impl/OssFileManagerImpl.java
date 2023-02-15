@@ -1,8 +1,10 @@
 package com.doudoudrive.file.manager.impl;
 
 import com.doudoudrive.common.cache.CacheManagerConfig;
+import com.doudoudrive.common.cache.lock.RedisLockManager;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
+import com.doudoudrive.common.constant.RedisLockEnum;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.pojo.FileRecord;
@@ -39,6 +41,8 @@ public class OssFileManagerImpl implements OssFileManager {
 
     private CacheManagerConfig cacheManagerConfig;
 
+    private RedisLockManager redisLockManager;
+
     @Autowired(required = false)
     public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
         this.diskFileConvert = diskFileConvert;
@@ -62,6 +66,11 @@ public class OssFileManagerImpl implements OssFileManager {
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
         this.cacheManagerConfig = cacheManagerConfig;
+    }
+
+    @Autowired
+    public void setRedisLockManager(RedisLockManager redisLockManager) {
+        this.redisLockManager = redisLockManager;
     }
 
     /**
@@ -94,15 +103,17 @@ public class OssFileManagerImpl implements OssFileManager {
             ossFileInfo.setStatus(ConstantConfig.OssFileStatusEnum.PENDING_REVIEW.getStatus());
         }
 
-        synchronized (this) {
+        // 为了防止并发导致的重复插入，这里插入需要加锁处理
+        String lock = redisLockManager.lock(RedisLockEnum.OSS_FILE_INSERT.getLockName());
+        try {
             // 根据etag查找oss文件信息
             if (this.getOssFile(createFile.getFileEtag()) == null) {
-                try {
-                    // 将文件存入OSS文件对象存储表中，忽略抛出的异常
-                    ossFileService.insert(ossFileInfo);
-                } catch (Exception ignored) {
-                }
+                // 查不到时，将文件存入OSS文件对象存储表中，忽略抛出的异常
+                ossFileService.insert(ossFileInfo);
             }
+        } catch (Exception ignored) {
+        } finally {
+            redisLockManager.unlock(RedisLockEnum.OSS_FILE_INSERT.getLockName(), lock);
         }
     }
 
