@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -147,9 +148,9 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
     private static final ConcurrentMap<String, List<Semaphore>> ENTRIES = new ConcurrentHashMap<>();
 
     /**
-     * 如果获取锁时没有设置锁过期释放时间leaseTime 则设置锁的默认过期时间为30秒
+     * 锁的内部租赁时间
      */
-    private static Long internalLockLeaseTime = NumberConstant.LONG_THREE * NumberConstant.LONG_TEN * NumberConstant.LONG_ONE_THOUSAND;
+    private static final FastThreadLocal<Long> LOCK_LEASE_TIME = new FastThreadLocal<>();
 
     /**
      * 看门狗的时间轮的刻度数量
@@ -244,8 +245,9 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
     public void unlock(String name, String value) {
         // 获取当前需要解锁的线程id
         long threadId = Thread.currentThread().getId();
+        List<String> keys = Collections.singletonList(name);
         // 尝试释放锁
-        Boolean refresh = redisTemplateClient.eval(UNLOCK_LUA, Collections.singletonList(name), Boolean.class, name, internalLockLeaseTime, getLockName(value, threadId));
+        Boolean refresh = redisTemplateClient.eval(UNLOCK_LUA, keys, Boolean.class, name, getLockLeaseTime(), getLockName(value, threadId));
         // 取消过期续期任务
         this.cancelExpirationRenewal(getTaskName(name, value), threadId);
         if (refresh == null) {
@@ -373,14 +375,15 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
             ttl = redisTemplateClient.eval(ACQUIRE_LOCK_LUA, Collections.singletonList(name), Long.class, unit.toMillis(leaseTime), getLockName(value, threadId));
         } else {
             // 设置默认的过期时间为30秒
-            long millis = TimeUnit.MILLISECONDS.toMillis(internalLockLeaseTime);
+            long millis = TimeUnit.MILLISECONDS.toMillis(getLockLeaseTime());
             ttl = redisTemplateClient.eval(ACQUIRE_LOCK_LUA, Collections.singletonList(name), Long.class, millis, getLockName(value, threadId));
         }
 
         // 获取锁成功
         if (ttl == null) {
             if (leaseTime > NumberConstant.INTEGER_ZERO) {
-                internalLockLeaseTime = unit.toMillis(leaseTime);
+                // 重新设置锁的过期时间
+                setLockLeaseTime(unit.toMillis(leaseTime));
             } else {
                 // 启用时间轮任务，续订锁的过期时间，直到显示的调用unlock方法
                 scheduleExpirationRenewal(name, value, threadId);
@@ -456,7 +459,8 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
                 .ifPresent(threadId -> {
                     try {
                         // 刷新锁的超时时间
-                        Boolean refresh = redisTemplateClient.eval(REFRESH_LOCK_LUA, Collections.singletonList(name), Boolean.class, internalLockLeaseTime, getLockName(uuid, threadId));
+                        List<String> keys = Collections.singletonList(name);
+                        Boolean refresh = redisTemplateClient.eval(REFRESH_LOCK_LUA, keys, Boolean.class, getLockLeaseTime(), getLockName(uuid, threadId));
                         if (refresh) {
                             // 刷新锁的超时时间成功，继续执行
                             renewExpiration(name, uuid);
@@ -468,7 +472,7 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
                         log.error("Can't update lock {} expiration", name, e);
                         EXPIRATION_RENEWAL_MAP.remove(getTaskName(name, uuid));
                     }
-                }), internalLockLeaseTime / NumberConstant.INTEGER_THREE, TimeUnit.MILLISECONDS);
+                }), getLockLeaseTime() / NumberConstant.INTEGER_THREE, TimeUnit.MILLISECONDS);
         entry.setTimeout(task);
     }
 
@@ -488,6 +492,29 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
                 EXPIRATION_RENEWAL_MAP.remove(taskName);
             }
         });
+    }
+
+    /**
+     * 获取锁的默认过期时间
+     *
+     * @return 锁的内部租赁时间
+     */
+    private Long getLockLeaseTime() {
+        return Optional.ofNullable(LOCK_LEASE_TIME.get()).orElseGet(() -> {
+            // 如果获取锁时没有设置锁过期释放时间leaseTime 则设置锁的默认过期时间为30秒
+            Long internalLockLeaseTime = NumberConstant.LONG_THREE * NumberConstant.LONG_TEN * NumberConstant.LONG_ONE_THOUSAND;
+            LOCK_LEASE_TIME.set(internalLockLeaseTime);
+            return internalLockLeaseTime;
+        });
+    }
+
+    /**
+     * 重新设置锁的过期时间
+     *
+     * @param leaseTime 锁的过期时间
+     */
+    private void setLockLeaseTime(long leaseTime) {
+        LOCK_LEASE_TIME.set(leaseTime);
     }
 
     /**
