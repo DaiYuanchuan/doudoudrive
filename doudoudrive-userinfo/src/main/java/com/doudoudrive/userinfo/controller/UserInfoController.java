@@ -6,7 +6,9 @@ import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.util.EncryptionUtil;
 import com.doudoudrive.common.annotation.OpLog;
+import com.doudoudrive.common.cache.lock.RedisLockManager;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.RedisLockEnum;
 import com.doudoudrive.common.constant.RegexConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
@@ -53,6 +55,8 @@ public class UserInfoController {
 
     private LoginManager loginManager;
 
+    private RedisLockManager redisLockManager;
+
     @Autowired
     public void setUserInfoSearchFeignClient(UserInfoSearchFeignClient userInfoSearchFeignClient) {
         this.userInfoSearchFeignClient = userInfoSearchFeignClient;
@@ -71,6 +75,11 @@ public class UserInfoController {
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
         this.loginManager = loginManager;
+    }
+
+    @Autowired
+    public void setRedisLockManager(RedisLockManager redisLockManager) {
+        this.redisLockManager = redisLockManager;
     }
 
     @SneakyThrows
@@ -107,16 +116,23 @@ public class UserInfoController {
             return verifyCode;
         }
 
-        // 查询用户关键信息是否存在
-        Result<String> userInfoKeyExistsSearchResult = userInfoSearchFeignClient.userInfoKeyExistsSearch(requestDTO.getUserName(),
-                requestDTO.getUserEmail(), requestDTO.getUserTel());
-        if (Result.isNotSuccess(userInfoKeyExistsSearchResult)) {
-            return userInfoKeyExistsSearchResult;
-        }
+        // 为用户注册操作加锁
+        String lock = redisLockManager.lock(RedisLockEnum.USER_REGISTER.getLockName());
+        try {
+            // 查询用户关键信息是否存在
+            Result<String> userInfoKeyExistsSearchResult = userInfoSearchFeignClient.userInfoKeyExistsSearch(requestDTO.getUserName(),
+                    requestDTO.getUserEmail(), requestDTO.getUserTel());
+            if (Result.isNotSuccess(userInfoKeyExistsSearchResult)) {
+                return userInfoKeyExistsSearchResult;
+            }
 
-        // 保存用户信息
-        userInfoManager.insert(requestDTO);
-        return Result.ok();
+            // 保存用户信息
+            userInfoManager.insert(requestDTO);
+            return Result.ok();
+        } finally {
+            // 释放锁
+            redisLockManager.unlock(RedisLockEnum.USER_REGISTER.getLockName(), lock);
+        }
     }
 
     @SneakyThrows
