@@ -578,59 +578,79 @@ public interface ConstantConfig {
      * es索引名称相关常量
      */
     interface IndexName {
+        /**
+         * 用户信息数据索引
+         */
         String USERINFO = "userinfo";
 
+        /**
+         * 用户文件信息索引
+         */
         String DISK_FILE = "disk_file";
 
+        /**
+         * 文件分享信息索引
+         */
         String DISK_SHARE_FILE = "file_share";
     }
 
     /**
-     * 用于创建索引时指定索引的索引存储类型
+     * es搜索相关常量
      */
-    interface StoreType {
-        /**
-         * 默认文件系统实现。这将根据操作环境选择最佳的实现，当前所有支持的系统上都是MMapFS，但可能会发生变化。
-         */
-        String FS = "fs";
+    interface Elasticsearch {
 
         /**
-         * SimpleFS类型是使用随机访问文件直接实现文件系统存储（映射到Lucene SimpleFsDirectory）。
-         * 此实现的并发性能较差（多线程将成为瓶颈）。当您需要索引持久性时，通常最好使用NioFs。
+         * 用于创建索引时指定索引的索引存储类型
          */
-        String SIMPLE_FS = "simplefs";
+        interface StoreType {
+            /**
+             * 默认文件系统实现。这将根据操作环境选择最佳的实现，当前所有支持的系统上都是MMapFS，但可能会发生变化。
+             */
+            String FS = "fs";
+
+            /**
+             * SimpleFS类型是使用随机访问文件直接实现文件系统存储（映射到Lucene SimpleFsDirectory）。
+             * 此实现的并发性能较差（多线程将成为瓶颈）。当您需要索引持久性时，通常最好使用NioFs。
+             */
+            String SIMPLE_FS = "simplefs";
+
+            /**
+             * NIOFS类型使用NIO在文件系统上存储碎片索引（映射到Lucene NIOFSDirectory）。
+             * 它允许多个线程同时读取同一文件。由于SUN Java实现中存在错误，因此不建议在Windows上使用。
+             */
+            String NIO_FS = "niofs";
+
+            /**
+             * MMapFS类型通过将文件映射到内存（MMap）来在文件系统上存储碎片索引（映射到Lucene MMapDirectory）。
+             * 内存映射占用了进程中虚拟内存地址空间的一部分，其大小等于要映射的文件的大小。在使用这个类之前，请确保您已经允许了足够的虚拟地址空间。
+             */
+            String MMAP_FS = "mmapfs";
+        }
 
         /**
-         * NIOFS类型使用NIO在文件系统上存储碎片索引（映射到Lucene NIOFSDirectory）。
-         * 它允许多个线程同时读取同一文件。由于SUN Java实现中存在错误，因此不建议在Windows上使用。
+         * 分词器相关常量
          */
-        String NIO_FS = "niofs";
+        interface Tokenizer {
+
+            /**
+             * ik分词器
+             * 最粗粒度的拆分
+             * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,国歌”，适合 Phrase 查询</p>
+             */
+            String IK_SMART = "ik_smart";
+
+            /**
+             * ik分词器
+             * 最大化会将文本做最细粒度的拆分
+             * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,中华人民,中华,华人,人民共和国,人民,人,民,共和国,共和,和,国国,国歌”，会穷尽各种可能的组合，适合 Term Query；</p>
+             */
+            String IK_MAX_WORD = "ik_max_word";
+        }
 
         /**
-         * MMapFS类型通过将文件映射到内存（MMap）来在文件系统上存储碎片索引（映射到Lucene MMapDirectory）。
-         * 内存映射占用了进程中虚拟内存地址空间的一部分，其大小等于要映射的文件的大小。在使用这个类之前，请确保您已经允许了足够的虚拟地址空间。
+         * es搜索关键字后缀，不分词搜索
          */
-        String MMAP_FS = "mmapfs";
-    }
-
-    /**
-     * 分词器相关常量
-     */
-    interface Tokenizer {
-
-        /**
-         * ik分词器
-         * 最粗粒度的拆分
-         * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,国歌”，适合 Phrase 查询</p>
-         */
-        String IK_SMART = "ik_smart";
-
-        /**
-         * ik分词器
-         * 最大化会将文本做最细粒度的拆分
-         * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,中华人民,中华,华人,人民共和国,人民,人,民,共和国,共和,和,国国,国歌”，会穷尽各种可能的组合，适合 Term Query；</p>
-         */
-        String IK_MAX_WORD = "ik_max_word";
+        String KEYWORD = "%s.keyword";
     }
 
     /**

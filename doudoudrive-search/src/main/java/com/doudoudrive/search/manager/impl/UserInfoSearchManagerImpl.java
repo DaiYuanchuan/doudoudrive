@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.lang.ReflectUtil;
 import com.doudoudrive.search.manager.UserInfoSearchManager;
 import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponseDTO;
@@ -43,9 +42,9 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
     /**
      * 用户名、邮箱、密码对应字段的字符串
      */
-    private static final String USER_NAME = ReflectUtil.property(DiskUser::getUserName);
-    private static final String USER_EMAIL = ReflectUtil.property(DiskUser::getUserEmail);
-    private static final String USER_TEL = ReflectUtil.property(DiskUser::getUserTel);
+    private static final String USER_NAME = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserName));
+    private static final String USER_EMAIL = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserEmail));
+    private static final String USER_TEL = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserTel));
 
     /**
      * 保存用户信息，es中保存用户信息
@@ -137,7 +136,7 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
             builder.should(QueryBuilders.termQuery(USER_TEL, userTel));
         }
 
-        // 执行搜素
+        // 执行搜索
         SearchHits<UserInfoDTO> search = restTemplate.search(new NativeSearchQueryBuilder()
                 .withQuery(builder)
                 .build(), UserInfoDTO.class);

@@ -27,7 +27,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-@Setting(shards = 10, replicas = 0, indexStoreType = ConstantConfig.StoreType.NIO_FS)
+@Setting(shards = 10, replicas = 0, indexStoreType = ConstantConfig.Elasticsearch.StoreType.NIO_FS)
 @Document(indexName = ConstantConfig.IndexName.DISK_FILE)
 public class DiskFileDTO implements Serializable {
 
