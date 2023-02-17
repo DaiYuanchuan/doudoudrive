@@ -2,6 +2,7 @@ package com.doudoudrive.userinfo.manager.impl;
 
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
 import com.doudoudrive.auth.util.EncryptionUtil;
+import com.doudoudrive.common.cache.lock.RedisLockManager;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
@@ -55,6 +56,11 @@ public class UserInfoManagerImpl implements UserInfoManager {
      */
     private SysUserRoleService sysUserRoleService;
 
+    /**
+     * redis分布式锁管理器
+     */
+    private RedisLockManager redisLockManager;
+
     @Autowired
     public void setDiskUserService(DiskUserService diskUserService) {
         this.diskUserService = diskUserService;
@@ -83,6 +89,11 @@ public class UserInfoManagerImpl implements UserInfoManager {
     @Autowired
     public void setSysUserRoleService(SysUserRoleService sysUserRoleService) {
         this.sysUserRoleService = sysUserRoleService;
+    }
+
+    @Autowired
+    public void setRedisLockManager(RedisLockManager redisLockManager) {
+        this.redisLockManager = redisLockManager;
     }
 
     /**
@@ -143,14 +154,51 @@ public class UserInfoManagerImpl implements UserInfoManager {
             userinfo.setUserSalt(saltingInfo.getSalt());
         }
 
-        // 修改用户实体信息
-        Integer update = diskUserService.update(userinfo);
-        if (update > NumberConstant.INTEGER_ZERO) {
-            // 用户信息先入库，然后入es
-            Result<?> updateElasticsearchResult = userInfoSearchFeignClient.updateElasticsearchUserInfo(diskUserInfoConvert.diskUserConvert(userinfo));
-            if (Result.isNotSuccess(updateElasticsearchResult)) {
-                BusinessExceptionUtil.throwBusinessException(updateElasticsearchResult);
+        // 如果需要修改邮箱或者手机号，需要先获取锁，避免并发时注册、修改操作冲突导致存在重复数据
+        String lock = redisLockManager.lock(RedisLockEnum.USER_REGISTER.getLockName());
+        try {
+            // 邮箱或者手机号不为空时，需要查询邮箱、手机号信息是否存在
+            if (!StringUtils.isAllBlank(userinfo.getUserEmail(), userinfo.getUserTel())) {
+
+                // 查询用户关键信息是否存在
+                Result<String> userInfoKeyExistsSearchResult = userInfoSearchFeignClient
+                        .userInfoKeyExistsSearch(null, userinfo.getUserEmail(), userinfo.getUserTel());
+                if (Result.isNotSuccess(userInfoKeyExistsSearchResult)) {
+                    BusinessExceptionUtil.throwBusinessException(userInfoKeyExistsSearchResult);
+                }
+
+                // 如果手机号不为空，判断当前用户是否具有分享权限，如果没有则为用户绑定分享权限
+                if (StringUtils.isNotBlank(userinfo.getUserTel())) {
+                    // 获取指定用户下所有的角色信息
+                    List<SysUserRole> sysUserRoleList = sysUserRoleService.listSysUserRole(userinfo.getBusinessId());
+                    // 获取所有的角色编码
+                    List<String> roleCodeList = sysUserRoleList.stream().map(SysUserRole::getRoleCode).toList();
+
+                    // 判断当前用户是否具有分享权限
+                    if (!roleCodeList.contains(RoleCodeEnum.FILE_SHARE.getRoleCode())) {
+                        // 为用户绑定文件分享角色
+                        sysUserRoleService.insert(SysUserRole.builder()
+                                .userId(userinfo.getBusinessId())
+                                .roleCode(RoleCodeEnum.FILE_SHARE.getRoleCode())
+                                .remarks(RoleCodeEnum.FILE_SHARE.getAuthName())
+                                .build());
+                    }
+                }
             }
+
+            // 执行更新操作
+            Integer update = diskUserService.update(userinfo);
+            // 如果更新成功，需要更新es中的用户信息
+            if (update > NumberConstant.INTEGER_ZERO) {
+                // 用户信息先入库，然后入es
+                Result<?> updateElasticsearchResult = userInfoSearchFeignClient.updateElasticsearchUserInfo(diskUserInfoConvert.diskUserConvert(userinfo));
+                if (Result.isNotSuccess(updateElasticsearchResult)) {
+                    BusinessExceptionUtil.throwBusinessException(updateElasticsearchResult);
+                }
+            }
+        } finally {
+            // 释放锁
+            redisLockManager.unlock(RedisLockEnum.USER_REGISTER.getLockName(), lock);
         }
     }
 
