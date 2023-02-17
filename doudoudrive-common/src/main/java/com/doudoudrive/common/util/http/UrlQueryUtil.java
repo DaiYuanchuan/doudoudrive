@@ -142,16 +142,16 @@ public class UrlQueryUtil {
         int i;
         for (i = NumberConstant.INTEGER_ZERO; i < paramStr.length(); i++) {
             switch (paramStr.charAt(i)) {
-                case EQ:
+                case EQ -> {
                     if (null == name) {
                         // name可以是 ""
                         name = paramStr.substring(pos, i);
                         // 开始位置从分节符后开始
                         pos = i + NumberConstant.INTEGER_ONE;
                     }
-                    // 当=不作为分界符时，按照普通字符对待
-                    break;
-                case AND:
+                }
+                // 当=不作为分界符时，按照普通字符对待
+                case AND -> {
                     addParam(name, paramStr.substring(pos, i), jsonObject, charset);
                     name = null;
                     if (i + NumberConstant.INTEGER_FOUR < paramStr.length()
@@ -161,9 +161,9 @@ public class UrlQueryUtil {
                     }
                     // 开始位置从分节符后开始
                     pos = i + NumberConstant.INTEGER_ONE;
-                    break;
-                default:
-                    break;
+                }
+                default -> {
+                }
             }
         }
 
