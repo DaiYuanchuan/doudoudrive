@@ -1,7 +1,6 @@
 package com.doudoudrive.commonservice.service.impl;
 
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.pojo.SysUserRole;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -82,16 +81,15 @@ public class SysUserRoleServiceImpl implements SysUserRoleService {
      * 删除指定用户关联的所有角色
      *
      * @param userId 根据用户业务id删除数据
-     * @return 返回删除的条数
      */
     @Override
-    public Integer deleteSysUserRole(String userId) {
+    public void deleteSysUserRole(String userId) {
         if (StringUtils.isBlank(userId)) {
-            return NumberConstant.INTEGER_ZERO;
+            return;
         }
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.SYS_USER_ROLE);
-        return sysUserRoleDao.deleteSysUserRole(userId, tableSuffix);
+        sysUserRoleDao.deleteSysUserRole(userId, tableSuffix);
     }
 
     /**
