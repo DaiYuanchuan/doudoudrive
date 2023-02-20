@@ -64,12 +64,13 @@ public class SysUserRoleManagerImpl implements SysUserRoleManager {
      * @param roleCodeList 角色编码列表
      */
     @Override
-    public void insert(String userId, List<String> roleCodeList) {
+    public void insert(String userId, List<RoleCodeEnum> roleCodeList) {
         List<SysUserRole> sysUserRoleList = new ArrayList<>();
-        for (String roleCode : roleCodeList) {
+        for (RoleCodeEnum roleCode : roleCodeList) {
             sysUserRoleList.add(SysUserRole.builder()
                     .userId(userId)
-                    .roleCode(roleCode)
+                    .roleCode(roleCode.getRoleCode())
+                    .remarks(roleCode.getAuthName())
                     .build());
         }
         sysUserRoleService.insertBatch(sysUserRoleList);

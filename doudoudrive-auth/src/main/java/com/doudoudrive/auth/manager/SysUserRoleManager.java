@@ -1,6 +1,7 @@
 package com.doudoudrive.auth.manager;
 
 
+import com.doudoudrive.common.constant.RoleCodeEnum;
 import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public interface SysUserRoleManager {
      * @param userId       用户业务id
      * @param roleCodeList 角色编码列表
      */
-    void insert(String userId, List<String> roleCodeList);
+    void insert(String userId, List<RoleCodeEnum> roleCodeList);
 
     /**
      * 删除指定用户关联的所有角色
