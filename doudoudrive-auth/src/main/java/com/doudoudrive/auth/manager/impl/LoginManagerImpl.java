@@ -237,8 +237,12 @@ public class LoginManagerImpl implements LoginManager {
                 Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
                 // 更新指定用户缓存信息
                 session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
+                // 清除session里面权限信息
+                session.removeAttribute(ConstantConfig.Cache.USER_ROLE_CACHE);
+
                 // 当前登录的用户名
                 String username = (String) SecurityUtils.getSubject().getPrincipal();
+
                 // 清除旧的用户权限信息缓存
                 DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager) SecurityUtils.getSecurityManager();
                 ShiroRealm shiroRealm = (ShiroRealm) securityManager.getRealms().iterator().next();
