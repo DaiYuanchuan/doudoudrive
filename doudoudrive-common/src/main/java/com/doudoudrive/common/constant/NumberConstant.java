@@ -94,6 +94,11 @@ public interface NumberConstant {
     Long LONG_TWO_HUNDRED_AND_FIFTY_FIVE = 255L;
 
     /**
+     * 常量 long 9999
+     */
+    Long LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE = 9999L;
+
+    /**
      * 常量 long 1000
      */
     Long LONG_ONE_THOUSAND = 1000L;
@@ -194,6 +199,11 @@ public interface NumberConstant {
     Integer INTEGER_TWO_HUNDRED_AND_FIFTY_FIVE = 255;
 
     /**
+     * 常量 integer 9999
+     */
+    Integer INTEGER_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE = 9999;
+
+    /**
      * 常量 integer 1000
      */
     Integer INTEGER_ONE_THOUSAND = 1000;
@@ -292,6 +302,11 @@ public interface NumberConstant {
      * 常量 string 255
      */
     String STRING_TWO_HUNDRED_AND_FIFTY_FIVE = "255";
+
+    /**
+     * 常量 string 9999
+     */
+    String STRING_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE = "9999";
 
     /**
      * 常量 string 1000
