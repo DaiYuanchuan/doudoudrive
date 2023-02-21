@@ -678,6 +678,10 @@ public class FileShareManagerImpl implements FileShareManager {
 
             // 从数据库中查询文件分享信息，补全分享记录信息数据模型
             FileShare fileShare = fileShareService.getFileShare(content.getBusinessId(), content.getUserId());
+            if (fileShare == null) {
+                return null;
+            }
+
             // 构建文件分享数据模型实体
             FileShareModel fileShareModel = fileShareConvert.fileShareConvertFileShareModel(fileShare, fileShare.getShareSalt());
             // 数据不为空时，将查询结果压入缓存
