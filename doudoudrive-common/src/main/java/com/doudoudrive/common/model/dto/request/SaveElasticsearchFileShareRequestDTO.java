@@ -1,11 +1,16 @@
 package com.doudoudrive.common.model.dto.request;
 
+import cn.hutool.core.date.DatePattern;
+import com.doudoudrive.common.constant.ConstantConfig;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.*;
+import java.time.LocalDateTime;
 
 /**
  * <p>保存es文件分享记录信息时的请求数据模型</p>
@@ -47,4 +52,11 @@ public class SaveElasticsearchFileShareRequestDTO {
     @NotBlank(message = "短链不能为空")
     @Size(max = 35, message = "短链长度错误")
     private String shareId;
+
+    /**
+     * 创建时间
+     */
+    @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
+    private LocalDateTime createTime;
 }

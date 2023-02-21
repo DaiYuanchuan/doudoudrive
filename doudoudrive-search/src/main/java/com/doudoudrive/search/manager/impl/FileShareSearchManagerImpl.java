@@ -39,11 +39,12 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
     private static final String USER_ID = ReflectUtil.property(FileShareDTO::getUserId);
     private static final String BUSINESS_ID = ReflectUtil.property(FileShareDTO::getBusinessId);
     private static final String SHARE_ID = ReflectUtil.property(FileShareDTO::getShareId);
+    private static final String CREATE_TIME = ReflectUtil.property(FileShareDTO::getCreateTime);
 
     /**
      * 文件分享信息搜索时的支持的排序字段
      */
-    private static final List<String> FILE_SHARE_SORT_FIELD = Lists.newArrayList(BUSINESS_ID);
+    private static final List<String> FILE_SHARE_SORT_FIELD = Lists.newArrayList(BUSINESS_ID, CREATE_TIME);
 
     private ElasticsearchRestTemplate restTemplate;
 

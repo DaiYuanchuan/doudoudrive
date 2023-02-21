@@ -14,6 +14,7 @@ import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>用户文件分享记录信息ES数据模型</p>
@@ -57,4 +58,10 @@ public class FileShareDTO implements Serializable {
      */
     @Field(type = FieldType.Keyword)
     private String shareId;
+
+    /**
+     * 创建时间
+     */
+    @Field(type = FieldType.Date)
+    private Date createTime;
 }
