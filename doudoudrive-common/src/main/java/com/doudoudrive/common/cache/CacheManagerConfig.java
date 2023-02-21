@@ -253,7 +253,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
                     localCacheMap.clear();
                 }
 
-                if (CollectionUtil.isEmpty(cacheRefreshModel.getCacheKey())) {
+                if (CollectionUtil.isNotEmpty(cacheRefreshModel.getCacheKey())) {
                     // 删除本地缓存对象
                     cacheRefreshModel.getCacheKey().forEach(localCacheMap::remove);
                 }
