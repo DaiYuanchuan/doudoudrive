@@ -177,6 +177,7 @@
                 #{item}
             </foreach>
         </where>
+        ORDER BY FIELD(`share_id`, <foreach collection="list" index="index" item="item" separator=",">#{item}</foreach>)
     </select>
 
 </mapper>
