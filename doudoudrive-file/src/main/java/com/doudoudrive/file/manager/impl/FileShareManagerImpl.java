@@ -247,9 +247,12 @@ public class FileShareManagerImpl implements FileShareManager {
                 .count(fileShareSearchRequest.getCount())
                 .sort(Collections.singletonList(fileShareSearchRequest.getSort()))
                 .build());
-        // 判断查询结果是否为空
-        if (Result.isNotSuccess(queryElasticShareResult)
-                || CollectionUtil.isEmpty(queryElasticShareResult.getData())) {
+        // 查询请求是否成功
+        if (Result.isNotSuccess(queryElasticShareResult)) {
+            BusinessExceptionUtil.throwBusinessException(queryElasticShareResult);
+        }
+        // 查询结果是否为空
+        if (CollectionUtil.isEmpty(queryElasticShareResult.getData())) {
             return fileShareSearchResponse;
         }
 
