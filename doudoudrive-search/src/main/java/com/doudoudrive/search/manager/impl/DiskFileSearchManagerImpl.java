@@ -53,11 +53,19 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
     private static final String USER_ID = ReflectUtil.property(DiskFile::getUserId);
     private static final String BUSINESS_ID = ReflectUtil.property(DiskFile::getBusinessId);
     private static final String FILE_PARENT_ID = ReflectUtil.property(DiskFile::getFileParentId);
+    private static final String FILE_SIZE = ReflectUtil.property(DiskFile::getFileSize);
     private static final String FILE_ETAG = ReflectUtil.property(DiskFile::getFileEtag);
     private static final String FILE_MIME_TYPE = ReflectUtil.property(DiskFile::getFileMimeType);
     private static final String FILE_FOLDER = ReflectUtil.property(DiskFile::getFileFolder);
     private static final String COLLECT = ReflectUtil.property(DiskFile::getCollect);
     private static final String FILE_NAME = ReflectUtil.property(DiskFile::getFileName);
+    private static final String CREATE_TIME = ReflectUtil.property(DiskFile::getCreateTime);
+    private static final String UPDATE_TIME = ReflectUtil.property(DiskFile::getUpdateTime);
+
+    /**
+     * 文件搜索时的支持的排序字段
+     */
+    private static final List<String> FILE_SEARCH_SORT_FIELD = Lists.newArrayList(BUSINESS_ID, FILE_SIZE, CREATE_TIME, UPDATE_TIME);
 
     /**
      * 模糊搜索文件名时的通配符
@@ -170,7 +178,7 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
                 .withQuery(builder);
         // 根据排序分页参数构建排序分页对象
-        ElasticUtil.builderSortPageable(requestDTO.getSort(), AUTO_ID, requestDTO.getSearchAfter(), requestDTO.getCount(), queryBuilder);
+        ElasticUtil.builderSortPageable(requestDTO.getSort(), FILE_SEARCH_SORT_FIELD, AUTO_ID, requestDTO.getSearchAfter(), requestDTO.getCount(), queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);
@@ -196,7 +204,7 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
                 .withQuery(builder);
 
         // 根据排序分页参数构建排序分页对象
-        ElasticUtil.builderSortPageable(sort, AUTO_ID, searchAfter, count, queryBuilder);
+        ElasticUtil.builderSortPageable(sort, FILE_SEARCH_SORT_FIELD, AUTO_ID, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), DiskFileDTO.class);

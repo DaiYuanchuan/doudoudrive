@@ -1,7 +1,6 @@
 package com.doudoudrive.common.constant;
 
 import cn.hutool.core.text.CharSequenceUtil;
-import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import com.doudoudrive.common.model.pojo.FileShare;
 import com.doudoudrive.common.util.lang.ReflectUtil;
@@ -1020,52 +1019,6 @@ public interface ConstantConfig {
          * 七牛云上传回调-文件etag
          */
         String QI_NIU_CALLBACK_FILE_ETAG = "$(etag)";
-    }
-
-    /**
-     * 文件搜索请求中指定支持排序的字段
-     */
-    @Getter
-    enum DiskFileSearchOrderBy {
-
-        /**
-         * 业务标识
-         */
-        BUSINESS_ID(ReflectUtil.property(DiskFile::getBusinessId)),
-
-        /**
-         * 文件大小
-         */
-        FILE_SIZE(ReflectUtil.property(DiskFile::getFileSize)),
-
-        /**
-         * 创建时间
-         */
-        CREATE_TIME(ReflectUtil.property(DiskFile::getCreateTime)),
-
-        /**
-         * 更新时间
-         */
-        UPDATE_TIME(ReflectUtil.property(DiskFile::getUpdateTime));
-
-        /**
-         * 用户属性参数的默认值
-         */
-        private final String fieldName;
-
-        DiskFileSearchOrderBy(String fieldName) {
-            this.fieldName = fieldName;
-        }
-
-        /**
-         * 判断字段名是否存在于枚举中
-         *
-         * @param fieldName 指定的字段名
-         * @return true:不存在，false:存在
-         */
-        public static boolean noneMatch(String fieldName) {
-            return Stream.of(DiskFileSearchOrderBy.values()).noneMatch(anEnum -> anEnum.fieldName.equals(fieldName));
-        }
     }
 
     /**

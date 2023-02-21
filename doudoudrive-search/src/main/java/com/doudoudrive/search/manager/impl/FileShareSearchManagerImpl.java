@@ -7,6 +7,7 @@ import com.doudoudrive.common.util.lang.ReflectUtil;
 import com.doudoudrive.search.manager.FileShareSearchManager;
 import com.doudoudrive.search.model.elasticsearch.FileShareDTO;
 import com.doudoudrive.search.util.ElasticUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -38,6 +39,11 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
     private static final String USER_ID = ReflectUtil.property(FileShareDTO::getUserId);
     private static final String BUSINESS_ID = ReflectUtil.property(FileShareDTO::getBusinessId);
     private static final String SHARE_ID = ReflectUtil.property(FileShareDTO::getShareId);
+
+    /**
+     * 文件分享信息搜索时的支持的排序字段
+     */
+    private static final List<String> FILE_SHARE_SORT_FIELD = Lists.newArrayList(BUSINESS_ID);
 
     private ElasticsearchRestTemplate restTemplate;
 
@@ -79,7 +85,7 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
 
         // 根据用户标识和分享标识删除
         builder.must(QueryBuilders.termQuery(USER_ID, userId));
-        builder.must(QueryBuilders.termQuery(SHARE_ID, shareId));
+        builder.must(QueryBuilders.termsQuery(SHARE_ID, shareId));
 
         // 查询请求构建
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
@@ -157,7 +163,7 @@ public class FileShareSearchManagerImpl implements FileShareSearchManager {
                 .withQuery(builder);
 
         // 根据排序分页参数构建排序分页对象
-        ElasticUtil.builderSortPageable(sort, BUSINESS_ID, searchAfter, count, queryBuilder);
+        ElasticUtil.builderSortPageable(sort, FILE_SHARE_SORT_FIELD, BUSINESS_ID, searchAfter, count, queryBuilder);
 
         // 执行搜素请求
         return restTemplate.search(queryBuilder.build(), FileShareDTO.class);
