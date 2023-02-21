@@ -2,6 +2,7 @@ package com.doudoudrive.common.model.dto.model;
 
 import cn.hutool.core.date.DatePattern;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * <p>网盘文件分享记录信息数据模型</p>
@@ -117,4 +119,36 @@ public class FileShareModel implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
     private LocalDateTime updateTime;
 
+    /**
+     * 浏览次数，每次分享时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续分享和+1
+     *
+     * @return 浏览次数，初始值为0，最大值为9999
+     */
+    public Long getBrowseCount() {
+        long count = Math.max(Optional.ofNullable(browseCount).orElse(NumberConstant.LONG_ZERO), NumberConstant.LONG_ZERO);
+        return Math.min(count, NumberConstant.LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE);
+    }
+
+    /**
+     * 保存、转存次数，每次分享时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续分享和+1
+     *
+     * @return 保存、转存次数，初始值为0，最大值为9999
+     */
+    public Long getSaveCount() {
+        long count = Math.max(Optional.ofNullable(saveCount).orElse(NumberConstant.LONG_ZERO), NumberConstant.LONG_ZERO);
+        return Math.min(count, NumberConstant.LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE);
+    }
+
+    /**
+     * 下载次数，每次下载时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续下载和+1
+     *
+     * @return 下载次数，初始值为0，最大值为9999
+     */
+    public Long getDownloadCount() {
+        long count = Math.max(Optional.ofNullable(downloadCount).orElse(NumberConstant.LONG_ZERO), NumberConstant.LONG_ZERO);
+        return Math.min(count, NumberConstant.LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE);
+    }
 }

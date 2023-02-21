@@ -279,6 +279,14 @@ public class FileShareManagerImpl implements FileShareManager {
                 fileShare.setShareTitle(this.getShareTitle(firstFileName, fileShare.getFileCount(), containFolder));
             }
 
+            // 过期时间不为空时判断是否在当前时间之后
+            if (!fileShare.getExpired()
+                    && fileShare.getExpiration() != null
+                    && LocalDateTime.now().isAfter(fileShare.getExpiration())) {
+                // 过期时间在当前时间之前
+                fileShare.setExpired(Boolean.TRUE);
+            }
+
             // 构建文件分享信息数据模型
             content.add(fileShareConvert.fileShareConvertFileShareModel(fileShare, null));
         }

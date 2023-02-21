@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -158,6 +159,8 @@ public class FileShareServiceImpl implements FileShareService {
             }
         });
 
+        // 批量查询结果按照传入的顺序进行排序
+        batchQueryResult.sort(Comparator.comparingInt(share -> list.indexOf(share.getShareId())));
         return batchQueryResult;
     }
 }
