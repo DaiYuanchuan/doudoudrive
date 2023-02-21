@@ -85,7 +85,7 @@
         <!-- protostuff序列化工具 -->
         <protostuff.version>1.8.0</protostuff.version>
         <!-- fastjson 版本号 -->
-        <fastjson.version>1.2.83</fastjson.version>
+        <fastjson.version>2.0.24</fastjson.version>
         <!-- es搜索 版本号 -->
         <elasticsearch.version>7.17.1</elasticsearch.version>
         <!-- 发送邮件依赖包 版本号 -->
@@ -415,6 +415,10 @@
                     <exclusion>
                         <groupId>commons-collections</groupId>
                         <artifactId>commons-collections</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.alibaba</groupId>
+                        <artifactId>fastjson</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
