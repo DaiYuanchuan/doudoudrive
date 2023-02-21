@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,7 +28,7 @@ public class CacheRefreshModel implements Serializable {
     /**
      * 需要从本地缓存中删除的缓存key值
      */
-    private String cacheKey;
+    private List<String> cacheKey;
 
     /**
      * 是否删除全部本地缓存数据

@@ -69,7 +69,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
         if (cache == null) {
             // 将被删除的key同步到其他服务
             redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
-                    .cacheKey(key)
+                    .cacheKey(Collections.singletonList(key))
                     .build());
             return null;
         }
@@ -172,7 +172,7 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
 
         // 将被删除的key同步到其他服务
         redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
-                .cacheKey(key)
+                .cacheKey(Collections.singletonList(key))
                 .build());
         return ConvertUtil.convert(cache);
     }
@@ -252,9 +252,10 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
                     // 清空所有本地缓存的对象
                     localCacheMap.clear();
                 }
-                if (StringUtils.isNotBlank(cacheRefreshModel.getCacheKey())) {
+
+                if (CollectionUtil.isEmpty(cacheRefreshModel.getCacheKey())) {
                     // 删除本地缓存对象
-                    localCacheMap.remove(cacheRefreshModel.getCacheKey());
+                    cacheRefreshModel.getCacheKey().forEach(localCacheMap::remove);
                 }
             });
         }
