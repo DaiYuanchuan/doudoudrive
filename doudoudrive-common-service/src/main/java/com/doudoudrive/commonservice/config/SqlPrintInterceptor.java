@@ -2,6 +2,7 @@ package com.doudoudrive.commonservice.config;
 
 import cn.hutool.core.date.DatePattern;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
@@ -85,7 +86,7 @@ public class SqlPrintInterceptor implements Interceptor {
     }
 
     private String getSql(BoundSql boundSql, Object parameterObject, Configuration configuration) {
-        String sql = boundSql.getSql().replaceAll("[\\s]+", " ");
+        String sql = boundSql.getSql().replaceAll("\\s+", StringUtils.SPACE);
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
         TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
         if (parameterMappings != null) {
