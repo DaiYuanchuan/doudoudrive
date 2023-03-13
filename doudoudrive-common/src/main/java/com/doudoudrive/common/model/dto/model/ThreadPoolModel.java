@@ -57,21 +57,23 @@ public class ThreadPoolModel implements Serializable {
     private String name;
 
     /**
-     * 获取初始线程池的大小，为空时默认为0
+     * 获取初始线程池的大小，为空时默认为 CPU核心数 * 2
+     * 最佳线程数目 = ((线程等待时间+线程CPU时间)/线程CPU时间) * CPU数目
      *
      * @return 初始线程池的大小
      */
     public Integer getCorePoolSize() {
-        return Optional.ofNullable(corePoolSize).orElse(NumberConstant.INTEGER_ZERO);
+        return Optional.ofNullable(corePoolSize).orElse(Runtime.getRuntime().availableProcessors() * NumberConstant.INTEGER_TWO);
     }
 
     /**
-     * 获取同时执行的最大线程数，为空时默认不做限制
+     * 获取同时执行的最大线程数，为空时默认为 CPU核心数 * 2
+     * 默认与核心线程数大小保持一直
      *
      * @return 同时执行的最大线程数
      */
     public Integer getMaxPoolSize() {
-        return Optional.ofNullable(maxPoolSize).orElse(Integer.MAX_VALUE);
+        return Optional.ofNullable(maxPoolSize).orElse(Runtime.getRuntime().availableProcessors() * NumberConstant.INTEGER_TWO);
     }
 
     /**
