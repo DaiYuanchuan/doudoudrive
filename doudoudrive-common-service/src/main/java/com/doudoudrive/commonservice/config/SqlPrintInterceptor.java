@@ -38,7 +38,8 @@ import java.util.regex.Matcher;
 @Slf4j
 public class SqlPrintInterceptor implements Interceptor {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat(DatePattern.NORM_DATETIME_PATTERN);
+    private static final String NULL_STRING = "null";
+    private static final String SINGLE_QUOTE = "'";
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -115,14 +116,15 @@ public class SqlPrintInterceptor implements Interceptor {
         String result;
         if (propertyValue != null) {
             if (propertyValue instanceof String) {
-                result = "'" + propertyValue + "'";
+                result = SINGLE_QUOTE + propertyValue + SINGLE_QUOTE;
             } else if (propertyValue instanceof Date) {
-                result = "'" + DATE_FORMAT.format(propertyValue) + "'";
+                DateFormat dateFormat = new SimpleDateFormat(DatePattern.NORM_DATETIME_PATTERN);
+                result = SINGLE_QUOTE + dateFormat.format(propertyValue) + SINGLE_QUOTE;
             } else {
                 result = propertyValue.toString();
             }
         } else {
-            result = "null";
+            result = NULL_STRING;
         }
         return sql.replaceFirst("\\?", Matcher.quoteReplacement(result));
     }
