@@ -236,6 +236,35 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
     }
 
     /**
+     * 尝试获取锁，只有当锁在调用时是空闲的，才会获取锁。
+     * 如果锁可用，则获取锁并立即返回值为{@code true}
+     * 如果锁不可用，则此方法将立即返回{@code false}
+     * 这种方法的一个典型用法是：
+     * <pre> {@code
+     * Lock lock = ...;
+     * if (lock.tryLock()) {
+     *   try {
+     *     // manipulate protected state
+     *   } finally {
+     *     lock.unlock();
+     *   }
+     * } else {
+     *   // perform alternative actions
+     * }}</pre>
+     *
+     * @param name  锁的名称，缓存的key
+     * @param value 锁的value，用于释放锁
+     * @return 如果获得锁则为{@code true}，否则为{@code false}
+     */
+    @Override
+    public boolean tryLock(String name, String value) {
+        // 获取当前需要加锁的线程id
+        long threadId = Thread.currentThread().getId();
+        // 尝试加锁，加锁成功返回null，失败返回锁的剩余超时时间
+        return tryAcquireLock(name, value, NumberConstant.INTEGER_MINUS_ONE, null, threadId) == null;
+    }
+
+    /**
      * 释放锁
      *
      * @param name  锁的名称，缓存的key
