@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,6 +47,13 @@ public class SequenceUtilTest {
         String sequenceId = SequenceUtil.nextId(SequenceModuleEnum.DISK_USER);
         Integer remainder = 10;
         log.info("sequenceId:{} % {} = {} suffix: {}", sequenceId, remainder, SequenceUtil.complement(sequenceId, remainder).toPlainString(), SequenceUtil.tableSuffix(sequenceId, remainder));
+    }
+
+    @Test
+    public void generateTime() {
+        String sequenceId = "23032718292316799129795021195040071";
+        LocalDateTime localDateTime = SequenceUtil.generateTime(sequenceId);
+        log.info("sequenceId:{} generateTime: {}", sequenceId, localDateTime);
     }
 
     @Test
