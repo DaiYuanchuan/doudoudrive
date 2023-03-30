@@ -94,7 +94,12 @@ public enum SequenceModuleEnum {
     /**
      * 系统日志消息模块
      */
-    SYS_LOGBACK("16");
+    SYS_LOGBACK("16"),
+
+    /**
+     * 外部系统回调记录模块
+     */
+    CALLBACK_RECORD("17");
 
     /**
      * 业务模块标识，固定为两位数字

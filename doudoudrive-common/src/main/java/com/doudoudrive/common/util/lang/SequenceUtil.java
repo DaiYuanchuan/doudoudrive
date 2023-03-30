@@ -1,5 +1,6 @@
 package com.doudoudrive.common.util.lang;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.doudoudrive.common.constant.NumberConstant;
@@ -141,6 +142,23 @@ public class SequenceUtil {
 
         // 对取余结果 +1 后补零
         return String.format(DOUBLE_DIGIT_ZERO_FILLING, complement.add(BigDecimal.ONE).longValue());
+    }
+
+    /**
+     * 获取序列生成时间月份后缀
+     *
+     * @param sequenceId 序列id
+     * @return 时间月份后缀
+     */
+    public static String generateTimeSuffix(String sequenceId) {
+        // 获取序列生成时间
+        LocalDateTime generateTime = SequenceUtil.generateTime(sequenceId);
+        if (generateTime == null) {
+            return StringUtils.EMPTY;
+        }
+
+        // 获取表后缀
+        return generateTime.format(DatePattern.SIMPLE_MONTH_FORMATTER);
     }
 
     /**
