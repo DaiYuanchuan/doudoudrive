@@ -389,6 +389,24 @@ CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
  UNIQUE INDEX `uk_msg_id`(`msg_id`) USING BTREE COMMENT 'MQ消息唯一标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'RocketMQ消费记录' ROW_FORMAT = Dynamic;
 
+DROP TABLE IF EXISTS `cloud-log`.`callback_record`;
+CREATE TABLE `cloud-log`.`callback_record` (
+ `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
+ `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
+ `http_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '请求地址',
+ `request_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求的参数',
+ `http_status` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求的http状态码',
+ `response_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求的响应体',
+ `retry` int(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '重试次数，最多重试3次',
+ `send_time` datetime(0) NOT NULL COMMENT '请求回调时间',
+ `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '请求回调状态(1:等待；2:执行中；3:回调成功；4:回调失败)',
+ `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+ `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+ PRIMARY KEY (`auto_id`) USING BTREE,
+ UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
+ UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识'
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '外部系统回调记录' ROW_FORMAT = Dynamic;
+
 -- 日志表依据 创建时间 分表
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202301` LIKE `cloud-log`.`log_login`;
 CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202302` LIKE `cloud-log`.`log_login`;
@@ -442,11 +460,25 @@ CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202310` LIKE `c
 CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202311` LIKE `cloud-log`.`rocketmq_consumer_record`;
 CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202312` LIKE `cloud-log`.`rocketmq_consumer_record`;
 
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202301` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202302` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202303` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202304` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202305` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202306` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202307` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202308` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202309` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202310` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202311` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202312` LIKE `cloud-log`.`callback_record`;
+
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-log`.`log_login`;
 DROP TABLE IF EXISTS `cloud-log`.`log_op`;
 DROP TABLE IF EXISTS `cloud-log`.`sms_send_record`;
 DROP TABLE IF EXISTS `cloud-log`.`rocketmq_consumer_record`;
+DROP TABLE IF EXISTS `cloud-log`.`callback_record`;
 
 /**
  * ******************************************************* 配置库 *******************************************************
