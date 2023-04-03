@@ -208,7 +208,7 @@ public interface ConstantConfig {
         /**
          * 创建文件服务
          */
-        String CREATE_FILE = "CREATE_FILE";
+        String CREATE_FILE = "CREATE_FILE_CALLBACK";
 
         /**
          * 创建文件失败时异步回滚服务
@@ -1126,6 +1126,89 @@ public interface ConstantConfig {
 
         FileShareStatusEnum(String status) {
             this.status = status;
+        }
+    }
+
+    /**
+     * 文件外部系统回调状态类型枚举
+     */
+    @Getter
+    enum CallbackStatusEnum {
+
+        /**
+         * 等待
+         */
+        WAIT("1"),
+
+        /**
+         * 执行中
+         */
+        EXECUTING("2"),
+
+        /**
+         * 回调成功
+         */
+        SUCCESS("3"),
+
+        /**
+         * 回调失败
+         */
+        FAIL("4");
+
+        /**
+         * 回调状态
+         */
+        private final String status;
+
+        CallbackStatusEnum(String status) {
+            this.status = status;
+        }
+    }
+
+    /**
+     * 重试级别枚举类型
+     */
+    @Getter
+    enum RetryLevelEnum {
+
+        /**
+         * 一级重试，延迟10秒执行
+         */
+        LEVEL_ONE(1, 3),
+
+        /**
+         * 二级重试，延迟5分钟执行
+         */
+        LEVEL_TWO(2, 9),
+
+        /**
+         * 三级重试，延迟30分钟执行
+         */
+        LEVEL_THREE(3, 16);
+
+        /**
+         * 重试次数
+         */
+        private final Integer retry;
+
+        /**
+         * MQ延迟级别
+         * 1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
+         */
+        private final Integer level;
+
+        RetryLevelEnum(Integer retry, Integer level) {
+            this.retry = retry;
+            this.level = level;
+        }
+
+        /**
+         * 根据重试次数获取对应的重试级别
+         */
+        public static Integer getLevel(Integer retry) {
+            return Stream.of(values())
+                    .filter(anEnum -> anEnum.retry.equals(retry))
+                    .map(anEnum -> anEnum.level).findFirst().orElse(null);
         }
     }
 

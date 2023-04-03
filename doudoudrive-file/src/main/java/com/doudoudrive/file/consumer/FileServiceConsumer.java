@@ -1,6 +1,5 @@
 package com.doudoudrive.file.consumer;
 
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.annotation.RocketmqListener;
@@ -12,10 +11,12 @@ import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.dto.request.CopyFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
+import com.doudoudrive.common.model.pojo.CallbackRecord;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.doudoudrive.commonservice.service.CallbackRecordService;
 import com.doudoudrive.commonservice.service.DiskFileService;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
@@ -27,7 +28,6 @@ import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileRollbackConsumerRequestDTO;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -37,8 +37,10 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * <p>文件系统消费者服务</p>
@@ -72,6 +74,8 @@ public class FileServiceConsumer {
      * RocketMQ消息模型
      */
     private RocketMQTemplate rocketmqTemplate;
+
+    private CallbackRecordService callbackRecordService;
 
     @Autowired(required = false)
     public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
@@ -113,6 +117,11 @@ public class FileServiceConsumer {
         this.rocketmqTemplate = rocketmqTemplate;
     }
 
+    @Autowired
+    public void setCallbackRecordService(CallbackRecordService callbackRecordService) {
+        this.callbackRecordService = callbackRecordService;
+    }
+
     /**
      * 请求id，16位随机字符串，包含大小写
      */
@@ -149,17 +158,22 @@ public class FileServiceConsumer {
             // 保存消息消费记录
             rocketmqConsumerRecordService.insertException(consumerRecord);
 
-            CreateFileAuthModel fileInfo = consumerRequest.getFileInfo();
-
-            String requestId = consumerRequest.getRequestId();
-            if (StringUtils.isBlank(requestId)) {
-                // 设置请求Id的默认值
-                requestId = RandomUtil.randomString(SIXTEEN);
+            // 获取回调记录信息
+            CallbackRecord record = CallbackRecord.builder()
+                    .businessId(consumerRequest.getCallbackRecordId())
+                    .sendStatus(ConstantConfig.CallbackStatusEnum.EXECUTING.getStatus())
+                    .build();
+            // 更新回调记录状态为执行中
+            Integer result = callbackRecordService.update(record);
+            if (result == null || NumberConstant.INTEGER_ZERO.equals(result)) {
+                return;
             }
+
+            CreateFileAuthModel fileInfo = consumerRequest.getFileInfo();
 
             // 构建回调地址初始化请求头配置Map
             Map<String, String> header = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_THREE);
-            header.put(REQUEST_ID, requestId);
+            header.put(REQUEST_ID, consumerRequest.getCallbackRecordId());
             header.put(ConstantConfig.HttpRequest.USER_AGENT, USER_AGENT_CALLBACK);
             header.put(ConstantConfig.HttpRequest.HOST, URI.create(fileInfo.getCallbackUrl()).getHost());
 
@@ -170,6 +184,9 @@ public class FileServiceConsumer {
 
             // 多线程异步发送回调请求
             globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.THIRD_PARTY_CALLBACK, () -> {
+                record.setRequestBody(body);
+                record.setSendTime(LocalDateTime.now());
+
                 // 构建回调请求
                 long start = System.currentTimeMillis();
                 try (cn.hutool.http.HttpResponse execute = HttpRequest.post(fileInfo.getCallbackUrl())
@@ -179,12 +196,34 @@ public class FileServiceConsumer {
                         .body(body.getBytes(StandardCharsets.UTF_8))
                         .timeout(TIMEOUT)
                         .execute()) {
+                    record.setHttpStatus(String.valueOf(execute.getStatus()));
+                    record.setResponseBody(execute.body());
+                    record.setSendStatus(execute.isOk() ? ConstantConfig.CallbackStatusEnum.SUCCESS.getStatus() : ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
                     if (log.isDebugEnabled()) {
                         log.debug("callback request: {}ms {}\n{}", (System.currentTimeMillis() - start), fileInfo.getCallbackUrl(), body);
                         log.debug(execute.toString());
                     }
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
+                } finally {
+                    // 出现失败时，重试次数+1，扔到延迟队列中
+                    if (ConstantConfig.CallbackStatusEnum.FAIL.getStatus().equals(record.getSendStatus())) {
+                        // 设置重试次数
+                        Integer retry = Optional.ofNullable(record.getRetry()).orElse(NumberConstant.INTEGER_ZERO);
+                        if (retry <= NumberConstant.INTEGER_THREE) {
+                            record.setRetry(retry + NumberConstant.INTEGER_ONE);
+                            String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
+                            // 获取消息重试级别
+                            Integer level = ConstantConfig.RetryLevelEnum.getLevel(record.getRetry());
+                            // 超时时间
+                            final int timeout = NumberConstant.INTEGER_SIX * NumberConstant.INTEGER_TEN_THOUSAND;
+                            // 发送MQ延迟消息
+                            rocketmqTemplate.syncSend(destination, org.springframework.messaging.support.MessageBuilder
+                                    .withPayload(MessageBuilder.build(consumerRequest)).build(), timeout, level);
+                        }
+                    }
+                    // 更新回调记录
+                    callbackRecordService.update(record);
                 }
             });
         } catch (Exception e) {

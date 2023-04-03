@@ -68,6 +68,8 @@ public class FileController {
 
     private FileManager fileManager;
 
+    private FileEventListener fileEventListener;
+
     private FileShareManager fileShareManager;
 
     private DiskFileConvert diskFileConvert;
@@ -100,6 +102,11 @@ public class FileController {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setFileEventListener(FileEventListener fileEventListener) {
+        this.fileEventListener = fileEventListener;
     }
 
     @Autowired
@@ -260,9 +267,8 @@ public class FileController {
                 .build(), fileModel);
 
         // 文件创建成功后的发送MQ消息
-        this.sendMessage(CreateFileConsumerRequestDTO.builder()
+        fileEventListener.create(CreateFileConsumerRequestDTO.builder()
                 .fileId(fileId)
-                .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
                 .preview(fileModel.getPreview())
                 .download(fileModel.getDownload())
                 .fileInfo(createFile)
@@ -317,7 +323,7 @@ public class FileController {
             }
 
             // 文件创建成功后的发送MQ消息
-            this.sendMessage(CreateFileConsumerRequestDTO.builder()
+            fileEventListener.create(CreateFileConsumerRequestDTO.builder()
                     .fileId(fileId)
                     .preview(fileModel.getPreview())
                     .download(fileModel.getDownload())
@@ -590,22 +596,6 @@ public class FileController {
             // 用户存储空间不足，不能入库
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.SPACE_INSUFFICIENT);
         }
-    }
-
-    /**
-     * 文件创建成功后对应的消息发送
-     *
-     * @param consumerRequest 创建文件时的消费者请求数据模型
-     */
-    private void sendMessage(CreateFileConsumerRequestDTO consumerRequest) {
-        // 回调地址为空时，不做处理
-        if (StringUtils.isBlank(consumerRequest.getFileInfo().getCallbackUrl())) {
-            return;
-        }
-
-        // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(consumerRequest));
     }
 
     /**

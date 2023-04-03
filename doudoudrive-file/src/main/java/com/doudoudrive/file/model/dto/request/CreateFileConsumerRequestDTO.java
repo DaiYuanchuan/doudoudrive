@@ -32,9 +32,9 @@ public class CreateFileConsumerRequestDTO implements Serializable {
     private String fileId;
 
     /**
-     * 请求id，16位随机字符串，包含大小写
+     * 回调记录标识
      */
-    private String requestId;
+    private String callbackRecordId;
 
     /**
      * 文件预览地址
