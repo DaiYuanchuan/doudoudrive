@@ -213,6 +213,7 @@ public class FileServiceConsumer {
                             Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO);
                             if (retry <= NumberConstant.INTEGER_THREE) {
                                 record.setRetry(retry + NumberConstant.INTEGER_ONE);
+                                record.setSendStatus(ConstantConfig.CallbackStatusEnum.WAIT.getStatus());
                                 String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
                                 // 获取消息重试级别
                                 Integer level = ConstantConfig.RetryLevelEnum.getLevel(record.getRetry());
