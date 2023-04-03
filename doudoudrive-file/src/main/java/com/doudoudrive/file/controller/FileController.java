@@ -322,6 +322,11 @@ public class FileController {
                 return Result.build(StatusCodeEnum.SYSTEM_ERROR);
             }
 
+            // 获取文件访问Url
+            fileModel = fileManager.accessUrl(FileAuthModel.builder()
+                    .userId(userInfo.getBusinessId())
+                    .build(), fileModel);
+
             // 文件创建成功后的发送MQ消息
             fileEventListener.create(CreateFileConsumerRequestDTO.builder()
                     .fileId(fileId)
@@ -333,9 +338,7 @@ public class FileController {
 
             // 构建文件鉴权模型，拼接文件访问地址
             return Result.ok(FileUploadTokenResponseDTO.builder()
-                    .fileInfo(fileManager.accessUrl(FileAuthModel.builder()
-                            .userId(userInfo.getBusinessId())
-                            .build(), fileModel))
+                    .fileInfo(fileModel)
                     .build());
         }
 
