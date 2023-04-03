@@ -209,18 +209,20 @@ public class FileServiceConsumer {
                     // 出现失败时，重试次数+1，扔到延迟队列中
                     if (ConstantConfig.CallbackStatusEnum.FAIL.getStatus().equals(record.getSendStatus())) {
                         // 设置重试次数
-                        Integer retry = Optional.ofNullable(record.getRetry()).orElse(NumberConstant.INTEGER_ZERO);
-                        if (retry <= NumberConstant.INTEGER_THREE) {
-                            record.setRetry(retry + NumberConstant.INTEGER_ONE);
-                            String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
-                            // 获取消息重试级别
-                            Integer level = ConstantConfig.RetryLevelEnum.getLevel(record.getRetry());
-                            // 超时时间
-                            final int timeout = NumberConstant.INTEGER_SIX * NumberConstant.INTEGER_TEN_THOUSAND;
-                            // 发送MQ延迟消息
-                            rocketmqTemplate.syncSend(destination, org.springframework.messaging.support.MessageBuilder
-                                    .withPayload(MessageBuilder.build(consumerRequest)).build(), timeout, level);
-                        }
+                        Optional.ofNullable(callbackRecordService.getCallbackRecord(consumerRequest.getCallbackRecordId())).ifPresent(callbackRecord -> {
+                            Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO);
+                            if (retry <= NumberConstant.INTEGER_THREE) {
+                                record.setRetry(retry + NumberConstant.INTEGER_ONE);
+                                String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
+                                // 获取消息重试级别
+                                Integer level = ConstantConfig.RetryLevelEnum.getLevel(record.getRetry());
+                                // 超时时间
+                                final int timeout = NumberConstant.INTEGER_SIX * NumberConstant.INTEGER_TEN_THOUSAND;
+                                // 发送MQ延迟消息
+                                rocketmqTemplate.syncSend(destination, org.springframework.messaging.support.MessageBuilder
+                                        .withPayload(MessageBuilder.build(consumerRequest)).build(), timeout, level);
+                            }
+                        });
                     }
                     // 更新回调记录
                     callbackRecordService.update(record);
