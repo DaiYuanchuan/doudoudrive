@@ -1,6 +1,7 @@
 package com.doudoudrive.commonservice.config;
 
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.Executor;
@@ -19,9 +20,10 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
+import java.util.Locale;
 import java.util.regex.Matcher;
 
 /**
@@ -82,10 +84,6 @@ public class SqlPrintInterceptor implements Interceptor {
         return target;
     }
 
-    @Override
-    public void setProperties(Properties properties) {
-    }
-
     private String getSql(BoundSql boundSql, Object parameterObject, Configuration configuration) {
         String sql = boundSql.getSql().replaceAll("\\s+", StringUtils.SPACE);
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
@@ -118,8 +116,12 @@ public class SqlPrintInterceptor implements Interceptor {
             if (propertyValue instanceof String) {
                 result = SINGLE_QUOTE + propertyValue + SINGLE_QUOTE;
             } else if (propertyValue instanceof Date) {
-                DateFormat dateFormat = new SimpleDateFormat(DatePattern.NORM_DATETIME_PATTERN);
+                Locale locale = Locale.getDefault(Locale.Category.FORMAT);
+                DateFormat dateFormat = new SimpleDateFormat(DatePattern.NORM_DATETIME_PATTERN, locale);
                 result = SINGLE_QUOTE + dateFormat.format(propertyValue) + SINGLE_QUOTE;
+            } else if (propertyValue instanceof LocalDateTime) {
+                String format = LocalDateTimeUtil.format((LocalDateTime) propertyValue, DatePattern.NORM_DATETIME_PATTERN);
+                result = SINGLE_QUOTE + format + SINGLE_QUOTE;
             } else {
                 result = propertyValue.toString();
             }
