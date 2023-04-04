@@ -397,6 +397,7 @@ CREATE TABLE `cloud-log`.`callback_record` (
  `request_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求的参数',
  `http_status` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求的http状态码',
  `response_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求的响应体',
+ `cost_time` int(5) UNSIGNED NULL DEFAULT 0 COMMENT '请求耗时',
  `retry` int(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '重试次数，最多重试3次',
  `send_time` datetime(0) NULL COMMENT '请求回调时间',
  `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '请求回调状态(1:等待；2:执行中；3:回调成功；4:回调失败)',
