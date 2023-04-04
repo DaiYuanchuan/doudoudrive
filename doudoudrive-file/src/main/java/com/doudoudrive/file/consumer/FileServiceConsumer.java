@@ -133,9 +133,9 @@ public class FileServiceConsumer {
     private static final String USER_AGENT_CALLBACK = "doudou-callback";
 
     /**
-     * 设置超时时间，3000ms
+     * 设置超时时间，10000ms
      */
-    private static final Integer TIMEOUT = NumberConstant.INTEGER_THREE * NumberConstant.INTEGER_ONE_THOUSAND;
+    private static final Integer TIMEOUT = NumberConstant.INTEGER_TEN * NumberConstant.INTEGER_ONE_THOUSAND;
 
     /**
      * 创建文件消费处理，当前消费者服务需要做幂等处理
