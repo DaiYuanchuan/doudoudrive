@@ -2,6 +2,11 @@ package com.doudoudrive.commonservice.config;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.StrUtil;
+import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.Executor;
@@ -24,7 +29,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
 
 /**
  * <p>配置拦截 SQL语句</p>
@@ -84,12 +88,77 @@ public class SqlPrintInterceptor implements Interceptor {
         return target;
     }
 
+    /**
+     * 格式化SQL字符串<br>
+     * 此方法只是简单将指定占位符 按照顺序替换为参数<br>
+     *
+     * @param strPattern sql字符串模板
+     * @param argArray   参数列表
+     * @return 结果
+     */
+    public static String formatSql(String strPattern, List<Object> argArray) {
+        if (StringUtils.isBlank(strPattern) || CollectionUtil.isEmpty(argArray)) {
+            return strPattern;
+        }
+
+        final int strPatternLength = strPattern.length();
+        final int placeHolderLength = ConstantConfig.SpecialSymbols.QUESTION_MARK.length();
+
+        // 初始化定义好的长度以获得更好的性能
+        final StringBuilder strBuilder = new StringBuilder(strPatternLength + NumberConstant.INTEGER_FIFTY);
+
+        // 记录已经处理到的位置
+        int handledPosition = NumberConstant.INTEGER_ZERO;
+        // 占位符所在位置
+        int delimIndex;
+        for (int argIndex = NumberConstant.INTEGER_ZERO; argIndex < argArray.size(); argIndex++) {
+            delimIndex = strPattern.indexOf(ConstantConfig.SpecialSymbols.QUESTION_MARK, handledPosition);
+            // 剩余部分无占位符
+            if (delimIndex == NumberConstant.INTEGER_MINUS_ONE) {
+                // 不带占位符的模板直接返回
+                if (handledPosition == NumberConstant.INTEGER_ZERO) {
+                    return strPattern;
+                }
+                // 字符串模板剩余部分不再包含占位符，加入剩余部分后返回结果
+                strBuilder.append(strPattern, handledPosition, strPatternLength);
+                return strBuilder.toString();
+            }
+
+            // 转义符
+            if (delimIndex > NumberConstant.INTEGER_ZERO && strPattern.charAt(delimIndex - NumberConstant.INTEGER_ONE) == StrUtil.C_BACKSLASH) {
+                // 双转义符
+                if (delimIndex > NumberConstant.INTEGER_ONE && strPattern.charAt(delimIndex - NumberConstant.INTEGER_TWO) == StrUtil.C_BACKSLASH) {
+                    // 转义符之前还有一个转义符，占位符依旧有效
+                    strBuilder.append(strPattern, handledPosition, delimIndex - NumberConstant.INTEGER_ONE);
+                    strBuilder.append(StrUtil.utf8Str(argArray.get(argIndex)));
+                    handledPosition = delimIndex + placeHolderLength;
+                } else {
+                    // 占位符被转义
+                    argIndex--;
+                    strBuilder.append(strPattern, handledPosition, delimIndex - NumberConstant.INTEGER_ONE);
+                    strBuilder.append(ConstantConfig.SpecialSymbols.QUESTION_MARK.charAt(NumberConstant.INTEGER_ZERO));
+                    handledPosition = delimIndex + NumberConstant.INTEGER_ONE;
+                }
+            } else {
+                // 正常占位符
+                strBuilder.append(strPattern, handledPosition, delimIndex);
+                strBuilder.append(StrUtil.utf8Str(argArray.get(argIndex)));
+                handledPosition = delimIndex + placeHolderLength;
+            }
+        }
+
+        // 加入最后一个占位符后所有的字符
+        strBuilder.append(strPattern, handledPosition, strPatternLength);
+
+        return strBuilder.toString();
+    }
+
     private String getSql(BoundSql boundSql, Object parameterObject, Configuration configuration) {
         String sql = boundSql.getSql().replaceAll("\\s+", StringUtils.SPACE);
-        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
         TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-        if (parameterMappings != null) {
-            for (ParameterMapping parameterMapping : parameterMappings) {
+        if (boundSql.getParameterMappings() != null) {
+            List<Object> parameter = Lists.newArrayListWithExpectedSize(boundSql.getParameterMappings().size());
+            for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
                 if (parameterMapping.getMode() != ParameterMode.OUT) {
                     Object value;
                     String propertyName = parameterMapping.getProperty();
@@ -103,14 +172,21 @@ public class SqlPrintInterceptor implements Interceptor {
                         MetaObject metaObject = configuration.newMetaObject(parameterObject);
                         value = metaObject.getValue(propertyName);
                     }
-                    sql = replacePlaceholder(sql, value);
+                    parameter.add(formatProperty(value));
                 }
             }
+            sql = formatSql(sql, parameter);
         }
         return sql;
     }
 
-    private String replacePlaceholder(String sql, Object propertyValue) {
+    /**
+     * 格式化属性值
+     *
+     * @param propertyValue 属性值
+     * @return 转为字符串后的属性值
+     */
+    private String formatProperty(Object propertyValue) {
         String result;
         if (propertyValue != null) {
             if (propertyValue instanceof String) {
@@ -128,6 +204,6 @@ public class SqlPrintInterceptor implements Interceptor {
         } else {
             result = NULL_STRING;
         }
-        return sql.replaceFirst("\\?", Matcher.quoteReplacement(result));
+        return result;
     }
 }
