@@ -203,9 +203,9 @@ public class FileServiceConsumer {
                     if (ConstantConfig.CallbackStatusEnum.FAIL.getStatus().equals(record.getSendStatus())) {
                         // 设置重试次数
                         Optional.ofNullable(callbackRecordService.getCallbackRecord(consumerRequest.getCallbackRecordId())).ifPresent(callbackRecord -> {
-                            Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO);
-                            record.setRetry(retry + NumberConstant.INTEGER_ONE);
-                            if (record.getRetry() <= NumberConstant.INTEGER_THREE) {
+                            Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO) + NumberConstant.INTEGER_ONE;
+                            if (retry <= NumberConstant.INTEGER_THREE) {
+                                record.setRetry(retry);
                                 record.setSendStatus(ConstantConfig.CallbackStatusEnum.WAIT.getStatus());
                                 String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
                                 // 获取消息重试级别
