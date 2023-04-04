@@ -199,29 +199,28 @@ public class FileServiceConsumer {
                     record.setHttpStatus(String.valueOf(execute.getStatus()));
                     record.setResponseBody(execute.body());
                     record.setSendStatus(execute.isOk() ? ConstantConfig.CallbackStatusEnum.SUCCESS.getStatus() : ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
-                    if (log.isDebugEnabled()) {
-                        log.debug("callback request: {}ms {}\n{}", (System.currentTimeMillis() - start), fileInfo.getCallbackUrl(), body);
-                        log.debug(execute.toString());
-                    }
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
+                    record.setSendStatus(ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
                 } finally {
+                    record.setCostTime(System.currentTimeMillis() - start);
                     // 出现失败时，重试次数+1，扔到延迟队列中
                     if (ConstantConfig.CallbackStatusEnum.FAIL.getStatus().equals(record.getSendStatus())) {
                         // 设置重试次数
                         Optional.ofNullable(callbackRecordService.getCallbackRecord(consumerRequest.getCallbackRecordId())).ifPresent(callbackRecord -> {
                             Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO);
-                            if (retry <= NumberConstant.INTEGER_THREE) {
-                                record.setRetry(retry + NumberConstant.INTEGER_ONE);
+                            record.setRetry(retry + NumberConstant.INTEGER_ONE);
+                            if (record.getRetry() <= NumberConstant.INTEGER_THREE) {
                                 record.setSendStatus(ConstantConfig.CallbackStatusEnum.WAIT.getStatus());
                                 String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
                                 // 获取消息重试级别
-                                Integer level = ConstantConfig.RetryLevelEnum.getLevel(record.getRetry());
-                                // 超时时间
-                                final int timeout = NumberConstant.INTEGER_SIX * NumberConstant.INTEGER_TEN_THOUSAND;
-                                // 发送MQ延迟消息
-                                rocketmqTemplate.syncSend(destination, org.springframework.messaging.support.MessageBuilder
-                                        .withPayload(MessageBuilder.build(consumerRequest)).build(), timeout, level);
+                                Optional.ofNullable(ConstantConfig.RetryLevelEnum.getLevel(record.getRetry())).ifPresent(level -> {
+                                    // 超时时间
+                                    final int timeout = NumberConstant.INTEGER_SIX * NumberConstant.INTEGER_TEN_THOUSAND;
+                                    // 发送MQ延迟消息
+                                    rocketmqTemplate.syncSend(destination, org.springframework.messaging.support.MessageBuilder
+                                            .withPayload(MessageBuilder.build(consumerRequest)).build(), timeout, level);
+                                });
                             }
                         });
                     }
