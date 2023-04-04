@@ -57,6 +57,11 @@ public class CallbackRecord implements Serializable {
     private String responseBody;
 
     /**
+     * 请求耗时，单位毫秒
+     */
+    private Long costTime;
+
+    /**
      * 重试次数，最多重试3次
      */
     private Integer retry;

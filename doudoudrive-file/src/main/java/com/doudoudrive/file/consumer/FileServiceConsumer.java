@@ -128,11 +128,6 @@ public class FileServiceConsumer {
     private static final String REQUEST_ID = "requestId";
 
     /**
-     * 常量 16
-     */
-    private static final Integer SIXTEEN = NumberConstant.INTEGER_TEN + NumberConstant.INTEGER_SIX;
-
-    /**
      * 回调ua字符串
      */
     private static final String USER_AGENT_CALLBACK = "doudou-callback";

@@ -10,6 +10,7 @@
         <result property="requestBody" column="request_body"/>
         <result property="httpStatus" column="http_status"/>
         <result property="responseBody" column="response_body"/>
+        <result property="costTime" column="cost_time"/>
         <result property="retry" column="retry"/>
         <result property="sendTime" column="send_time"/>
         <result property="sendStatus" column="send_status"/>
@@ -19,8 +20,8 @@
 
     <!-- sql字段信息 -->
     <sql id="callbackRecord">
-        `auto_id`, `business_id`, `http_url`, `request_body`, `http_status`, `response_body`, `retry`, `send_time`,
-        `send_status`, `create_time`, `update_time`
+        `auto_id`, `business_id`, `http_url`, `request_body`, `http_status`, `response_body`, `cost_time`, `retry`,
+        `send_time`, `send_status`, `create_time`, `update_time`
     </sql>
 
     <!-- 新增外部系统回调记录 -->
@@ -34,6 +35,7 @@
             <if test="null != callbackRecord.requestBody and '' != callbackRecord.requestBody">`request_body`,</if>
             <if test="null != callbackRecord.httpStatus and '' != callbackRecord.httpStatus">`http_status`,</if>
             <if test="null != callbackRecord.responseBody and '' != callbackRecord.responseBody">`response_body`,</if>
+            <if test="null != callbackRecord.costTime and 0 != callbackRecord.costTime">`cost_time`,</if>
             <if test="null != callbackRecord.retry and 0 != callbackRecord.retry">`retry`,</if>
             <if test="null != callbackRecord.sendTime">`send_time`,</if>
             <if test="null != callbackRecord.sendStatus and '' != callbackRecord.sendStatus">`send_status`,</if>
@@ -56,6 +58,9 @@
             </if>
             <if test="null != callbackRecord.responseBody and '' != callbackRecord.responseBody">
                 #{callbackRecord.responseBody},
+            </if>
+            <if test="null != callbackRecord.costTime and 0 != callbackRecord.costTime">
+                #{callbackRecord.costTime},
             </if>
             <if test="null != callbackRecord.retry and 0 != callbackRecord.retry">
                 #{callbackRecord.retry},
@@ -85,6 +90,9 @@
             </if>
             <if test="null != callbackRecord.responseBody and '' != callbackRecord.responseBody">
                 `response_body` = #{callbackRecord.responseBody},
+            </if>
+            <if test="null != callbackRecord.costTime and 0 != callbackRecord.costTime">
+                `cost_time` = #{callbackRecord.costTime},
             </if>
             <if test="null != callbackRecord.retry and 0 != callbackRecord.retry">
                 `retry` = #{callbackRecord.retry},
