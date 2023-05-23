@@ -4,6 +4,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
@@ -53,6 +54,177 @@ public class RedisTemplateClient {
      */
     public Boolean hasKey(String key) {
         return redisTemplate.hasKey(key);
+    }
+
+    /**
+     * lPush 命令将一个或多个值插入到列表数据的头部（左边），这个命令的语法如下：
+     * <pre>
+     *     lPush key value [value ...]
+     *     其中，key表示列表的键名，value表示要插入的一个或多个值。
+     *     例如：lPush myList "!" "world" "hello"
+     *     如果列表"myList"不存在，则创建一个新的列表并插入值，如果列表"myList"已经存在，则将值插入到其头部。
+     *     如果一个键名对应的值不是一个列表，那么Redis会返回一个错误信息
+     * </pre>
+     *
+     * @param key   键
+     * @param value 值
+     * @return 返回列表的长度
+     */
+    public Long leftPush(String key, Object... value) {
+        if (CollectionUtil.isNotEmpty(value)) {
+            if (value.length == NumberConstant.INTEGER_ONE) {
+                return redisTemplate.opsForList().leftPush(key, value[NumberConstant.INTEGER_ZERO]);
+            } else {
+                return redisTemplate.opsForList().leftPushAll(key, value);
+            }
+        }
+        return NumberConstant.LONG_ZERO;
+    }
+
+    /**
+     * rPush命令用于将一个或多个值插入到列表的尾部（右边），这个命令的语法如下：
+     * <pre>
+     *     rPush key value [value ...]
+     *     其中，key表示列表的键名，value表示要插入的一个或多个值。
+     *     例如：rPush myList "hello" "world" "!"
+     *     如果列表"myList"不存在，则创建一个新的列表并插入值，如果列表"myList"已经存在，则将值插入到其尾部。
+     *     如果一个键名对应的值不是一个列表，那么Redis会返回一个错误信息
+     * </pre>
+     *
+     * @param key   键
+     * @param value 值
+     * @return 返回列表的长度
+     */
+    public Long rightPush(String key, Object... value) {
+        if (CollectionUtil.isNotEmpty(value)) {
+            if (value.length == NumberConstant.INTEGER_ONE) {
+                return redisTemplate.opsForList().rightPush(key, value[NumberConstant.INTEGER_ZERO]);
+            } else {
+                return redisTemplate.opsForList().rightPushAll(key, value);
+            }
+        }
+        return NumberConstant.LONG_ZERO;
+    }
+
+    /**
+     * lPOP 命令用于从列表的左侧（头部）移除并返回一个元素，这个命令的语法如下：
+     * <pre>
+     *     lPop key
+     *     其中，key表示列表的键名。
+     *     该命令会从给定的列表中移除并返回列表左侧的第一个元素
+     *     如果列表不存在或者为空，那么该命令会返回一个nil值。
+     *     例如：
+     *       假设有一个名为 myList 的列表，包含以下元素：["a", "b", "c"]。
+     *       使用 lPop 命令可以从列表的左侧移除并返回元素。
+     *       lPop myList
+     *       执行上述命令后，将会返回值 "a"，并且列表变为 ["b", "c"]。
+     *     lPop 命令可以用于实现先进先出（FIFO）队列，以及其他需要按顺序处理元素的场景。
+     * </pre>
+     *
+     * @param key 键
+     * @return 返回列表的头部元素，如果列表不存在或者为空，那么该命令会返回一个nil值
+     */
+    public Object leftPop(String key) {
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        return redisTemplate.opsForList().leftPop(key);
+    }
+
+    /**
+     * lPOP 命令用于从列表的左侧（头部）移除并返回一个元素，这个命令的语法如下：
+     * <pre>
+     *     lPop key [count]
+     *     其中，key表示列表的键名，count表示每次从列表中弹出元素的数量
+     *     该命令会从给定的列表中移除并返回列表左侧的第一个元素
+     *     如果列表不存在或者为空，那么该命令会返回一个nil值。
+     *     例如：
+     *       假设有一个名为 myList 的列表，包含以下元素：["a", "b", "c"]。
+     *       使用 lPop 命令可以从列表的左侧移除并返回元素。
+     *       lPop myList
+     *       执行上述命令后，将会返回值 "a"，并且列表变为 ["b", "c"]。
+     *     lPop 命令可以用于实现先进先出（FIFO）队列，以及其他需要按顺序处理元素的场景。
+     * </pre>
+     *
+     * @param key   键
+     * @param count 移除的个数
+     * @return 返回列表的头部元素，如果列表不存在或者为空，那么该命令会返回一个nil值
+     */
+    public List<Object> leftPop(String key, long count) {
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        return redisTemplate.opsForList().leftPop(key, count);
+    }
+
+    /**
+     * blPOP 是一个阻塞列表命令，用于从一个或多个列表的左侧（头部）弹出一个元素。<br/>
+     * 如果列表为空，blPOP 会阻塞当前客户端连接，直到有元素可用或达到指定的超时时间。
+     * <pre>
+     *     blPop key [key ...] timeout
+     *     其中，key表示一个或多个列表的键名，timeout表示阻塞的超时时间，单位为秒。
+     *     如果列表为空，客户端将在超时时间内阻塞，直到有元素可用。
+     *     该命令会按照给定的键名顺序依次检查列表，并返回第一个非空列表的元素。
+     *     如果所有列表都为空，则客户端将会阻塞，直到有元素可用或超时时间到达。
+     *     例如：
+     *       假设有两个列表 list1 和 list2，执行以下 blPop 命令：
+     *       blPop list1 list2 10
+     *       上述命令会检查 list1 和 list2，如果其中有任何一个列表不为空，则返回列表的第一个元素
+     *       如果两个列表都为空，客户端将会阻塞 10 秒钟，直到有元素可用或超时时间到达。<br/>
+     *     blPop 命令会将元素从列表中移除，并返回移除的元素。
+     *     如果只是想查看列表中的元素而不移除，可以使用 lIndex 命令
+     *     blPop 常用于实现队列的消费者模型，可以实现阻塞等待队列中的任务，并在任务可用时立即处理
+     * </pre>
+     *
+     * @param key     键
+     * @param timeout 超时时间，为0表示一直阻塞
+     * @param unit    时间单位
+     * @return 返回列表的头部元素，如果列表为空，那么该命令会阻塞当前客户端连接
+     */
+    public Object leftPop(String key, long timeout, TimeUnit unit) {
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        return redisTemplate.opsForList().leftPop(key, timeout, unit);
+    }
+
+    /**
+     * sAdd命令用于向集合(Set)中添加一个或多个成员，这个命令的语法如下：
+     * <pre>
+     *     sAdd key member [member ...]
+     *     key表示集合的键名，member表示要添加的一个或多个成员
+     *     例如：sAdd mySet "hello" "world" "!"
+     *     集合"mySet"不存在，则会创建一个新的集合并添加成员，如果集合"mySet"已经存在，则添加成员到集合中
+     *     如果一个键名对应的值不是一个集合，那么Redis会返回一个错误信息
+     * </pre>
+     *
+     * @param key   键
+     * @param value 值
+     * @return 返回添加到集合中的新成员的数量，不包括已经存在于集合中的成员
+     */
+    public Long sAdd(String key, Object... value) {
+        if (CollectionUtil.isNotEmpty(value)) {
+            return redisTemplate.opsForSet().add(key, value);
+        }
+        return NumberConstant.LONG_ZERO;
+    }
+
+    /**
+     * sisMember命令用于判断一个值是否在集合(Set)中，这个命令的语法如下：
+     * <pre>
+     *     sisMember key member
+     *     其中，key表示集合的键名，member表示要判断的值
+     *     例如：sisMember mySet "hello"
+     *     如果值"hello"在集合"mySet"中，则返回1，否则返回0。
+     *     如果集合"mySet"不存在，则返回0。
+     * </pre>
+     *
+     * @param key   键
+     * @param value 值
+     * @return true:存在，false:不存在
+     */
+    public Boolean isMember(String key, Object value) {
+        return redisTemplate.opsForSet().isMember(key, value);
     }
 
     /**
@@ -269,6 +441,7 @@ public class RedisTemplateClient {
      * @return 脚本的返回值，如果{@code resultType}为null，则脚本的返回值为null
      */
     public <T> T eval(String script, List<String> keys, Class<T> resultType, Object... args) {
-        return redisTemplate.execute(RedisScript.of(script, resultType), keys, args);
+        RedisScript<T> redisScript = resultType == null ? RedisScript.of(script) : RedisScript.of(script, resultType);
+        return redisTemplate.execute(redisScript, keys, args);
     }
 }
