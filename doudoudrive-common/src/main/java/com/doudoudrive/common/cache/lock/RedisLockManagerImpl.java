@@ -3,22 +3,19 @@ package com.doudoudrive.common.cache.lock;
 import cn.hutool.core.util.IdUtil;
 import com.doudoudrive.common.cache.RedisMessageSubscriber;
 import com.doudoudrive.common.cache.RedisTemplateClient;
+import com.doudoudrive.common.cache.timer.TimeWheelManager;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.ExpirationEntry;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.google.common.collect.Lists;
-import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.io.Closeable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -38,22 +35,27 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Scope("singleton")
 @Service("redisLockManager")
-public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubscriber, CommandLineRunner, Closeable {
+public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubscriber {
 
     /**
      * Redis客户端操作相关工具类
      */
     private RedisTemplateClient redisTemplateClient;
 
+    /**
+     * 时间轮定时器
+     */
+    private TimeWheelManager timeWheelManager;
+
     @Autowired
     public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
         this.redisTemplateClient = redisTemplateClient;
     }
 
-    /**
-     * 看门狗，时间轮定时器
-     */
-    private HashedWheelTimer timer;
+    @Autowired
+    public void setTimeWheelManager(TimeWheelManager timeWheelManager) {
+        this.timeWheelManager = timeWheelManager;
+    }
 
     /**
      * 获取锁的lua脚本
@@ -151,16 +153,6 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
      * 锁的内部租赁时间
      */
     private static final FastThreadLocal<Long> LOCK_LEASE_TIME = new FastThreadLocal<>();
-
-    /**
-     * 看门狗的时间轮的刻度数量
-     */
-    private static final Integer TICKS_PER_WHEEL = 1024;
-
-    /**
-     * 看门狗的时间轮线程池名称
-     */
-    private static final String POOL_NAME = "redis-lock";
 
     /**
      * 格式化的连接符
@@ -305,25 +297,6 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
                             .flatMap(entryList -> Optional.ofNullable(entryList.get(NumberConstant.INTEGER_ZERO))))
                     .ifPresent(Semaphore::release);
         }
-    }
-
-    /**
-     * 初始化看门狗，时间轮定时器，刻度持续时间为100毫秒，刻度数量为1024
-     *
-     * @param args incoming main method arguments
-     */
-    @Override
-    public void run(String... args) {
-        // 初始化时间轮定时器
-        timer = new HashedWheelTimer(new DefaultThreadFactory(POOL_NAME), NumberConstant.INTEGER_HUNDRED, TimeUnit.MILLISECONDS, TICKS_PER_WHEEL, Boolean.FALSE);
-    }
-
-    /**
-     * 关闭看门狗，时间轮定时器
-     */
-    @Override
-    public void close() {
-        timer.stop();
     }
 
     // ==================================================== private ====================================================
@@ -482,7 +455,7 @@ public class RedisLockManagerImpl implements RedisLockManager, RedisMessageSubsc
         }
 
         // 创建一个定时任务，用于续订锁的过期时间，每隔internalLockLeaseTime/3(10s)的时间续订一次
-        Timeout task = timer.newTimeout(timeout -> Optional.ofNullable(EXPIRATION_RENEWAL_MAP.get(getTaskName(name, uuid)))
+        Timeout task = timeWheelManager.newTimeout(timeout -> Optional.ofNullable(EXPIRATION_RENEWAL_MAP.get(getTaskName(name, uuid)))
                 // 获取map队列里面的第一个线程Id
                 .flatMap(ent -> Optional.ofNullable(ent.getFirstThreadId()))
                 .ifPresent(threadId -> {
