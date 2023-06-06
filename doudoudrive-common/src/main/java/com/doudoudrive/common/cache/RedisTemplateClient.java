@@ -185,7 +185,11 @@ public class RedisTemplateClient {
         if (StringUtils.isBlank(key)) {
             return null;
         }
-        return redisTemplate.opsForList().leftPop(key, timeout, unit);
+        try {
+            return redisTemplate.opsForList().leftPop(key, timeout, unit);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

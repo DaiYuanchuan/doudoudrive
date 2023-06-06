@@ -1,6 +1,7 @@
 package com.doudoudrive.common.cache;
 
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.RedisDelayedQueueEnum;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -95,6 +96,13 @@ public class RedisConfig extends CachingConfigurerSupport {
             // 订阅一个channel，可以添加多个messageListener，来订阅不同的channel
             container.addMessageListener(messageListener(), new PatternTopic(chanelEnum.getChannel()));
         }
+
+        // 注册延迟队列相关topic
+        for (RedisDelayedQueueEnum delayedQueueEnum : RedisDelayedQueueEnum.values()) {
+            // 订阅一个channel，可以添加多个messageListener，来订阅不同的channel
+            container.addMessageListener(messageListener(), new PatternTopic(delayedQueueEnum.getChannelTopic()));
+        }
+
         return container;
     }
 }

@@ -183,6 +183,11 @@ public interface ConstantConfig {
          * 文件搜索服务
          */
         String FILE_SEARCH_SERVICE = "FILE_SEARCH_SERVICE";
+
+        /**
+         * 延迟消息队列服务
+         */
+        String DELAY_MESSAGE_QUEUE_SERVICE = "DELAY_MESSAGE_QUEUE_SERVICE";
     }
 
     /**
@@ -234,6 +239,16 @@ public interface ConstantConfig {
          * 保存文件ES服务
          */
         String SAVE_FILE_ES = "SAVE_FILE_ES";
+
+        /**
+         * 外部回调延迟任务
+         */
+        String EXTERNAL_CALLBACK_TASK = "EXTERNAL_CALLBACK_TASK";
+
+        /**
+         * 订单超时延迟任务
+         */
+        String ORDER_TIMEOUT_TASK = "ORDER_TIMEOUT_TASK";
     }
 
     /**
@@ -260,6 +275,11 @@ public interface ConstantConfig {
          * FILE搜索服务所属消费者组
          */
         String FILE_SEARCH = "FILE_SEARCH_CONSUMER_GROUP";
+
+        /**
+         * 延迟消息队列服务所属消费者组
+         */
+        String DELAY_MESSAGE_QUEUE = "DELAY_MESSAGE_QUEUE_CONSUMER_GROUP";
     }
 
     /**
@@ -353,6 +373,8 @@ public interface ConstantConfig {
         String HYPHEN = "-";
         String UNDERLINE = "_";
         String CURLY_BRACES = "{}";
+        String LEFT_BRACE = "{";
+        String RIGHT_BRACE = "}";
         String LEFT_BRACKET = "(";
         String RIGHT_BRACKET = ")";
         String ENTER_LINUX = "\n";
@@ -509,6 +531,11 @@ public interface ConstantConfig {
          * 文件分享信息缓存
          */
         String FILE_SHARE_CACHE = "FILE_SHARE_CACHE:";
+
+        /**
+         * redis延迟队列专用消息通道
+         */
+        String REDIS_DELAY_QUEUE_CHANNEL = "REDIS_DELAY_QUEUE_CHANNEL:";
 
         /**
          * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
