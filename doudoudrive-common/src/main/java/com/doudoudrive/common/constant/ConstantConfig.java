@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -209,11 +210,6 @@ public interface ConstantConfig {
          * 邮件发送
          */
         String SEND_MAIL = "SEND_MAIL";
-
-        /**
-         * 创建文件服务
-         */
-        String CREATE_FILE = "CREATE_FILE_CALLBACK";
 
         /**
          * 创建文件失败时异步回滚服务
@@ -1193,25 +1189,25 @@ public interface ConstantConfig {
     }
 
     /**
-     * 重试级别枚举类型
+     * 重试级别枚举类型，自定义的延迟级别
      */
     @Getter
     enum RetryLevelEnum {
 
         /**
-         * 一级重试，延迟10秒执行
+         * 一级重试，延迟15秒执行
          */
-        LEVEL_ONE(1, 3),
+        LEVEL_ONE(1, 15L, TimeUnit.SECONDS),
 
         /**
          * 二级重试，延迟5分钟执行
          */
-        LEVEL_TWO(2, 9),
+        LEVEL_TWO(2, 5L, TimeUnit.MINUTES),
 
         /**
          * 三级重试，延迟30分钟执行
          */
-        LEVEL_THREE(3, 16);
+        LEVEL_THREE(3, 30L, TimeUnit.MINUTES);
 
         /**
          * 重试次数
@@ -1219,23 +1215,30 @@ public interface ConstantConfig {
         private final Integer retry;
 
         /**
-         * MQ延迟级别
-         * 1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
+         * 延迟时间
          */
-        private final Integer level;
+        private final Long delay;
 
-        RetryLevelEnum(Integer retry, Integer level) {
+        /**
+         * 时间单位
+         */
+        private final TimeUnit timeUnit;
+
+        RetryLevelEnum(Integer retry, Long delay, TimeUnit timeUnit) {
             this.retry = retry;
-            this.level = level;
+            this.delay = delay;
+            this.timeUnit = timeUnit;
         }
 
         /**
          * 根据重试次数获取对应的重试级别
+         *
+         * @param retry 重试次数
+         * @return 重试级别枚举
          */
-        public static Integer getLevel(Integer retry) {
+        public static RetryLevelEnum getLevel(Integer retry) {
             return Stream.of(values())
-                    .filter(anEnum -> anEnum.retry.equals(retry))
-                    .map(anEnum -> anEnum.level).findFirst().orElse(null);
+                    .filter(anEnum -> anEnum.retry.equals(retry)).findFirst().orElse(null);
         }
     }
 

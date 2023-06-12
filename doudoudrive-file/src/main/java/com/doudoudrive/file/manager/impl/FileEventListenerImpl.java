@@ -1,13 +1,16 @@
 package com.doudoudrive.file.manager.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.common.model.pojo.CallbackRecord;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.commonservice.service.CallbackRecordService;
 import com.doudoudrive.file.manager.FileEventListener;
-import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
+import com.doudoudrive.file.model.convert.DiskFileConvert;
+import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -30,8 +33,8 @@ public class FileEventListenerImpl implements FileEventListener {
      * RocketMQ消息模型
      */
     private RocketMQTemplate rocketmqTemplate;
-
     private CallbackRecordService callbackRecordService;
+    private DiskFileConvert diskFileConvert;
 
     @Autowired
     public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
@@ -41,6 +44,11 @@ public class FileEventListenerImpl implements FileEventListener {
     @Autowired
     public void setCallbackRecordService(CallbackRecordService callbackRecordService) {
         this.callbackRecordService = callbackRecordService;
+    }
+
+    @Autowired(required = false)
+    public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
+        this.diskFileConvert = diskFileConvert;
     }
 
     /**
@@ -61,19 +69,26 @@ public class FileEventListenerImpl implements FileEventListener {
             return;
         }
 
+        // 构建回调请求对象json串
+        CreateFileCallbackRequestDTO fileCallbackRequest = diskFileConvert.ossFileConvertCreateFileCallbackRequest(consumerRequest.getFileInfo(),
+                consumerRequest.getFileId(), consumerRequest.getPreview(), consumerRequest.getDownload());
+        String body = JSON.toJSONString(fileCallbackRequest);
+
         // 构建回调记录信息
         CallbackRecord callbackRecord = CallbackRecord.builder()
                 .httpUrl(consumerRequest.getFileInfo().getCallbackUrl())
+                .requestBody(body)
                 .retry(NumberConstant.INTEGER_ZERO)
                 .sendStatus(ConstantConfig.CallbackStatusEnum.WAIT.getStatus())
                 .build();
         callbackRecordService.insert(callbackRecord);
 
-        consumerRequest.setCallbackRecordId(callbackRecord.getBusinessId());
-
-        // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(consumerRequest));
+        // 使用one-way模式发送消息，外部回调任务处理
+        String destination = ConstantConfig.Topic.DELAY_MESSAGE_QUEUE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.EXTERNAL_CALLBACK_TASK;
+        // 往MQ中发送的回调记录只需要业务id即可
+        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(CallbackRecord.builder()
+                .businessId(callbackRecord.getBusinessId())
+                .build()));
     }
 
     @Override

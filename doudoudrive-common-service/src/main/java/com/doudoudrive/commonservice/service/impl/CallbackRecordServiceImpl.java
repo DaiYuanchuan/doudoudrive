@@ -71,6 +71,33 @@ public class CallbackRecordServiceImpl implements CallbackRecordService {
     }
 
     /**
+     * 将外部系统回调记录状态从等待修改为执行中
+     *
+     * @param businessId 回调记录业务id
+     * @return true:修改成功 false:修改失败
+     */
+    @Override
+    public Boolean updateStatusToExecute(String businessId) {
+        if (StringUtils.isBlank(businessId)) {
+            return Boolean.FALSE;
+        }
+
+        // 获取序列生成时间的月份
+        String tableSuffix = SequenceUtil.generateTimeSuffix(businessId);
+        if (StringUtils.isBlank(tableSuffix)) {
+            return Boolean.FALSE;
+        }
+
+        // 更新回调记录状态为执行中
+        Integer result = callbackRecordDao.updateStatusToExecute(businessId, tableSuffix);
+        if (result == null || NumberConstant.INTEGER_ZERO.equals(result)) {
+            return Boolean.FALSE;
+        }
+
+        return Boolean.TRUE;
+    }
+
+    /**
      * 查找外部系统回调记录
      *
      * @param businessId 根据业务id(businessId)查找

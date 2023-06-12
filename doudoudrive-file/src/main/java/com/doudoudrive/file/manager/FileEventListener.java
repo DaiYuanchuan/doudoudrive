@@ -1,7 +1,7 @@
 package com.doudoudrive.file.manager;
 
+import com.doudoudrive.common.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
-import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 
 /**
  * <p>文件变更事件监听</p>

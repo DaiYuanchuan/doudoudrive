@@ -109,6 +109,14 @@
         </where>
     </update>
 
+    <update id="updateStatusToExecute" parameterType="com.doudoudrive.common.model.pojo.CallbackRecord"
+            flushCache="true">
+        UPDATE `callback_record_${tableSuffix}`
+        SET `send_status` = '2'
+        WHERE `business_id` = #{businessId}
+          AND `send_status` = '1'
+    </update>
+
     <!-- 根据业务id(businessId)查找外部系统回调记录 -->
     <select id="getCallbackRecord" resultType="com.doudoudrive.common.model.pojo.CallbackRecord"
             resultMap="callbackRecordResultMap">

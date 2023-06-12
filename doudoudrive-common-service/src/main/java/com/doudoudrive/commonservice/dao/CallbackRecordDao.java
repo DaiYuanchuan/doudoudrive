@@ -35,6 +35,15 @@ public interface CallbackRecordDao {
     Integer update(@Param("callbackRecord") CallbackRecord callbackRecord, @Param("tableSuffix") String tableSuffix);
 
     /**
+     * 将外部系统回调记录状态从等待修改为执行中
+     *
+     * @param businessId  业务id
+     * @param tableSuffix 表后缀
+     * @return 返回修改的条数
+     */
+    Integer updateStatusToExecute(@Param("businessId") String businessId, @Param("tableSuffix") String tableSuffix);
+
+    /**
      * 查找外部系统回调记录
      *
      * @param businessId  根据业务id(businessId)查找

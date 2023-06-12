@@ -26,6 +26,14 @@ public interface CallbackRecordService {
     Integer update(CallbackRecord callbackRecord);
 
     /**
+     * 将外部系统回调记录状态从等待修改为执行中
+     *
+     * @param businessId 回调记录业务id
+     * @return true:修改成功 false:修改失败
+     */
+    Boolean updateStatusToExecute(String businessId);
+
+    /**
      * 查找外部系统回调记录
      *
      * @param businessId 根据业务id(businessId)查找
