@@ -45,9 +45,9 @@ public class DelayMessageQueueServiceConsumer {
      */
     private static final String USER_AGENT_CALLBACK = "doudou-callback";
     /**
-     * 设置超时时间，10000ms
+     * 设置超时时间，5000ms
      */
-    private static final Integer TIMEOUT = NumberConstant.INTEGER_TEN * NumberConstant.INTEGER_ONE_THOUSAND;
+    private static final Integer TIMEOUT = NumberConstant.INTEGER_FIVE * NumberConstant.INTEGER_ONE_THOUSAND;
     private MqConsumerRecordConvert consumerRecordConvert;
     private RocketmqConsumerRecordService rocketmqConsumerRecordService;
     private CallbackRecordService callbackRecordService;
