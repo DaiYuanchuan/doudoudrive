@@ -365,10 +365,12 @@ public class DiskFileServiceImpl implements DiskFileService {
                 // 进行任务的回调，执行回调函数
                 consumer.accept(queryParentIdResponse);
 
-                // 获取最后一个节点的id
-                int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
-                // 递归继续翻页查询
-                this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
+                if (queryParentIdResponse.size() == NumberConstant.INTEGER_TEN_THOUSAND) {
+                    // 获取最后一个节点的id
+                    int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
+                    // 递归继续翻页查询
+                    this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
+                }
             }
         });
     }
