@@ -346,13 +346,20 @@
             <if test="null != autoId and 0 != autoId">
                 `auto_id` > #{autoId} AND
             </if>
+            <choose>
+                <when test="parentId.size() == 1">
+                    `file_parent_id` = #{parentId[0]} AND
+                </when>
+                <otherwise>
+                    `file_parent_id` IN
+                    <foreach collection="parentId" index="index" item="item" open="(" separator="," close=") AND">
+                        #{item}
+                    </foreach>
+                </otherwise>
+            </choose>
             <if test="null != userId and '' != userId">
                 `user_id` = #{userId} AND
             </if>
-            `file_parent_id` IN
-            <foreach collection="parentId" index="index" item="item" open="(" separator="," close=")">
-                #{item}
-            </foreach>
         </trim>
         LIMIT 10000;
     </select>
