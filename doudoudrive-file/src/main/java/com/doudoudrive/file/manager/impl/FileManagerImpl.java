@@ -532,7 +532,7 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
-     * 获取指定文件节点下所有的子节点信息 （递归）
+     * 获取指定文件节点下所有的子节点信息 （循环）
      *
      * @param userId   用户系统内唯一标识
      * @param parentId 文件父级标识
@@ -540,36 +540,40 @@ public class FileManagerImpl implements FileManager {
      */
     @Override
     public void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer) {
-        this.getAllFileInfo(null, userId, parentId, queryParentIdResponse -> {
-            try {
-                // 回调函数
-                consumer.accept(queryParentIdResponse);
-            } catch (Exception ignored) {
-                // ignored
-            }
+        // 创建一个栈
+        Deque<List<String>> stack = new LinkedList<>();
+        stack.push(parentId);
+        while (!stack.isEmpty()) {
+            this.getAllFileInfo(userId, stack.pop(), queryParentIdResponse -> {
+                try {
+                    // 回调函数
+                    consumer.accept(queryParentIdResponse);
+                } catch (Exception ignored) {
+                    // ignored
+                }
 
-            // 获取查询结果中的所有文件夹标识
-            List<String> parentFileList = queryParentIdResponse.stream()
-                    .filter(DiskFile::getFileFolder)
-                    .map(DiskFile::getBusinessId).toList();
-            if (CollectionUtil.isNotEmpty(parentFileList)) {
-                // 存在有文件夹时，继续递归查询
-                this.getUserFileAllNode(userId, parentFileList, consumer);
-            }
-        });
+                // 获取查询结果中的所有文件夹标识
+                List<String> parentFileList = queryParentIdResponse.stream()
+                        .filter(DiskFile::getFileFolder)
+                        .map(DiskFile::getBusinessId).toList();
+                if (CollectionUtil.isNotEmpty(parentFileList)) {
+                    // 存在有文件夹时，继续循环查询
+                    stack.push(parentFileList);
+                }
+            });
+        }
     }
 
     /**
      * 获取指定父目录下的所有文件信息
      *
-     * @param autoId       自增长标识，用于分页游标
      * @param userId       用户系统内唯一标识
      * @param parentFileId 文件父级标识
      * @param consumer     回调函数中返回查找到的用户文件模块数据集合
      */
     @Override
-    public void getAllFileInfo(Long autoId, String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer) {
-        diskFileService.getAllFileInfo(autoId, userId, parentFileId, consumer);
+    public void getAllFileInfo(String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer) {
+        diskFileService.getAllFileInfo(userId, parentFileId, consumer);
     }
 
     /**

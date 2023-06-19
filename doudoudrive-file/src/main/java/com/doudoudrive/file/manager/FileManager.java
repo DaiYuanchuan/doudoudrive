@@ -100,7 +100,7 @@ public interface FileManager {
     FileSearchResponseDTO search(QueryElasticsearchDiskFileRequestDTO queryElasticRequest, FileAuthModel authModel, String marker);
 
     /**
-     * 获取指定文件节点下所有的子节点信息 （递归）
+     * 获取指定文件节点下所有的子节点信息 （循环）
      *
      * @param userId   用户系统内唯一标识
      * @param parentId 文件父级标识
@@ -111,12 +111,11 @@ public interface FileManager {
     /**
      * 获取指定父目录下的所有文件信息
      *
-     * @param autoId       自增长标识，用于分页游标
      * @param userId       用户系统内唯一标识
      * @param parentFileId 文件父级标识
      * @param consumer     回调函数中返回查找到的用户文件模块数据集合
      */
-    void getAllFileInfo(Long autoId, String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer);
+    void getAllFileInfo(String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer);
 
     /**
      * 根据文件业务标识批量查询用户文件信息
