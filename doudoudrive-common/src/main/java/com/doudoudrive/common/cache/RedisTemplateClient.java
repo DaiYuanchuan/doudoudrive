@@ -3,6 +3,7 @@ package com.doudoudrive.common.cache;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -229,6 +231,125 @@ public class RedisTemplateClient {
      */
     public Boolean isMember(String key, Object value) {
         return redisTemplate.opsForSet().isMember(key, value);
+    }
+
+    /**
+     * HSET命令用于在Redis哈希表中设置指定字段的值，它接受哈希表的名称作为参数，并指定要设置的字段和对应的值。
+     * <pre>
+     *     hSet key field value
+     *     - key：哈希表的名称。
+     *     - field：要设置的字段。
+     *     - value：字段对应的值。
+     *     例如：hSet myHash name "hello"
+     *     如果哈希表"myHash"不存在，则会创建一个新的哈希表并设置字段的值。
+     *     如果哈希表"myHash"已经存在，则设置字段的值。
+     *     如果一个键名对应的值不是一个哈希表，那么Redis会返回一个错误信息。
+     *     如果字段已经存在，那么它将被覆盖。
+     * </pre>
+     *
+     * @param key     键
+     * @param hashKey 哈希键
+     * @param value   哈希值
+     */
+    public void put(String key, String hashKey, Object value) {
+        if (StringUtils.isNoneBlank(key, hashKey) && value != null) {
+            redisTemplate.opsForHash().put(key, hashKey, value);
+        }
+    }
+
+    /**
+     * HMSET命令用于在Redis哈希表中设置多个字段的值，它接受哈希表的名称作为参数，并指定要设置的字段和对应的值。
+     * <pre>
+     *     hMSet key field1 value1 [field2 value2 ...]
+     *     - key：哈希表的名称。
+     *     - field1、field2等：要设置的字段。
+     *     - value1、value2等：字段对应的值。
+     *     例如：hMSet myHash name "hello" age 20
+     *     上述示例将在名为myHash的哈希表中同时设置两个字段：name的值为hello，age的值为20。
+     *     如果指定的字段已存在，则会更新该字段的值。如果哈希表不存在，Redis会自动创建该哈希表并进行设置。
+     * </pre>
+     *
+     * @param key 键
+     * @param map 哈希对象
+     */
+    public void putAll(String key, Map<String, Object> map) {
+        if (StringUtils.isNotBlank(key) && CollectionUtil.isNotEmpty(map)) {
+            redisTemplate.opsForHash().putAll(key, map);
+        }
+    }
+
+    /**
+     * HSETNX命令（Hash Set if Not exists）用于在Redis哈希表中设置指定字段的值，仅当该字段不存在时才进行设置。如果字段已存在，则命令不执行任何操作。
+     * <pre>
+     *     HSETNX key field value
+     *     - key：哈希表的名称。
+     *     - field：要设置的字段。
+     *     - value：字段对应的值。
+     *     例如：HSETNX myHash name "hello"
+     *     如果哈希表"myHash"不存在，则会创建一个新的哈希表并设置字段的值。
+     *     如果哈希表"myHash"已经存在，那么命令不执行任何操作。
+     *     HSETNX命令常用于确保在设置字段时不覆盖已存在的值，即只在字段不存在时才设置新值。
+     * </pre>
+     *
+     * @param key     键
+     * @param hashKey 哈希键
+     * @param value   哈希值
+     * @return 当设置的字段是一个新字段时，命令执行成功并返回true；当指定的字段已存在时，命令不进行设置操作时返回false
+     */
+    public Boolean putIfAbsent(String key, String hashKey, Object value) {
+        if (!StringUtils.isNoneBlank(key, hashKey) || value == null) {
+            return Boolean.FALSE;
+        }
+        return redisTemplate.opsForHash().putIfAbsent(key, hashKey, value);
+    }
+
+    /**
+     * HGETALL命令用于获取Redis哈希表中指定键的所有字段和对应的值。
+     * <pre>
+     *     HGETALL key
+     *     - key：哈希表的名称。
+     *     例如：HGETALL myHash
+     *     上述示例将返回名为myHash的哈希表中所有的字段和对应的值。
+     *     返回一个包含所有字段和对应值的数组。
+     *     数组的顺序是依次出现的字段名和字段值，以交替的方式排列。
+     *     如果哈希表不存在，命令返回空数组。
+     * </pre>
+     *
+     * @param key 键
+     * @return 包含所有字段和对应值的数组
+     */
+    public Map<Object, Object> entries(String key) {
+        if (StringUtils.isBlank(key)) {
+            return Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_ZERO);
+        }
+        // 获取指定key对应的所有键值对
+        Map<Object, Object> objectMap = redisTemplate.opsForHash().entries(key);
+        if (CollectionUtil.isEmpty(objectMap)) {
+            return Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_ZERO);
+        }
+        return objectMap;
+    }
+
+    /**
+     * HGET命令用于获取Redis哈希表中指定字段的值。
+     * <pre>
+     *     HGET key field
+     *     - key：哈希表的名称
+     *     - field：要获取的字段
+     *     例如：HGET myHash name
+     *     上述示例将返回名为myHash的哈希表中字段name的值。
+     *     返回指定字段的值。如果哈希表不存在或者字段不存在，返回nil（空值）。
+     * </pre>
+     *
+     * @param key     键
+     * @param hashKey 哈希键
+     * @return 哈希值
+     */
+    public Object get(String key, Object hashKey) {
+        if (StringUtils.isBlank(key) || hashKey == null) {
+            return null;
+        }
+        return redisTemplate.opsForHash().get(key, hashKey);
     }
 
     /**
