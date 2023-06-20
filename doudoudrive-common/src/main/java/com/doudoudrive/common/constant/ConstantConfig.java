@@ -469,130 +469,60 @@ public interface ConstantConfig {
     }
 
     /**
-     * 缓存相关的常量
+     * 线程池类型、使用场景相关配置
      */
-    interface Cache {
+    @Getter
+    enum ThreadPoolEnum {
+        /**
+         * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 用户信息缓存
+         * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String USERINFO_CACHE = "userInfo";
+        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 用户机密信息的缓存
+         * 文件复制专用线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String USER_CONFIDENTIAL = "userConfidential";
+        FILE_COPY_EXECUTOR("copy-file-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 用户角色信息缓存
+         * 文件删除专用线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String USER_ROLE_CACHE = "AuthorizationInfo";
+        FILE_DELETE_EXECUTOR("delete-file-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 默认session内容缓存的key值前缀
+         * 全局线程池配置，任意地点使用，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
+        GLOBAL_THREAD_POOL("global-thread-pool", new ThreadPoolExecutor.CallerRunsPolicy());
 
         /**
-         * 默认session权限相关内容缓存的key值前缀
+         * 线程池名称
          */
-        String DEFAULT_CACHE_REALM_PREFIX = "shiro:realm:";
+        private final String name;
 
         /**
-         * session内容缓存默认key值字段名称
+         * 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
          */
-        String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
+        private final RejectedExecutionHandler handler;
 
-        /**
-         * 缓存内容默认失效时间(10小时):秒
-         */
-        Long DEFAULT_EXPIRE = 36000L;
-
-        /**
-         * 邮箱验证码缓存前缀
-         */
-        String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
-
-        /**
-         * 用户文件信息缓存
-         */
-        String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
-
-        /**
-         * OSS文件信息缓存
-         */
-        String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
-
-        /**
-         * 文件分享信息缓存
-         */
-        String FILE_SHARE_CACHE = "FILE_SHARE_CACHE:";
-
-        /**
-         * redis延迟队列专用消息通道
-         */
-        String REDIS_DELAY_QUEUE_CHANNEL = "REDIS_DELAY_QUEUE_CHANNEL:";
-
-        /**
-         * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
-         */
-        @Getter
-        enum KeyEventEnum {
-
-            /**
-             * 过期事件
-             */
-            EXPIRED("__keyevent@*__:expired"),
-
-            /**
-             * 新增 、修改事件
-             */
-            UPDATE("__keyevent@*__:set"),
-
-            /**
-             * 删除事件
-             */
-            DELETE("__keyevent@*__:del");
-
-            /**
-             * 监听的事件类型
-             */
-            private final String event;
-
-            KeyEventEnum(String event) {
-                this.event = event;
-            }
+        ThreadPoolEnum(String name, RejectedExecutionHandler handler) {
+            this.name = name;
+            this.handler = handler;
         }
 
         /**
-         * redis通道名称枚举(redis需要订阅的渠道名称)
-         * redis 通过命令 PUBLISH channel message 来发布信息
+         * 根据线程池名称获取对应的异常处理器，没有获取到时响应null
+         *
+         * @param name 线程池名称
+         * @return 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
          */
-        @Getter
-        enum ChanelEnum {
-            /**
-             * redis刷新配置专用通道名
-             */
-            CHANNEL_CONFIG("DOUDOU_CONFIG_CHANNEL"),
-
-            /**
-             * redis缓存刷新同步专用通道名(redis需要订阅的渠道名称)
-             */
-            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL"),
-
-            /**
-             * redis分布式锁专用通道名
-             */
-            REDIS_LOCK_CHANNEL("REDIS_LOCK_CHANNEL");
-
-            /**
-             * 通道名称
-             */
-            private final String channel;
-
-            ChanelEnum(String channel) {
-                this.channel = channel;
-            }
+        public static RejectedExecutionHandler getExecutionHandler(String name) {
+            return Stream.of(values())
+                    .filter(anEnum -> anEnum.name.equals(name))
+                    .map(anEnum -> anEnum.handler).findFirst().orElse(null);
         }
     }
 
@@ -1080,50 +1010,135 @@ public interface ConstantConfig {
     }
 
     /**
-     * 线程池类型、使用场景相关配置
+     * 缓存相关的常量
      */
-    @Getter
-    enum ThreadPoolEnum {
-        /**
-         * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
-         */
-        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+    interface Cache {
 
         /**
-         * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         * 用户信息缓存
          */
-        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+        String USERINFO_CACHE = "userInfo";
 
         /**
-         * 全局线程池配置，任意地点使用，设置线程拒绝策略，丢弃队列中最旧的任务
+         * 用户机密信息的缓存
          */
-        GLOBAL_THREAD_POOL("global-thread-pool", new ThreadPoolExecutor.CallerRunsPolicy());
+        String USER_CONFIDENTIAL = "userConfidential";
 
         /**
-         * 线程池名称
+         * 用户角色信息缓存
          */
-        private final String name;
+        String USER_ROLE_CACHE = "AuthorizationInfo";
 
         /**
-         * 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
+         * 默认session内容缓存的key值前缀
          */
-        private final RejectedExecutionHandler handler;
+        String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
 
-        ThreadPoolEnum(String name, RejectedExecutionHandler handler) {
-            this.name = name;
-            this.handler = handler;
+        /**
+         * 默认session权限相关内容缓存的key值前缀
+         */
+        String DEFAULT_CACHE_REALM_PREFIX = "shiro:realm:";
+
+        /**
+         * session内容缓存默认key值字段名称
+         */
+        String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
+
+        /**
+         * 缓存内容默认失效时间(10小时):秒
+         */
+        Long DEFAULT_EXPIRE = 36000L;
+
+        /**
+         * 邮箱验证码缓存前缀
+         */
+        String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
+
+        /**
+         * 用户文件信息缓存
+         */
+        String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
+
+        /**
+         * OSS文件信息缓存
+         */
+        String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
+
+        /**
+         * 文件分享信息缓存
+         */
+        String FILE_SHARE_CACHE = "FILE_SHARE_CACHE:";
+
+        /**
+         * 文件复制时的节点缓存
+         */
+        String FILE_COPY_NODE_CACHE = "FILE_COPY_NODE_CACHE:";
+
+        /**
+         * redis延迟队列专用消息通道
+         */
+        String REDIS_DELAY_QUEUE_CHANNEL = "REDIS_DELAY_QUEUE_CHANNEL:";
+
+        /**
+         * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
+         */
+        @Getter
+        enum KeyEventEnum {
+
+            /**
+             * 过期事件
+             */
+            EXPIRED("__keyevent@*__:expired"),
+
+            /**
+             * 新增 、修改事件
+             */
+            UPDATE("__keyevent@*__:set"),
+
+            /**
+             * 删除事件
+             */
+            DELETE("__keyevent@*__:del");
+
+            /**
+             * 监听的事件类型
+             */
+            private final String event;
+
+            KeyEventEnum(String event) {
+                this.event = event;
+            }
         }
 
         /**
-         * 根据线程池名称获取对应的异常处理器，没有获取到时响应null
-         *
-         * @param name 线程池名称
-         * @return 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
+         * redis通道名称枚举(redis需要订阅的渠道名称)
+         * redis 通过命令 PUBLISH channel message 来发布信息
          */
-        public static RejectedExecutionHandler getExecutionHandler(String name) {
-            return Stream.of(values())
-                    .filter(anEnum -> anEnum.name.equals(name))
-                    .map(anEnum -> anEnum.handler).findFirst().orElse(null);
+        @Getter
+        enum ChanelEnum {
+            /**
+             * redis刷新配置专用通道名
+             */
+            CHANNEL_CONFIG("DOUDOU_CONFIG_CHANNEL"),
+
+            /**
+             * redis缓存刷新同步专用通道名(redis需要订阅的渠道名称)
+             */
+            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL"),
+
+            /**
+             * redis分布式锁专用通道名
+             */
+            REDIS_LOCK_CHANNEL("REDIS_LOCK_CHANNEL");
+
+            /**
+             * 通道名称
+             */
+            private final String channel;
+
+            ChanelEnum(String channel) {
+                this.channel = channel;
+            }
         }
     }
 

@@ -251,8 +251,8 @@ public class RedisTemplateClient {
      * @param hashKey 哈希键
      * @param value   哈希值
      */
-    public void put(String key, String hashKey, Object value) {
-        if (StringUtils.isNoneBlank(key, hashKey) && value != null) {
+    public void put(String key, Object hashKey, Object value) {
+        if (StringUtils.isNotBlank(key) && hashKey != null && value != null) {
             redisTemplate.opsForHash().put(key, hashKey, value);
         }
     }
@@ -272,7 +272,7 @@ public class RedisTemplateClient {
      * @param key 键
      * @param map 哈希对象
      */
-    public void putAll(String key, Map<String, Object> map) {
+    public void putAll(String key, Map<Object, Object> map) {
         if (StringUtils.isNotBlank(key) && CollectionUtil.isNotEmpty(map)) {
             redisTemplate.opsForHash().putAll(key, map);
         }
@@ -296,8 +296,8 @@ public class RedisTemplateClient {
      * @param value   哈希值
      * @return 当设置的字段是一个新字段时，命令执行成功并返回true；当指定的字段已存在时，命令不进行设置操作时返回false
      */
-    public Boolean putIfAbsent(String key, String hashKey, Object value) {
-        if (!StringUtils.isNoneBlank(key, hashKey) || value == null) {
+    public Boolean putIfAbsent(String key, Object hashKey, Object value) {
+        if (StringUtils.isBlank(key) || hashKey == null || value == null) {
             return Boolean.FALSE;
         }
         return redisTemplate.opsForHash().putIfAbsent(key, hashKey, value);
@@ -364,6 +364,17 @@ public class RedisTemplateClient {
             } else {
                 redisTemplate.delete(CollectionUtil.toList(key));
             }
+        }
+    }
+
+    /**
+     * 删除缓存
+     *
+     * @param key 可以传一个值 或多个
+     */
+    public void delete(List<String> key) {
+        if (CollectionUtil.isNotEmpty(key)) {
+            redisTemplate.delete(key);
         }
     }
 
