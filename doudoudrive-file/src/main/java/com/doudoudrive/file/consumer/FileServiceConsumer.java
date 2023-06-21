@@ -94,6 +94,11 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
     public void setRocketmqTemplate(RocketMQTemplate rocketmqTemplate) {
         this.rocketmqTemplate = rocketmqTemplate;
     }
+
+    @Autowired
+    public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
+        this.redisTemplateClient = redisTemplateClient;
+    }
     /**
      * 文件删除时使用的无界队列，用于异步处理文件删除
      */
@@ -103,11 +108,6 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
      * 单线程调度执行器，用于异步推送文件复制和删除的队列
      */
     private ExecutorService executor;
-
-    @Autowired
-    public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
-        this.redisTemplateClient = redisTemplateClient;
-    }
 
     /**
      * 创建文件失败时异步回滚的消费处理，当前消费者服务需要做幂等处理
@@ -307,7 +307,7 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
                 List<Map<String, CopyFileConsumerRequestDTO>> fileList = CollectionUtil.pollBatchOrWait(FILE_COPY_UNBOUNDED_QUEUE,
                         NumberConstant.INTEGER_ONE_THOUSAND, NumberConstant.LONG_ONE, TimeUnit.SECONDS);
                 if (CollectionUtil.isEmpty(fileList)) {
-                    break;
+                    continue;
                 }
 
                 // 合并所有的子集，如果key相同，则将所有需要进行复制的文件信息合并到一起
@@ -357,7 +357,7 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
                 List<Map<String, List<DiskFile>>> fileList = CollectionUtil.pollBatchOrWait(FILE_DELETE_UNBOUNDED_QUEUE,
                         NumberConstant.INTEGER_ONE_THOUSAND, NumberConstant.LONG_ONE, TimeUnit.SECONDS);
                 if (CollectionUtil.isEmpty(fileList)) {
-                    break;
+                    continue;
                 }
 
                 // 合并所有的子集，如果key相同，则将所有的文件信息合并到一起
