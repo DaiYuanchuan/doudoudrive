@@ -68,6 +68,8 @@ public class TracerContextFactory {
         // 往日志上下文里放当前获取到的spanId，如果spanId为空，会放入初始值
         SpanIdGenerator.put(context.getSpanId());
 
+        MDC.put(ConstantConfig.LogTracer.TRACER_ID, context.getTracerId());
+        MDC.put(ConstantConfig.LogTracer.SPAN_ID, SpanIdGenerator.get());
         // 这里需要将记录提交给TransmittableThreadLocal
         TTL_MDC.get().put(ConstantConfig.LogTracer.TRACER_ID, context.getTracerId());
         TTL_MDC.get().put(ConstantConfig.LogTracer.SPAN_ID, SpanIdGenerator.get());
