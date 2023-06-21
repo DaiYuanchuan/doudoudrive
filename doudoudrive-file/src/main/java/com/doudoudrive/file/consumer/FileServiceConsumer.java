@@ -1,6 +1,7 @@
 package com.doudoudrive.file.consumer;
 
 import cn.hutool.core.thread.ExecutorBuilder;
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.cache.RedisTemplateClient;
@@ -262,7 +263,7 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
         this.shutdown(Boolean.TRUE);
 
         // 初始化线程池
-        this.executor = ExecutorBuilder.create()
+        this.executor = TtlExecutors.getTtlExecutorService(ExecutorBuilder.create()
                 .setCorePoolSize(NumberConstant.INTEGER_TWO)
                 .setMaxPoolSize(NumberConstant.INTEGER_TWO)
                 .setAllowCoreThreadTimeOut(false)
@@ -270,7 +271,7 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
                 // 设置线程拒绝策略，丢弃队列中最旧的
                 .setHandler(new ThreadPoolExecutor.CallerRunsPolicy())
                 .setThreadFactory(new CustomizableThreadFactory("file-handler-thread"))
-                .build();
+                .build());
 
         // 开启文件复制、删除队列的处理程序
         this.executor.submit(this::copyHandler);
