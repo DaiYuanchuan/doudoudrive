@@ -100,11 +100,11 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
     public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
         this.redisTemplateClient = redisTemplateClient;
     }
+    private RedisTemplateClient redisTemplateClient;
     /**
      * 文件删除时使用的无界队列，用于异步处理文件删除
      */
     private static final BlockingQueue<Map<String, List<DiskFile>>> FILE_DELETE_UNBOUNDED_QUEUE = new LinkedBlockingQueue<>();
-    private RedisTemplateClient redisTemplateClient;
     /**
      * 单线程调度执行器，用于异步推送文件复制和删除的队列
      */
