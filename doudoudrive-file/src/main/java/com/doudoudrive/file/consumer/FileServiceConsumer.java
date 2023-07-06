@@ -4,7 +4,6 @@ import cn.hutool.core.thread.ExecutorBuilder;
 import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
-import com.doudoudrive.common.cache.RedisTemplateClient;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
@@ -33,10 +32,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.Closeable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>文件系统消费者服务</p>
@@ -56,10 +55,6 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
     private DiskUserAttrManager diskUserAttrManager;
     private DiskFileService diskFileService;
     private RocketMQTemplate rocketmqTemplate;
-    /**
-     * 文件复制时使用的无界队列，用于异步处理文件复制
-     */
-    private static final BlockingQueue<Map<String, CopyFileConsumerRequestDTO>> FILE_COPY_UNBOUNDED_QUEUE = new LinkedBlockingQueue<>();
 
     @Autowired
     public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
@@ -96,11 +91,6 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
         this.rocketmqTemplate = rocketmqTemplate;
     }
 
-    @Autowired
-    public void setRedisTemplateClient(RedisTemplateClient redisTemplateClient) {
-        this.redisTemplateClient = redisTemplateClient;
-    }
-    private RedisTemplateClient redisTemplateClient;
     /**
      * 文件删除时使用的无界队列，用于异步处理文件删除
      */
@@ -219,133 +209,71 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
      */
     @RocketmqTagDistribution(messageClass = CopyFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.COPY_FILE)
     public void copyFileConsumer(CopyFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
-        // 构建消息消费记录
-        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext,
-                ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.COPY_FILE);
-
-        try {
-            // 保存消息消费记录
-            rocketmqConsumerRecordService.insertException(consumerRecord);
-
-            // 使用文件复制线程池异步处理文件复制
-            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.FILE_COPY_EXECUTOR, () -> {
-                // 构建缓存key
-                String cacheKey = ConstantConfig.Cache.FILE_COPY_NODE_CACHE + consumerRecord.getMsgId();
-
-                // 获取指定文件节点下所有的子节点信息
-                fileManager.getUserFileAllNode(consumerRequest.getFromUserId(), consumerRequest.getPreCopyFileList(), queryParentIdResponse -> {
-                    try {
-                        // 将查询到的文件信息放入队列中
-                        consumerRequest.setFiles(queryParentIdResponse);
-
-                        // 创建一个新的map集合
-                        Map<String, CopyFileConsumerRequestDTO> queueMap = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_ONE);
-                        queueMap.put(consumerRecord.getMsgId(), consumerRequest);
-
-                        // 将map集合放入队列中
-                        FILE_COPY_UNBOUNDED_QUEUE.put(queueMap);
-                    } catch (Exception e) {
-                        log.error("put copy queue error, errorMsg:{}", e.getMessage(), e);
-                    }
-                });
-
-                // 循环结束后，清空缓存信息
-                redisTemplateClient.delete(cacheKey);
-            });
-        } catch (Exception e) {
-            // 重复消费拦截
-            log.error("errorMsg:{}，消费记录：{}", e.getMessage(), consumerRecord, e);
-        }
+        // 用户总磁盘容量
+        BigDecimal totalDiskCapacity = diskUserAttrManager.getUserAttrValue(consumerRequest.getTargetUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        copyHandler(consumerRequest.getTargetUserId(), consumerRequest.getFromUserId(), consumerRequest.getTargetFolderId(),
+                consumerRequest.getTreeStructureMap(), consumerRequest.getPreCopyFileList(), totalDiskCapacity.stripTrailingZeros().toPlainString());
     }
 
     @Override
     public void run(String... args) {
-        this.shutdown(Boolean.TRUE);
-
         // 初始化线程池
         this.executor = TtlExecutors.getTtlExecutorService(ExecutorBuilder.create()
-                .setCorePoolSize(NumberConstant.INTEGER_TWO)
-                .setMaxPoolSize(NumberConstant.INTEGER_TWO)
+                .setCorePoolSize(NumberConstant.INTEGER_ONE)
+                .setMaxPoolSize(NumberConstant.INTEGER_ONE)
                 .setAllowCoreThreadTimeOut(false)
-                .setWorkQueue(new LinkedBlockingQueue<>(NumberConstant.INTEGER_TWO))
+                .setWorkQueue(new LinkedBlockingQueue<>(NumberConstant.INTEGER_ONE))
                 // 设置线程拒绝策略，丢弃队列中最旧的
                 .setHandler(new ThreadPoolExecutor.CallerRunsPolicy())
                 .setThreadFactory(new CustomizableThreadFactory("file-handler-thread"))
                 .build());
 
-        // 开启文件复制、删除队列的处理程序
-        this.executor.submit(this::copyHandler);
+        // 开启文件删除队列的处理程序
         this.executor.submit(this::deleteHandler);
     }
 
     @Override
     public void close() {
-        this.shutdown(Boolean.FALSE);
+        this.shutdown();
     }
 
     /**
      * executor服务的销毁
-     *
-     * @param now 是否立即销毁
      */
-    private void shutdown(boolean now) {
+    private void shutdown() {
         if (executor != null) {
-            if (now) {
-                executor.shutdownNow();
-            } else {
-                executor.shutdown();
-            }
+            executor.shutdown();
         }
     }
 
     /**
-     * 文件复制队列的处理程序，用于消费队列中的数据
+     * 复制文件消费处理程序
+     *
+     * @param targetUserId      目标用户Id
+     * @param fromUserId        源用户Id
+     * @param targetFolderId    目标文件夹Id
+     * @param treeStructureMap  文件树结构
+     * @param parentId          父节点Id，需要复制的文件夹标识
+     * @param totalDiskCapacity 用户总磁盘容量
      */
-    private void copyHandler() {
-        while (null != executor && !executor.isShutdown()) {
-            try {
-                // 从队列中取出指定数量的数据
-                List<Map<String, CopyFileConsumerRequestDTO>> fileList = CollectionUtil.pollBatchOrWait(FILE_COPY_UNBOUNDED_QUEUE,
-                        NumberConstant.INTEGER_ONE_THOUSAND, NumberConstant.LONG_ONE, TimeUnit.SECONDS);
-                if (CollectionUtil.isEmpty(fileList)) {
-                    continue;
-                }
+    private void copyHandler(String targetUserId, String fromUserId, String targetFolderId,
+                             Map<String, String> treeStructureMap, List<String> parentId,
+                             String totalDiskCapacity) {
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.FILE_COPY_EXECUTOR, () ->
+                fileManager.getAllFileInfo(fromUserId, parentId, queryParentIdResponse -> {
+                    // 获取查询结果中的所有文件夹标识
+                    List<String> parentFileList = queryParentIdResponse.stream()
+                            .filter(DiskFile::getFileFolder)
+                            .map(DiskFile::getBusinessId).toList();
 
-                // 合并所有的子集，如果key相同，则将所有需要进行复制的文件信息合并到一起
-                Map<String, CopyFileConsumerRequestDTO> mergedMap = fileList.stream()
-                        .flatMap(map -> map.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (key1, key2) -> {
-                                    key1.getFiles().addAll(key2.getFiles());
-                                    return key1;
-                                }
-                        ));
+                    // 批量复制文件信息
+                    Map<String, String> nodeMap = fileManager.batchCopyFile(targetUserId, targetFolderId, treeStructureMap, queryParentIdResponse, totalDiskCapacity);
 
-                // 用于保存文件树结构的map
-                mergedMap.forEach((msgId, consumerRequest) -> {
-                    try {
-                        // 构建缓存key
-                        String cacheKey = ConstantConfig.Cache.FILE_COPY_NODE_CACHE + msgId;
-                        // 获取缓存中的文件树结构
-                        Map<String, String> fileCopyNodeMap = convertFileNodeMap(redisTemplateClient.entries(cacheKey), consumerRequest.getTreeStructureMap());
-                        // 用户总磁盘容量
-                        BigDecimal totalDiskCapacity = diskUserAttrManager.getUserAttrValue(consumerRequest.getTargetUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
-
-                        // 批量复制文件信息
-                        Map<String, String> nodeMap = fileManager.batchCopyFile(consumerRequest.getTargetUserId(), consumerRequest.getTargetFolderId(),
-                                fileCopyNodeMap, consumerRequest.getFiles(), totalDiskCapacity.stripTrailingZeros().toPlainString());
-
-                        // 先删除之前的缓存
-                        redisTemplateClient.delete(cacheKey);
-                        // 将复制后的文件树结构放入缓存中
-                        redisTemplateClient.putAll(cacheKey, nodeMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-                    } catch (Exception e) {
-                        log.error("copyHandler error, errorMsg:{}", e.getMessage(), e);
+                    if (CollectionUtil.isNotEmpty(parentFileList)) {
+                        // 存在有文件夹时，继续递归查询
+                        this.copyHandler(targetUserId, fromUserId, targetFolderId, nodeMap, parentFileList, totalDiskCapacity);
                     }
-                });
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
+                }));
     }
 
     /**
@@ -362,13 +290,19 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
                 }
 
                 // 合并所有的子集，如果key相同，则将所有的文件信息合并到一起
-                Map<String, List<DiskFile>> mergedMap = fileList.stream()
-                        .flatMap(map -> map.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (key1, key2) -> {
-                                    key1.addAll(key2);
-                                    return key1;
-                                }
-                        ));
+                Map<String, List<DiskFile>> mergedMap = Maps.newHashMapWithExpectedSize(fileList.size());
+                for (Map<String, List<DiskFile>> map : fileList) {
+                    // 遍历当前子集中的每个键值对
+                    for (Map.Entry<String, List<DiskFile>> entry : map.entrySet()) {
+                        mergedMap.compute(entry.getKey(), (key, list) -> {
+                            if (CollectionUtil.isEmpty(list)) {
+                                return new ArrayList<>(entry.getValue());
+                            }
+                            list.addAll(entry.getValue());
+                            return list;
+                        });
+                    }
+                }
 
                 // 批量删除文件信息
                 mergedMap.forEach((userId, content) -> fileDelete(content, userId));
@@ -401,24 +335,5 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable {
                         destination, sendResult.getMsgId(), sendResult.getSendStatus(), content.size(), e.getMessage(), sendResult);
             }
         }
-    }
-
-    /**
-     * 将缓存中的文件树结构转换为Map<String, String>类型，如果缓存中不存在文件树结构，则将当前的文件树结构放入缓存中
-     *
-     * @param fileCopyNodeMap  缓存中的文件树结构
-     * @param treeStructureMap 当前的文件树结构
-     * @return Map<String, String>
-     */
-    private Map<String, String> convertFileNodeMap(Map<Object, Object> fileCopyNodeMap, Map<String, String> treeStructureMap) {
-        // 如果缓存中不存在文件树结构，则将当前的文件树结构放入缓存中
-        if (CollectionUtil.isEmpty(fileCopyNodeMap)) {
-            return treeStructureMap;
-        }
-        return fileCopyNodeMap.entrySet().stream()
-                .collect(Collectors.toMap(
-                        entry -> String.valueOf(entry.getKey()),
-                        entry -> String.valueOf(entry.getValue())
-                ));
     }
 }
