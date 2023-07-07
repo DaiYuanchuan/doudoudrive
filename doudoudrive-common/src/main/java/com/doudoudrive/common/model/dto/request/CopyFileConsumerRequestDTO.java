@@ -1,6 +1,5 @@
 package com.doudoudrive.common.model.dto.request;
 
-import com.doudoudrive.common.model.pojo.DiskFile;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,10 +51,5 @@ public class CopyFileConsumerRequestDTO implements Serializable {
      * 指定需要进行复制的文件信息
      */
     private List<String> preCopyFileList;
-
-    /**
-     * 需要进行复制的文件信息，这里只是消费时使用的数据模型，不会进行传递
-     */
-    private List<DiskFile> files;
 
 }
