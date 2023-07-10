@@ -272,7 +272,7 @@ public class RedisTemplateClient {
      * @param key 键
      * @param map 哈希对象
      */
-    public void putAll(String key, Map<Object, Object> map) {
+    public void putAll(String key, Map<?, ?> map) {
         if (StringUtils.isNotBlank(key) && CollectionUtil.isNotEmpty(map)) {
             redisTemplate.opsForHash().putAll(key, map);
         }
@@ -318,7 +318,7 @@ public class RedisTemplateClient {
      * @param key 键
      * @return 包含所有字段和对应值的数组
      */
-    public Map<Object, Object> entries(String key) {
+    public Map<?, ?> entries(String key) {
         if (StringUtils.isBlank(key)) {
             return Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_ZERO);
         }
