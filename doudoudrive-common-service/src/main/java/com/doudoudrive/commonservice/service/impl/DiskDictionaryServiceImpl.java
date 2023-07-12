@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
  *
  * @author Dan
  */
+@Order(value = 2)
 @Scope("singleton")
 @Service("diskDictionaryService")
 public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMessageSubscriber, CommandLineRunner {
@@ -325,7 +327,7 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      */
     @Override
     public void receiveMessage(byte[] message, String channel) {
-        if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.channel.equals(channel)) {
+        if (ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.getChannel().equals(channel)) {
             // 获取当前所有系统缓存
             List<DiskDictionary> allDictionary = listDiskDictionaryFindAll();
             SYS_DICTIONARY_CACHE.clear();
@@ -339,6 +341,6 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      */
     @Override
     public void run(String... args) {
-        receiveMessage(null, ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.channel);
+        receiveMessage(null, ConstantConfig.Cache.ChanelEnum.CHANNEL_CONFIG.getChannel());
     }
 }

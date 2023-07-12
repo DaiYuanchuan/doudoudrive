@@ -24,19 +24,12 @@ import java.util.Optional;
 @AllArgsConstructor
 public class QueryElasticsearchFileShareIdRequestDTO {
 
+    /**
+     * 分享短链标识
+     */
     @NotEmpty(message = "参数集合为空")
     @Size(max = 1000, message = "请不要一次性操作太多数据~")
     private List<String> shareId;
-
-    /**
-     * 是否需要更新当前链接的浏览次数
-     */
-    private Boolean updateViewCount;
-
-    /**
-     * 是否需要更新当前链接的保存、转存次数
-     */
-    private Boolean updateSaveCount;
 
     /**
      * 上一页游标，为空时默认第一页
@@ -53,24 +46,6 @@ public class QueryElasticsearchFileShareIdRequestDTO {
      */
     @Size(max = 3, message = "不支持的排序")
     private List<OrderByBuilder> sort;
-
-    /**
-     * 是否需要更新当前链接的浏览次数
-     *
-     * @return 默认为false 不更新
-     */
-    public Boolean getUpdateViewCount() {
-        return Optional.ofNullable(updateViewCount).orElse(Boolean.FALSE);
-    }
-
-    /**
-     * 是否需要更新当前链接的保存、转存次数
-     *
-     * @return 默认为false 不更新
-     */
-    public Boolean getUpdateSaveCount() {
-        return Optional.ofNullable(updateSaveCount).orElse(Boolean.FALSE);
-    }
 
     /**
      * 单次查询的数量、每页大小

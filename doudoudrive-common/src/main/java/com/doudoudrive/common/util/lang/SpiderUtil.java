@@ -92,7 +92,7 @@ public class SpiderUtil {
      */
     public static String parseSpiderType(String userAgent) {
         if (StringUtils.isBlank(userAgent)) {
-            return "";
+            return StringUtils.EMPTY;
         }
         for (Map.Entry<String, String> entry : SPIDER.entrySet()) {
             String spiderSign = entry.getKey();
@@ -102,6 +102,6 @@ public class SpiderUtil {
                 return entry.getValue();
             }
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 }

@@ -114,20 +114,20 @@ public class LoginController {
                 Date beginDate = DateUtil.offsetSecond(userInfo.getUserUnlockTime(), userInfo.getUserBanTime() * -1);
                 responseInfo.setUserBanTimeFormat(DateUtil.formatBetween(beginDate, userInfo.getUserUnlockTime(), BetweenFormatter.Level.SECOND));
             }
-            saveLoginFail(StatusCodeEnum.ACCOUNT_FORBIDDEN.message, logLogin, future);
+            saveLoginFail(StatusCodeEnum.ACCOUNT_FORBIDDEN.getMessage(), logLogin, future);
             return Result.build(StatusCodeEnum.ACCOUNT_FORBIDDEN, responseInfo);
         } catch (UnknownAccountException e) {
-            saveLoginFail(StatusCodeEnum.USER_NO_EXIST.message, logLogin, future);
+            saveLoginFail(StatusCodeEnum.USER_NO_EXIST.getMessage(), logLogin, future);
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
         } catch (IncorrectCredentialsException e) {
-            saveLoginFail(StatusCodeEnum.ACCOUNT_NO_EXIST.message, logLogin, future);
+            saveLoginFail(StatusCodeEnum.ACCOUNT_NO_EXIST.getMessage(), logLogin, future);
             return Result.build(StatusCodeEnum.ACCOUNT_NO_EXIST);
         } catch (ExpiredCredentialsException e) {
-            saveLoginFail(StatusCodeEnum.EXPIRED_CREDENTIALS.message, logLogin, future);
+            saveLoginFail(StatusCodeEnum.EXPIRED_CREDENTIALS.getMessage(), logLogin, future);
             return Result.build(StatusCodeEnum.EXPIRED_CREDENTIALS);
         } catch (AuthenticationException e) {
             // 身份验证失败
-            saveLoginFail(StatusCodeEnum.AUTHENTICATION.message, logLogin, future);
+            saveLoginFail(StatusCodeEnum.AUTHENTICATION.getMessage(), logLogin, future);
             return Result.build(StatusCodeEnum.AUTHENTICATION);
         }
 
@@ -135,7 +135,7 @@ public class LoginController {
         UserLoginResponseDTO userLoginInfo = loginManager.getUserInfoToSession();
         if (userLoginInfo == null) {
             // 无法获取用户信息
-            saveLoginFail(StatusCodeEnum.INVALID_USERINFO.message, logLogin, future);
+            saveLoginFail(StatusCodeEnum.INVALID_USERINFO.getMessage(), logLogin, future);
             return Result.build(StatusCodeEnum.INVALID_USERINFO);
         }
 

@@ -16,7 +16,6 @@ import com.doudoudrive.common.util.lang.PageDataUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.dao.DiskFileDao;
 import com.doudoudrive.commonservice.service.DiskFileService;
-import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -41,16 +42,9 @@ public class DiskFileServiceImpl implements DiskFileService {
 
     private DiskFileDao diskFileDao;
 
-    private GlobalThreadPoolService globalThreadPoolService;
-
     @Autowired
     public void setDiskFileDao(DiskFileDao diskFileDao) {
         this.diskFileDao = diskFileDao;
-    }
-
-    @Autowired
-    public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
-        this.globalThreadPoolService = globalThreadPoolService;
     }
 
     /**
@@ -300,28 +294,17 @@ public class DiskFileServiceImpl implements DiskFileService {
     }
 
     /**
-     * 获取指定文件节点下所有的子节点信息 （递归）
+     * 获取指定父目录下的所有文件信息
      *
-     * @param userId   用户系统内唯一标识
-     * @param parentId 文件父级标识
-     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     * @param userId       用户系统内唯一标识
+     * @param parentFileId 文件父级标识
+     * @param consumer     回调函数中返回查找到的用户文件模块数据集合
      */
     @Override
-    public void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer) {
+    public void getAllFileInfo(String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_FILE);
-        this.getAllFileInfo(null, userId, parentId, tableSuffix, queryParentIdResponse -> {
-            // 获取查询结果中的所有文件夹标识
-            List<String> parentFileList = queryParentIdResponse.stream()
-                    .filter(DiskFile::getFileFolder)
-                    .map(DiskFile::getBusinessId).toList();
-            if (CollectionUtil.isNotEmpty(parentFileList)) {
-                // 存在有文件夹时，继续递归查询
-                this.getUserFileAllNode(userId, parentFileList, consumer);
-            }
-            // 回调函数
-            consumer.accept(queryParentIdResponse);
-        });
+        this.getAllFileInfo(userId, parentFileId, tableSuffix, consumer);
     }
 
     /**
@@ -356,15 +339,19 @@ public class DiskFileServiceImpl implements DiskFileService {
     /**
      * 获取指定父目录下的所有文件信息
      *
-     * @param autoId       自增长标识，用于分页游标
      * @param userId       用户系统内唯一标识
      * @param parentFileId 文件父级标识
      * @param tableSuffix  表后缀
      * @param consumer     回调函数中返回查找到的用户文件模块数据集合
      */
-    private void getAllFileInfo(Long autoId, String userId, List<String> parentFileId,
+    private void getAllFileInfo(String userId, List<String> parentFileId,
                                 String tableSuffix, Consumer<List<DiskFile>> consumer) {
-        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.TASK_RECURSION_EXECUTOR, () -> {
+        // 创建一个栈
+        Deque<Long> stack = new LinkedList<>();
+        // 初始值为0
+        stack.push(NumberConstant.LONG_ZERO);
+        while (!stack.isEmpty()) {
+            Long autoId = stack.pop();
             for (List<String> parentId : CollectionUtil.collectionCutting(parentFileId, ConstantConfig.MAX_BATCH_TASKS_QUANTITY)) {
                 // 获取到当前文件的所有子文件
                 List<DiskFile> queryParentIdResponse = diskFileDao.fileParentIdSearch(autoId, userId, parentId, tableSuffix);
@@ -375,11 +362,13 @@ public class DiskFileServiceImpl implements DiskFileService {
                 // 进行任务的回调，执行回调函数
                 consumer.accept(queryParentIdResponse);
 
-                // 获取最后一个节点的id
-                int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
-                // 递归继续翻页查询
-                this.getAllFileInfo(queryParentIdResponse.get(index).getAutoId(), userId, parentId, tableSuffix, consumer);
+                if (queryParentIdResponse.size() == NumberConstant.INTEGER_TEN_THOUSAND) {
+                    // 获取最后一个节点的id
+                    int index = queryParentIdResponse.size() - NumberConstant.INTEGER_ONE;
+                    // 循环继续翻页查询
+                    stack.push(queryParentIdResponse.get(index).getAutoId());
+                }
             }
-        });
+        }
     }
 }

@@ -64,7 +64,7 @@ public class FileShareAnonymousRequestDTO {
     /**
      * 是否需要更新当前链接的浏览次数
      */
-    private Boolean updateViewCount;
+    private Boolean updateBrowseCount;
 
     /**
      * 分享记录中文件夹的key值，用于获取文件夹下的文件列表，以及文件的校验
@@ -85,7 +85,7 @@ public class FileShareAnonymousRequestDTO {
      *
      * @return 默认为false 不更新
      */
-    public Boolean getUpdateViewCount() {
-        return Optional.ofNullable(updateViewCount).orElse(Boolean.FALSE);
+    public Boolean getUpdateBrowseCount() {
+        return Optional.ofNullable(updateBrowseCount).orElse(Boolean.FALSE);
     }
 }

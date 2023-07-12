@@ -1,8 +1,8 @@
 package com.doudoudrive.common.constant;
 
-import com.doudoudrive.common.model.pojo.SysUserRole;
+import lombok.Getter;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -11,6 +11,7 @@ import java.util.List;
  *
  * @author Dan
  **/
+@Getter
 public enum RoleCodeEnum {
 
     /**
@@ -31,17 +32,17 @@ public enum RoleCodeEnum {
     /**
      * 角色编码
      */
-    public final String roleCode;
+    private final String roleCode;
 
     /**
      * 描述
      */
-    public final String authName;
+    private final String authName;
 
     /**
      * 是否为用户注册时使用的默认权限
      */
-    public final Boolean isDefault;
+    private final Boolean isDefault;
 
     RoleCodeEnum(String roleCode, String authName, Boolean isDefault) {
         this.roleCode = roleCode;
@@ -52,21 +53,12 @@ public enum RoleCodeEnum {
     /**
      * 构建初始化List
      *
-     * @param userId    用户标识
      * @param isDefault 是否为用户注册时使用的默认权限
      * @return 初始化用户角色List集合
      */
-    public static List<SysUserRole> builderList(String userId, Boolean isDefault) {
-        final List<SysUserRole> sysUserRoleList = new ArrayList<>();
-        for (RoleCodeEnum roleCodeEnum : values()) {
-            if (roleCodeEnum.isDefault.equals(isDefault)) {
-                sysUserRoleList.add(SysUserRole.builder()
-                        .userId(userId)
-                        .roleCode(roleCodeEnum.roleCode)
-                        .remarks(roleCodeEnum.authName)
-                        .build());
-            }
-        }
-        return sysUserRoleList;
+    public static List<RoleCodeEnum> builderList(Boolean isDefault) {
+        return Arrays.stream(values())
+                .filter(roleCodeEnum -> roleCodeEnum.isDefault.equals(isDefault))
+                .toList();
     }
 }

@@ -1,8 +1,10 @@
 package com.doudoudrive.file.manager.impl;
 
 import com.doudoudrive.common.cache.CacheManagerConfig;
+import com.doudoudrive.common.cache.lock.RedisLockManager;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
+import com.doudoudrive.common.constant.RedisLockEnum;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
 import com.doudoudrive.common.model.pojo.FileRecord;
@@ -39,6 +41,8 @@ public class OssFileManagerImpl implements OssFileManager {
 
     private CacheManagerConfig cacheManagerConfig;
 
+    private RedisLockManager redisLockManager;
+
     @Autowired(required = false)
     public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
         this.diskFileConvert = diskFileConvert;
@@ -64,6 +68,11 @@ public class OssFileManagerImpl implements OssFileManager {
         this.cacheManagerConfig = cacheManagerConfig;
     }
 
+    @Autowired
+    public void setRedisLockManager(RedisLockManager redisLockManager) {
+        this.redisLockManager = redisLockManager;
+    }
+
     /**
      * 添加OSS文件对象存储
      *
@@ -82,7 +91,7 @@ public class OssFileManagerImpl implements OssFileManager {
         if (isReview) {
             // 需要内容审核时将文件写入文件记录表中，状态标识为待审核
             FileRecord fileRecordModel = diskFileConvert.createFileAuthModelConvertFileRecord(createFile, fileId,
-                    ConstantConfig.FileRecordAction.ActionEnum.FILE_CONTENT.status, ConstantConfig.FileRecordAction.ActionTypeEnum.REVIEWED.status);
+                    ConstantConfig.FileRecordAction.ActionEnum.FILE_CONTENT.getStatus(), ConstantConfig.FileRecordAction.ActionTypeEnum.REVIEWED.getStatus());
             // 获取指定状态的文件操作记录数据
             FileRecord record = fileRecordManager.getFileRecordByAction(createFile.getUserId(),
                     createFile.getFileEtag(), fileRecordModel.getAction(), fileRecordModel.getActionType());
@@ -91,18 +100,20 @@ public class OssFileManagerImpl implements OssFileManager {
                 fileRecordManager.insert(fileRecordModel);
             }
             // 重置文件状态为待审核
-            ossFileInfo.setStatus(ConstantConfig.OssFileStatusEnum.PENDING_REVIEW.status);
+            ossFileInfo.setStatus(ConstantConfig.OssFileStatusEnum.PENDING_REVIEW.getStatus());
         }
 
-        synchronized (this) {
+        // 为了防止并发导致的重复插入，这里插入需要加锁处理
+        String lock = redisLockManager.lock(RedisLockEnum.OSS_FILE_INSERT.getLockName());
+        try {
             // 根据etag查找oss文件信息
             if (this.getOssFile(createFile.getFileEtag()) == null) {
-                try {
-                    // 将文件存入OSS文件对象存储表中，忽略抛出的异常
-                    ossFileService.insert(ossFileInfo);
-                } catch (Exception ignored) {
-                }
+                // 查不到时，将文件存入OSS文件对象存储表中，忽略抛出的异常
+                ossFileService.insert(ossFileInfo);
             }
+        } catch (Exception ignored) {
+        } finally {
+            redisLockManager.unlock(RedisLockEnum.OSS_FILE_INSERT.getLockName(), lock);
         }
     }
 

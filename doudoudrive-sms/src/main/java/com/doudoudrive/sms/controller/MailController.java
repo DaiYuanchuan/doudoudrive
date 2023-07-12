@@ -117,8 +117,8 @@ public class MailController {
                 .smsRecipient(requestDTO.getSmsRecipient())
                 .smsDataId(SmsConstant.MailVerificationCode.MAIL_VERIFICATION_CODE)
                 .username(requestDTO.getUsername())
-                .smsType(ConstantConfig.SmsTypeEnum.MAIL.type)
-                .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.status)
+                .smsType(ConstantConfig.SmsTypeEnum.MAIL.getType())
+                .smsStatus(ConstantConfig.SmsStatusEnum.WAIT.getStatus())
                 .build(), securityCode, throughput.getMail(), cacheManagerConfig, mailManager, smsSendRecordService);
         return Result.ok();
     }

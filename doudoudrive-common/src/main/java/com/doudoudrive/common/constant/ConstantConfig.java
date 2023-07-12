@@ -1,9 +1,10 @@
 package com.doudoudrive.common.constant;
 
 import cn.hutool.core.text.CharSequenceUtil;
-import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
+import com.doudoudrive.common.model.pojo.FileShare;
 import com.doudoudrive.common.util.lang.ReflectUtil;
+import lombok.Getter;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -182,6 +184,11 @@ public interface ConstantConfig {
          * 文件搜索服务
          */
         String FILE_SEARCH_SERVICE = "FILE_SEARCH_SERVICE";
+
+        /**
+         * 延迟消息队列服务
+         */
+        String DELAY_MESSAGE_QUEUE_SERVICE = "DELAY_MESSAGE_QUEUE_SERVICE";
     }
 
     /**
@@ -205,11 +212,6 @@ public interface ConstantConfig {
         String SEND_MAIL = "SEND_MAIL";
 
         /**
-         * 创建文件服务
-         */
-        String CREATE_FILE = "CREATE_FILE";
-
-        /**
          * 创建文件失败时异步回滚服务
          */
         String CREATE_FILE_ROLLBACK = "CREATE_FILE_ROLLBACK";
@@ -220,9 +222,29 @@ public interface ConstantConfig {
         String DELETE_FILE = "DELETE_FILE";
 
         /**
+         * 复制文件服务
+         */
+        String COPY_FILE = "COPY_FILE";
+
+        /**
          * 删除文件ES服务
          */
         String DELETE_FILE_ES = "DELETE_FILE_ES";
+
+        /**
+         * 保存文件ES服务
+         */
+        String SAVE_FILE_ES = "SAVE_FILE_ES";
+
+        /**
+         * 外部回调延迟任务
+         */
+        String EXTERNAL_CALLBACK_TASK = "EXTERNAL_CALLBACK_TASK";
+
+        /**
+         * 订单超时延迟任务
+         */
+        String ORDER_TIMEOUT_TASK = "ORDER_TIMEOUT_TASK";
     }
 
     /**
@@ -249,11 +271,17 @@ public interface ConstantConfig {
          * FILE搜索服务所属消费者组
          */
         String FILE_SEARCH = "FILE_SEARCH_CONSUMER_GROUP";
+
+        /**
+         * 延迟消息队列服务所属消费者组
+         */
+        String DELAY_MESSAGE_QUEUE = "DELAY_MESSAGE_QUEUE_CONSUMER_GROUP";
     }
 
     /**
      * MQ消息发送状态类型枚举
      */
+    @Getter
     enum MqMessageSendStatus {
 
         /**
@@ -279,12 +307,12 @@ public interface ConstantConfig {
         /**
          * 消息发送状态枚举值
          */
-        public final SendStatus sendStatus;
+        private final SendStatus sendStatus;
 
         /**
          * 消息发送状态枚举映射
          */
-        public final String status;
+        private final String status;
 
         MqMessageSendStatus(SendStatus sendStatus, String status) {
             this.sendStatus = sendStatus;
@@ -326,6 +354,7 @@ public interface ConstantConfig {
      */
     interface SpecialSymbols {
         String DOT = ".";
+        String ELLIPSIS = "...";
         String ASTERISK = "*";
         String OR = "||";
         String QUESTION_MARK = "?";
@@ -340,6 +369,8 @@ public interface ConstantConfig {
         String HYPHEN = "-";
         String UNDERLINE = "_";
         String CURLY_BRACES = "{}";
+        String LEFT_BRACE = "{";
+        String RIGHT_BRACE = "}";
         String LEFT_BRACKET = "(";
         String RIGHT_BRACKET = ")";
         String ENTER_LINUX = "\n";
@@ -376,14 +407,20 @@ public interface ConstantConfig {
         Integer OSS_FILE = 300;
 
         /**
+         * 文件分享信息模块 依据 user_id 平均分20个表
+         */
+        Integer FILE_SHARE = 20;
+
+        /**
          * 文件分享记录详情模块 依据 share_id 平均分40个表
          */
-        Integer FILE_SHARE = 40;
+        Integer FILE_SHARE_DETAIL = 40;
     }
 
     /**
      * 日期时间单位，每个单位都是以毫秒为基数
      */
+    @Getter
     enum DateUnit {
         /**
          * 一毫秒 = 0.001 秒
@@ -418,12 +455,12 @@ public interface ConstantConfig {
         /**
          * 毫秒数
          */
-        public final Long ms;
+        private final Long ms;
 
         /**
          * 秒数
          */
-        public final Long s;
+        private final Long s;
 
         DateUnit(Long ms, Long s) {
             this.ms = ms;
@@ -432,113 +469,60 @@ public interface ConstantConfig {
     }
 
     /**
-     * 缓存相关的常量
+     * 线程池类型、使用场景相关配置
      */
-    interface Cache {
+    @Getter
+    enum ThreadPoolEnum {
+        /**
+         * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         */
+        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 用户信息缓存
+         * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String USERINFO_CACHE = "userInfo";
+        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 用户机密信息的缓存
+         * 文件复制专用线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String USER_CONFIDENTIAL = "userConfidential";
+        FILE_COPY_EXECUTOR("copy-file-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 用户角色信息缓存
+         * 文件删除专用线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String USER_ROLE_CACHE = "AuthorizationInfo";
+        FILE_DELETE_EXECUTOR("delete-file-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
 
         /**
-         * 默认session内容缓存的key值前缀
+         * 全局线程池配置，任意地点使用，设置线程拒绝策略，丢弃队列中最旧的任务
          */
-        String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
+        GLOBAL_THREAD_POOL("global-thread-pool", new ThreadPoolExecutor.CallerRunsPolicy());
 
         /**
-         * 默认session内容缓存的key值前缀
+         * 线程池名称
          */
-        String DEFAULT_CACHE_REALM_PREFIX = "shiro:realm:";
+        private final String name;
 
         /**
-         * session内容缓存默认key值字段名称
+         * 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
          */
-        String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
+        private final RejectedExecutionHandler handler;
 
-        /**
-         * 缓存内容默认失效时间(10小时):秒
-         */
-        Long DEFAULT_EXPIRE = 36000L;
-
-        /**
-         * 邮箱验证码缓存前缀
-         */
-        String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
-
-        /**
-         * 用户文件信息缓存
-         */
-        String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
-
-        /**
-         * OSS文件信息缓存
-         */
-        String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
-
-        /**
-         * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
-         */
-        enum KeyEventEnum {
-
-            /**
-             * 过期事件
-             */
-            EXPIRED("__keyevent@*__:expired"),
-
-            /**
-             * 新增 、修改事件
-             */
-            UPDATE("__keyevent@*__:set"),
-
-            /**
-             * 删除事件
-             */
-            DELETE("__keyevent@*__:del");
-
-            /**
-             * 监听的事件类型
-             */
-            public final String event;
-
-            KeyEventEnum(String event) {
-                this.event = event;
-            }
+        ThreadPoolEnum(String name, RejectedExecutionHandler handler) {
+            this.name = name;
+            this.handler = handler;
         }
 
         /**
-         * redis通道名称枚举(redis需要订阅的渠道名称)
-         * redis 通过命令 PUBLISH channel message 来发布信息
+         * 根据线程池名称获取对应的异常处理器，没有获取到时响应null
+         *
+         * @param name 线程池名称
+         * @return 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
          */
-        enum ChanelEnum {
-            /**
-             * redis刷新配置专用通道名
-             */
-            CHANNEL_CONFIG("DOUDOU_CONFIG_CHANNEL"),
-
-            /**
-             * redis缓存刷新同步专用通道名(redis需要订阅的渠道名称)
-             */
-            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL");
-
-            /**
-             * 通道名称
-             */
-            public final String channel;
-
-            ChanelEnum(String channel) {
-                this.channel = channel;
-            }
+        public static RejectedExecutionHandler getExecutionHandler(String name) {
+            return Stream.of(values())
+                    .filter(anEnum -> anEnum.name.equals(name))
+                    .map(anEnum -> anEnum.handler).findFirst().orElse(null);
         }
     }
 
@@ -546,64 +530,85 @@ public interface ConstantConfig {
      * es索引名称相关常量
      */
     interface IndexName {
+        /**
+         * 用户信息数据索引
+         */
         String USERINFO = "userinfo";
 
+        /**
+         * 用户文件信息索引
+         */
         String DISK_FILE = "disk_file";
 
+        /**
+         * 文件分享信息索引
+         */
         String DISK_SHARE_FILE = "file_share";
     }
 
     /**
-     * 用于创建索引时指定索引的索引存储类型
+     * es搜索相关常量
      */
-    interface StoreType {
-        /**
-         * 默认文件系统实现。这将根据操作环境选择最佳的实现，当前所有支持的系统上都是MMapFS，但可能会发生变化。
-         */
-        String FS = "fs";
+    interface Elasticsearch {
 
         /**
-         * SimpleFS类型是使用随机访问文件直接实现文件系统存储（映射到Lucene SimpleFsDirectory）。
-         * 此实现的并发性能较差（多线程将成为瓶颈）。当您需要索引持久性时，通常最好使用NioFs。
+         * 用于创建索引时指定索引的索引存储类型
          */
-        String SIMPLE_FS = "simplefs";
+        interface StoreType {
+            /**
+             * 默认文件系统实现。这将根据操作环境选择最佳的实现，当前所有支持的系统上都是MMapFS，但可能会发生变化。
+             */
+            String FS = "fs";
+
+            /**
+             * SimpleFS类型是使用随机访问文件直接实现文件系统存储（映射到Lucene SimpleFsDirectory）。
+             * 此实现的并发性能较差（多线程将成为瓶颈）。当您需要索引持久性时，通常最好使用NioFs。
+             */
+            String SIMPLE_FS = "simplefs";
+
+            /**
+             * NIOFS类型使用NIO在文件系统上存储碎片索引（映射到Lucene NIOFSDirectory）。
+             * 它允许多个线程同时读取同一文件。由于SUN Java实现中存在错误，因此不建议在Windows上使用。
+             */
+            String NIO_FS = "niofs";
+
+            /**
+             * MMapFS类型通过将文件映射到内存（MMap）来在文件系统上存储碎片索引（映射到Lucene MMapDirectory）。
+             * 内存映射占用了进程中虚拟内存地址空间的一部分，其大小等于要映射的文件的大小。在使用这个类之前，请确保您已经允许了足够的虚拟地址空间。
+             */
+            String MMAP_FS = "mmapfs";
+        }
 
         /**
-         * NIOFS类型使用NIO在文件系统上存储碎片索引（映射到Lucene NIOFSDirectory）。
-         * 它允许多个线程同时读取同一文件。由于SUN Java实现中存在错误，因此不建议在Windows上使用。
+         * 分词器相关常量
          */
-        String NIO_FS = "niofs";
+        interface Tokenizer {
+
+            /**
+             * ik分词器
+             * 最粗粒度的拆分
+             * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,国歌”，适合 Phrase 查询</p>
+             */
+            String IK_SMART = "ik_smart";
+
+            /**
+             * ik分词器
+             * 最大化会将文本做最细粒度的拆分
+             * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,中华人民,中华,华人,人民共和国,人民,人,民,共和国,共和,和,国国,国歌”，会穷尽各种可能的组合，适合 Term Query；</p>
+             */
+            String IK_MAX_WORD = "ik_max_word";
+        }
 
         /**
-         * MMapFS类型通过将文件映射到内存（MMap）来在文件系统上存储碎片索引（映射到Lucene MMapDirectory）。
-         * 内存映射占用了进程中虚拟内存地址空间的一部分，其大小等于要映射的文件的大小。在使用这个类之前，请确保您已经允许了足够的虚拟地址空间。
+         * es搜索关键字后缀，不分词搜索
          */
-        String MMAP_FS = "mmapfs";
-    }
-
-    /**
-     * 分词器相关常量
-     */
-    interface Tokenizer {
-
-        /**
-         * ik分词器
-         * 最粗粒度的拆分
-         * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,国歌”，适合 Phrase 查询</p>
-         */
-        String IK_SMART = "ik_smart";
-
-        /**
-         * ik分词器
-         * 最大化会将文本做最细粒度的拆分
-         * <p>比如会将“中华人民共和国国歌”拆分为“中华人民共和国,中华人民,中华,华人,人民共和国,人民,人,民,共和国,共和,和,国国,国歌”，会穷尽各种可能的组合，适合 Term Query；</p>
-         */
-        String IK_MAX_WORD = "ik_max_word";
+        String KEYWORD = "%s.keyword";
     }
 
     /**
      * SMS消息发送状态枚举
      */
+    @Getter
     enum SmsStatusEnum {
 
         /**
@@ -624,7 +629,7 @@ public interface ConstantConfig {
         /**
          * SMS消息发送状态
          */
-        public final String status;
+        private final String status;
 
         SmsStatusEnum(String status) {
             this.status = status;
@@ -634,6 +639,7 @@ public interface ConstantConfig {
     /**
      * 消息记录类型枚举
      */
+    @Getter
     enum SmsTypeEnum {
         /**
          * 邮箱
@@ -648,7 +654,7 @@ public interface ConstantConfig {
         /**
          * 消息记录类型
          */
-        public final String type;
+        private final String type;
 
         SmsTypeEnum(String type) {
             this.type = type;
@@ -658,6 +664,7 @@ public interface ConstantConfig {
     /**
      * 用户属性枚举
      */
+    @Getter
     enum UserAttrEnum {
 
         /**
@@ -683,12 +690,12 @@ public interface ConstantConfig {
         /**
          * 用户属性参数名称
          */
-        public final String param;
+        private final String param;
 
         /**
          * 用户属性参数的默认值
          */
-        public final String defaultValue;
+        private final String defaultValue;
 
         UserAttrEnum(String param, String defaultValue) {
             this.param = param;
@@ -730,6 +737,7 @@ public interface ConstantConfig {
         /**
          * 文件记录-动作
          */
+        @Getter
         enum ActionEnum {
 
             /**
@@ -755,7 +763,7 @@ public interface ConstantConfig {
             /**
              * 状态标识
              */
-            public final String status;
+            private final String status;
 
             ActionEnum(String status) {
                 this.status = status;
@@ -765,6 +773,7 @@ public interface ConstantConfig {
         /**
          * 文件记录-动作类型
          */
+        @Getter
         enum ActionTypeEnum {
 
             // Action为0时对应的动作类型
@@ -801,7 +810,7 @@ public interface ConstantConfig {
             /**
              * 状态标识
              */
-            public final String status;
+            private final String status;
 
             ActionTypeEnum(String status) {
                 this.status = status;
@@ -812,6 +821,7 @@ public interface ConstantConfig {
     /**
      * oss文件当前状态枚举类型
      */
+    @Getter
     enum OssFileStatusEnum {
 
         /**
@@ -834,7 +844,7 @@ public interface ConstantConfig {
          */
         SOURCE_FILE_DELETED("3");
 
-        public final String status;
+        private final String status;
 
         OssFileStatusEnum(String status) {
             this.status = status;
@@ -850,6 +860,37 @@ public interface ConstantConfig {
             // 规定不可操作类型
             List<String> inoperableType = Arrays.asList(AUDIT_FAILURE.status, SOURCE_FILE_DELETED.status);
             return inoperableType.contains(fileStatus);
+        }
+    }
+
+    /**
+     * 文件分享自增字段枚举
+     */
+    @Getter
+    enum FileShareIncreaseEnum {
+
+        /**
+         * 浏览次数
+         */
+        BROWSE_COUNT(ReflectUtil.propertyToUnderline(FileShare::getBrowseCount)),
+
+        /**
+         * 保存、转存次数
+         */
+        SAVE_COUNT(ReflectUtil.propertyToUnderline(FileShare::getSaveCount)),
+
+        /**
+         * 下载次数
+         */
+        DOWNLOAD_COUNT(ReflectUtil.propertyToUnderline(FileShare::getSaveCount));
+
+        /**
+         * 自增字段对应的字段名称
+         */
+        private final String fieldName;
+
+        FileShareIncreaseEnum(String fieldName) {
+            this.fieldName = fieldName;
         }
     }
 
@@ -934,48 +975,9 @@ public interface ConstantConfig {
     }
 
     /**
-     * 文件搜索请求中指定支持排序的字段
-     */
-    enum DiskFileSearchOrderBy {
-
-        /**
-         * 文件大小
-         */
-        FILE_SIZE(ReflectUtil.property(DiskFile::getFileSize)),
-
-        /**
-         * 创建时间
-         */
-        CREATE_TIME(ReflectUtil.property(DiskFile::getCreateTime)),
-
-        /**
-         * 更新时间
-         */
-        UPDATE_TIME(ReflectUtil.property(DiskFile::getUpdateTime));
-
-        /**
-         * 用户属性参数的默认值
-         */
-        public final String fieldName;
-
-        DiskFileSearchOrderBy(String fieldName) {
-            this.fieldName = fieldName;
-        }
-
-        /**
-         * 判断字段名是否存在于枚举中
-         *
-         * @param fieldName 指定的字段名
-         * @return true:不存在，false:存在
-         */
-        public static boolean noneMatch(String fieldName) {
-            return Stream.of(DiskFileSearchOrderBy.values()).noneMatch(anEnum -> anEnum.fieldName.equals(fieldName));
-        }
-    }
-
-    /**
      * 排序字段
      */
+    @Getter
     enum OrderDirection {
         /**
          * 正序
@@ -990,7 +992,7 @@ public interface ConstantConfig {
         /**
          * 排序方向
          */
-        public final String direction;
+        private final String direction;
 
         OrderDirection(String direction) {
             this.direction = direction;
@@ -1008,49 +1010,250 @@ public interface ConstantConfig {
     }
 
     /**
-     * 线程池类型、使用场景相关配置
+     * 缓存相关的常量
      */
-    enum ThreadPoolEnum {
-        /**
-         * 文件第三方回调线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
-         */
-        THIRD_PARTY_CALLBACK("third-party-callback-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+    interface Cache {
 
         /**
-         * 文件任务递归线程池配置，设置线程拒绝策略，丢弃队列中最旧的任务
+         * 用户信息缓存
          */
-        TASK_RECURSION_EXECUTOR("task-recursion-pool", new ThreadPoolExecutor.CallerRunsPolicy()),
+        String USERINFO_CACHE = "userInfo";
 
         /**
-         * 全局线程池配置，任意地点使用，设置线程拒绝策略，丢弃队列中最旧的任务
+         * 用户机密信息的缓存
          */
-        GLOBAL_THREAD_POOL("global-thread-pool", new ThreadPoolExecutor.CallerRunsPolicy());
+        String USER_CONFIDENTIAL = "userConfidential";
 
         /**
-         * 线程池名称
+         * 用户角色信息缓存
          */
-        public final String name;
+        String USER_ROLE_CACHE = "AuthorizationInfo";
 
         /**
-         * 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
+         * 默认session内容缓存的key值前缀
          */
-        public final RejectedExecutionHandler handler;
+        String DEFAULT_CACHE_KEY_PREFIX = "shiro:cache:";
 
-        ThreadPoolEnum(String name, RejectedExecutionHandler handler) {
-            this.name = name;
-            this.handler = handler;
+        /**
+         * 默认session权限相关内容缓存的key值前缀
+         */
+        String DEFAULT_CACHE_REALM_PREFIX = "shiro:realm:";
+
+        /**
+         * session内容缓存默认key值字段名称
+         */
+        String DEFAULT_PRINCIPAL_ID_FIELD_NAME = "id";
+
+        /**
+         * 缓存内容默认失效时间(10小时):秒
+         */
+        Long DEFAULT_EXPIRE = 36000L;
+
+        /**
+         * 邮箱验证码缓存前缀
+         */
+        String MAIL_VERIFICATION_CODE = "MAIL:VERIFICATION_CODE:";
+
+        /**
+         * 用户文件信息缓存
+         */
+        String DISK_FILE_CACHE = "DISK_FILE_CACHE:";
+
+        /**
+         * OSS文件信息缓存
+         */
+        String OSS_FILE_CACHE = "OSS_FILE_CACHE:";
+
+        /**
+         * 文件分享信息缓存
+         */
+        String FILE_SHARE_CACHE = "FILE_SHARE_CACHE:";
+
+        /**
+         * 文件复制时的节点缓存
+         */
+        String FILE_COPY_NODE_CACHE = "FILE_COPY_NODE_CACHE:";
+
+        /**
+         * redis延迟队列专用消息通道
+         */
+        String REDIS_DELAY_QUEUE_CHANNEL = "REDIS_DELAY_QUEUE_CHANNEL:";
+
+        /**
+         * redis事件监听器类型枚举，所有通知以__keyevent@<db>__为前缀，这里的<db>可以用通配符*代替
+         */
+        @Getter
+        enum KeyEventEnum {
+
+            /**
+             * 过期事件
+             */
+            EXPIRED("__keyevent@*__:expired"),
+
+            /**
+             * 新增 、修改事件
+             */
+            UPDATE("__keyevent@*__:set"),
+
+            /**
+             * 删除事件
+             */
+            DELETE("__keyevent@*__:del");
+
+            /**
+             * 监听的事件类型
+             */
+            private final String event;
+
+            KeyEventEnum(String event) {
+                this.event = event;
+            }
         }
 
         /**
-         * 根据线程池名称获取对应的异常处理器，没有获取到时响应null
-         *
-         * @param name 线程池名称
-         * @return 线程阻塞（block）时的异常处理器，所谓线程阻塞即线程池和等待队列已满，无法处理线程时采取的策略
+         * redis通道名称枚举(redis需要订阅的渠道名称)
+         * redis 通过命令 PUBLISH channel message 来发布信息
          */
-        public static RejectedExecutionHandler getExecutionHandler(String name) {
+        @Getter
+        enum ChanelEnum {
+            /**
+             * redis刷新配置专用通道名
+             */
+            CHANNEL_CONFIG("DOUDOU_CONFIG_CHANNEL"),
+
+            /**
+             * redis缓存刷新同步专用通道名(redis需要订阅的渠道名称)
+             */
+            CHANNEL_CACHE("DOUDOU_CACHE_CHANNEL"),
+
+            /**
+             * redis分布式锁专用通道名
+             */
+            REDIS_LOCK_CHANNEL("REDIS_LOCK_CHANNEL");
+
+            /**
+             * 通道名称
+             */
+            private final String channel;
+
+            ChanelEnum(String channel) {
+                this.channel = channel;
+            }
+        }
+    }
+
+    /**
+     * 文件分享状态类型美枚举
+     */
+    @Getter
+    enum FileShareStatusEnum {
+        /**
+         * 正常
+         */
+        NORMAL("0"),
+
+        /**
+         * 关闭
+         */
+        CLOSE("1");
+
+        /**
+         * 文件分享状态
+         */
+        private final String status;
+
+        FileShareStatusEnum(String status) {
+            this.status = status;
+        }
+    }
+
+    /**
+     * 文件外部系统回调状态类型枚举
+     */
+    @Getter
+    enum CallbackStatusEnum {
+
+        /**
+         * 等待
+         */
+        WAIT("1"),
+
+        /**
+         * 执行中
+         */
+        EXECUTING("2"),
+
+        /**
+         * 回调成功
+         */
+        SUCCESS("3"),
+
+        /**
+         * 回调失败
+         */
+        FAIL("4");
+
+        /**
+         * 回调状态
+         */
+        private final String status;
+
+        CallbackStatusEnum(String status) {
+            this.status = status;
+        }
+    }
+
+    /**
+     * 重试级别枚举类型，自定义的延迟级别
+     */
+    @Getter
+    enum RetryLevelEnum {
+
+        /**
+         * 一级重试，延迟15秒执行
+         */
+        LEVEL_ONE(1, 15L, TimeUnit.SECONDS),
+
+        /**
+         * 二级重试，延迟5分钟执行
+         */
+        LEVEL_TWO(2, 5L, TimeUnit.MINUTES),
+
+        /**
+         * 三级重试，延迟30分钟执行
+         */
+        LEVEL_THREE(3, 30L, TimeUnit.MINUTES);
+
+        /**
+         * 重试次数
+         */
+        private final Integer retry;
+
+        /**
+         * 延迟时间
+         */
+        private final Long delay;
+
+        /**
+         * 时间单位
+         */
+        private final TimeUnit timeUnit;
+
+        RetryLevelEnum(Integer retry, Long delay, TimeUnit timeUnit) {
+            this.retry = retry;
+            this.delay = delay;
+            this.timeUnit = timeUnit;
+        }
+
+        /**
+         * 根据重试次数获取对应的重试级别
+         *
+         * @param retry 重试次数
+         * @return 重试级别枚举
+         */
+        public static RetryLevelEnum getLevel(Integer retry) {
             return Stream.of(values())
-                    .filter(anEnum -> anEnum.name.equals(name))
-                    .map(anEnum -> anEnum.handler).findFirst().orElse(null);
+                    .filter(anEnum -> anEnum.retry.equals(retry)).findFirst().orElse(null);
         }
     }
 

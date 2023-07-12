@@ -1,42 +1,41 @@
 package com.doudoudrive.file.consumer;
 
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.http.HttpRequest;
-import com.alibaba.fastjson.JSON;
+import cn.hutool.core.thread.ExecutorBuilder;
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.MessageContext;
+import com.doudoudrive.common.model.dto.request.CopyFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.service.DiskFileService;
-import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
+import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
-import com.doudoudrive.file.model.convert.DiskFileConvert;
-import com.doudoudrive.file.model.dto.request.CreateFileCallbackRequestDTO;
-import com.doudoudrive.file.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.file.model.dto.request.CreateFileRollbackConsumerRequestDTO;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.io.Closeable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * <p>文件系统消费者服务</p>
@@ -47,34 +46,15 @@ import java.util.Map;
 @Slf4j
 @Component
 @RocketmqListener(topic = ConstantConfig.Topic.FILE_SERVICE, consumerGroup = ConstantConfig.ConsumerGroup.FILE)
-public class FileServiceConsumer {
+public class FileServiceConsumer implements CommandLineRunner, Closeable {
 
-    private DiskFileConvert diskFileConvert;
-
-    /**
-     * 用于外部回调的线程池服务
-     */
     private GlobalThreadPoolService globalThreadPoolService;
-
     private MqConsumerRecordConvert consumerRecordConvert;
-
     private RocketmqConsumerRecordService rocketmqConsumerRecordService;
-
     private FileManager fileManager;
-
-    private DiskUserAttrService diskUserAttrService;
-
+    private DiskUserAttrManager diskUserAttrManager;
     private DiskFileService diskFileService;
-
-    /**
-     * RocketMQ消息模型
-     */
     private RocketMQTemplate rocketmqTemplate;
-
-    @Autowired(required = false)
-    public void setDiskFileConvert(DiskFileConvert diskFileConvert) {
-        this.diskFileConvert = diskFileConvert;
-    }
 
     @Autowired
     public void setGlobalThreadPoolService(GlobalThreadPoolService globalThreadPoolService) {
@@ -97,8 +77,8 @@ public class FileServiceConsumer {
     }
 
     @Autowired
-    public void setDiskUserAttrService(DiskUserAttrService diskUserAttrService) {
-        this.diskUserAttrService = diskUserAttrService;
+    public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
+        this.diskUserAttrManager = diskUserAttrManager;
     }
 
     @Autowired
@@ -112,83 +92,13 @@ public class FileServiceConsumer {
     }
 
     /**
-     * 请求id，16位随机字符串，包含大小写
+     * 文件删除时使用的无界队列，用于异步处理文件删除
      */
-    private static final String REQUEST_ID = "requestId";
-
+    private static final BlockingQueue<Map<String, List<DiskFile>>> FILE_DELETE_UNBOUNDED_QUEUE = new LinkedBlockingQueue<>();
     /**
-     * 常量 16
+     * 单线程调度执行器，用于异步推送文件复制和删除的队列
      */
-    private static final Integer SIXTEEN = NumberConstant.INTEGER_TEN + NumberConstant.INTEGER_SIX;
-
-    /**
-     * 回调ua字符串
-     */
-    private static final String USER_AGENT_CALLBACK = "doudou-callback";
-
-    /**
-     * 设置超时时间，3000ms
-     */
-    private static final Integer TIMEOUT = NumberConstant.INTEGER_THREE * NumberConstant.INTEGER_ONE_THOUSAND;
-
-    /**
-     * 创建文件消费处理，当前消费者服务需要做幂等处理
-     *
-     * @param consumerRequest 创建文件时的消费者请求数据模型
-     * @param messageContext  mq消息内容
-     */
-    @RocketmqTagDistribution(messageClass = CreateFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.CREATE_FILE)
-    public void createFileConsumer(CreateFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
-        // 构建消息消费记录
-        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext,
-                ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.CREATE_FILE);
-
-        try {
-            // 保存消息消费记录
-            rocketmqConsumerRecordService.insertException(consumerRecord);
-
-            CreateFileAuthModel fileInfo = consumerRequest.getFileInfo();
-
-            String requestId = consumerRequest.getRequestId();
-            if (StringUtils.isBlank(requestId)) {
-                // 设置请求Id的默认值
-                requestId = RandomUtil.randomString(SIXTEEN);
-            }
-
-            // 构建回调地址初始化请求头配置Map
-            Map<String, String> header = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_THREE);
-            header.put(REQUEST_ID, requestId);
-            header.put(ConstantConfig.HttpRequest.USER_AGENT, USER_AGENT_CALLBACK);
-            header.put(ConstantConfig.HttpRequest.HOST, URI.create(fileInfo.getCallbackUrl()).getHost());
-
-            // 构建回调请求对象json串
-            CreateFileCallbackRequestDTO fileCallbackRequest = diskFileConvert.ossFileConvertCreateFileCallbackRequest(fileInfo,
-                    consumerRequest.getFileId(), consumerRequest.getPreview(), consumerRequest.getDownload());
-            String body = JSON.toJSONString(fileCallbackRequest);
-
-            // 多线程异步发送回调请求
-            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.THIRD_PARTY_CALLBACK, () -> {
-                // 构建回调请求
-                long start = System.currentTimeMillis();
-                try (cn.hutool.http.HttpResponse execute = HttpRequest.post(fileInfo.getCallbackUrl())
-                        .headerMap(header, Boolean.TRUE)
-                        .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
-                        .charset(StandardCharsets.UTF_8)
-                        .body(body.getBytes(StandardCharsets.UTF_8))
-                        .timeout(TIMEOUT)
-                        .execute()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("callback request: {}ms {}\n{}", (System.currentTimeMillis() - start), fileInfo.getCallbackUrl(), body);
-                        log.debug(execute.toString());
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-            });
-        } catch (Exception e) {
-            log.error("errorMsg:{}，消费记录：{}", e.getMessage(), consumerRecord, e);
-        }
-    }
+    private ExecutorService executor;
 
     /**
      * 创建文件失败时异步回滚的消费处理，当前消费者服务需要做幂等处理
@@ -218,7 +128,7 @@ public class FileServiceConsumer {
 
         try {
             // 出现异常时手动减去用户已用磁盘容量
-            diskUserAttrService.deducted(consumerRequest.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, consumerRequest.getSize());
+            diskUserAttrManager.deducted(consumerRequest.getUserId(), ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY, consumerRequest.getSize());
             // 手动删除用户文件(这里直接调用delete方法是因为会出现增加了磁盘容量但是文件不存在的情况，所以不需要做幂等处理)
             diskFileService.delete(consumerRequest.getFileId(), consumerRequest.getUserId());
         } catch (Exception e) {
@@ -244,40 +154,174 @@ public class FileServiceConsumer {
      */
     @RocketmqTagDistribution(messageClass = DeleteFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.DELETE_FILE)
     public void deleteFileConsumer(DeleteFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
-        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.GLOBAL_THREAD_POOL, () -> {
-            // 根据传入的文件业务标识查找是否存在对应的文件信息
-            List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(consumerRequest.getUserId(), consumerRequest.getBusinessId());
-            // 其中所有的文件夹信息集合
-            List<String> fileFolderList = fileIdSearchResult.stream()
-                    .filter(DiskFile::getFileFolder)
-                    .map(DiskFile::getBusinessId).toList();
+        // 构建消息消费记录
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext,
+                ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.DELETE_FILE);
 
-            // 如果存在文件夹信息，则需要删除文件夹信息
-            if (CollectionUtil.isNotEmpty(fileFolderList)) {
-                consumerRequest.getBusinessId().addAll(fileFolderList);
-            }
+        try {
+            // 保存消息消费记录
+            rocketmqConsumerRecordService.insertException(consumerRecord);
 
-            // 如果消息中包含有文件信息，则需要先删除文件信息
-            if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
-                deleteHandler(fileIdSearchResult, consumerRequest.getUserId());
-            }
+            // 使用文件复制线程池异步处理文件复制
+            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.FILE_DELETE_EXECUTOR, () -> {
+                // 根据传入的文件业务标识查找是否存在对应的文件信息
+                List<DiskFile> fileIdSearchResult = fileManager.fileIdSearch(consumerRequest.getUserId(), consumerRequest.getBusinessId());
+                // 其中所有的文件夹信息集合
+                List<String> fileFolderList = fileIdSearchResult.stream()
+                        .filter(DiskFile::getFileFolder)
+                        .map(DiskFile::getBusinessId).toList();
 
-            // 递归获取指定文件节点下所有的子节点信息
-            fileManager.getUserFileAllNode(consumerRequest.getUserId(), consumerRequest.getBusinessId(),
-                    queryParentIdResponse -> deleteHandler(queryParentIdResponse, consumerRequest.getUserId()));
-        });
+                // 如果存在文件夹信息，则需要删除文件夹信息
+                if (CollectionUtil.isNotEmpty(fileFolderList)) {
+                    consumerRequest.getBusinessId().addAll(fileFolderList);
+                }
+
+                // 如果消息中包含有文件信息，则需要先删除文件信息
+                if (CollectionUtil.isNotEmpty(fileIdSearchResult)) {
+                    fileDelete(fileIdSearchResult, consumerRequest.getUserId());
+                }
+
+                // 递归获取指定文件节点下所有的子节点信息
+                fileManager.getUserFileAllNode(consumerRequest.getUserId(), consumerRequest.getBusinessId(), queryParentIdResponse -> {
+                    try {
+                        // 创建一个新的map集合
+                        Map<String, List<DiskFile>> queueMap = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_ONE);
+                        queueMap.put(consumerRequest.getUserId(), queryParentIdResponse);
+
+                        // 将map集合放入队列中
+                        FILE_DELETE_UNBOUNDED_QUEUE.put(queueMap);
+                    } catch (Exception e) {
+                        log.error("put delete queue error, errorMsg:{}", e.getMessage(), e);
+                    }
+                });
+            });
+        } catch (Exception e) {
+            // 重复消费拦截
+            log.error("errorMsg:{}，消费记录：{}", e.getMessage(), consumerRecord, e);
+        }
     }
 
     /**
-     * 删除文件消费处理程序
+     * 复制文件信息消费处理
+     *
+     * @param consumerRequest 删除文件时的消费者请求数据模型
+     * @param messageContext  mq消息内容
+     */
+    @RocketmqTagDistribution(messageClass = CopyFileConsumerRequestDTO.class, tag = ConstantConfig.Tag.COPY_FILE)
+    public void copyFileConsumer(CopyFileConsumerRequestDTO consumerRequest, MessageContext messageContext) {
+        // 用户总磁盘容量
+        BigDecimal totalDiskCapacity = diskUserAttrManager.getUserAttrValue(consumerRequest.getTargetUserId(), ConstantConfig.UserAttrEnum.TOTAL_DISK_CAPACITY);
+        copyHandler(consumerRequest.getTargetUserId(), consumerRequest.getFromUserId(), consumerRequest.getTargetFolderId(),
+                consumerRequest.getTreeStructureMap(), consumerRequest.getPreCopyFileList(), totalDiskCapacity.stripTrailingZeros().toPlainString());
+    }
+
+    @Override
+    public void run(String... args) {
+        // 初始化线程池
+        this.executor = TtlExecutors.getTtlExecutorService(ExecutorBuilder.create()
+                .setCorePoolSize(NumberConstant.INTEGER_ONE)
+                .setMaxPoolSize(NumberConstant.INTEGER_ONE)
+                .setAllowCoreThreadTimeOut(false)
+                .setWorkQueue(new LinkedBlockingQueue<>(NumberConstant.INTEGER_ONE))
+                // 设置线程拒绝策略，丢弃队列中最旧的
+                .setHandler(new ThreadPoolExecutor.CallerRunsPolicy())
+                .setThreadFactory(new CustomizableThreadFactory("file-handler-thread"))
+                .build());
+
+        // 开启文件删除队列的处理程序
+        this.executor.submit(this::deleteHandler);
+    }
+
+    @Override
+    public void close() {
+        this.shutdown();
+    }
+
+    /**
+     * executor服务的销毁
+     */
+    private void shutdown() {
+        if (executor != null) {
+            executor.shutdown();
+        }
+    }
+
+    /**
+     * 复制文件消费处理程序
+     *
+     * @param targetUserId      目标用户Id
+     * @param fromUserId        源用户Id
+     * @param targetFolderId    目标文件夹Id
+     * @param treeStructureMap  文件树结构
+     * @param parentId          父节点Id，需要复制的文件夹标识
+     * @param totalDiskCapacity 用户总磁盘容量
+     */
+    private void copyHandler(String targetUserId, String fromUserId, String targetFolderId,
+                             Map<String, String> treeStructureMap, List<String> parentId,
+                             String totalDiskCapacity) {
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.FILE_COPY_EXECUTOR, () ->
+                fileManager.getAllFileInfo(fromUserId, parentId, queryParentIdResponse -> {
+                    // 获取查询结果中的所有文件夹标识
+                    List<String> parentFileList = queryParentIdResponse.stream()
+                            .filter(DiskFile::getFileFolder)
+                            .map(DiskFile::getBusinessId).toList();
+
+                    // 批量复制文件信息
+                    Map<String, String> nodeMap = fileManager.batchCopyFile(targetUserId, targetFolderId, treeStructureMap, queryParentIdResponse, totalDiskCapacity);
+
+                    if (CollectionUtil.isNotEmpty(parentFileList)) {
+                        // 存在有文件夹时，继续递归查询
+                        this.copyHandler(targetUserId, fromUserId, targetFolderId, nodeMap, parentFileList, totalDiskCapacity);
+                    }
+                }));
+    }
+
+    /**
+     * 删除文件队列处理程序，用于消费队列中的数据
+     */
+    private void deleteHandler() {
+        while (null != executor && !executor.isShutdown()) {
+            try {
+                // 从队列中取出指定数量的数据
+                List<Map<String, List<DiskFile>>> fileList = CollectionUtil.pollBatchOrWait(FILE_DELETE_UNBOUNDED_QUEUE,
+                        NumberConstant.INTEGER_ONE_THOUSAND, NumberConstant.LONG_ONE, TimeUnit.SECONDS);
+                if (CollectionUtil.isEmpty(fileList)) {
+                    continue;
+                }
+
+                // 合并所有的子集，如果key相同，则将所有的文件信息合并到一起
+                Map<String, List<DiskFile>> mergedMap = Maps.newHashMapWithExpectedSize(fileList.size());
+                for (Map<String, List<DiskFile>> map : fileList) {
+                    // 遍历当前子集中的每个键值对
+                    for (Map.Entry<String, List<DiskFile>> entry : map.entrySet()) {
+                        mergedMap.compute(entry.getKey(), (key, list) -> {
+                            if (CollectionUtil.isEmpty(list)) {
+                                return new ArrayList<>(entry.getValue());
+                            }
+                            list.addAll(entry.getValue());
+                            return list;
+                        });
+                    }
+                }
+
+                // 批量删除文件信息
+                mergedMap.forEach((userId, content) -> fileDelete(content, userId));
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 文件删除队列处理
      *
      * @param content 文件内容
      * @param userId  用户Id
      */
-    private void deleteHandler(List<DiskFile> content, String userId) {
+    private void fileDelete(List<DiskFile> content, String userId) {
         try {
             // 根据文件id批量删除文件或文件夹
-            fileManager.delete(content, userId, Boolean.FALSE);
+            fileManager.delete(content, userId);
         } catch (Exception e) {
             // 删除文件失败时将本次删除失败的文件消息重新放入队列中，使用sync模式发送消息，保证消息发送成功
             String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;

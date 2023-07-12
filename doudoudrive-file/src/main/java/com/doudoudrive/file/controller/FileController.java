@@ -9,6 +9,8 @@ import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
+import com.doudoudrive.common.model.dto.request.CreateFileConsumerRequestDTO;
+import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
@@ -29,6 +31,8 @@ import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +69,8 @@ public class FileController {
 
     private FileManager fileManager;
 
+    private FileEventListener fileEventListener;
+
     private FileShareManager fileShareManager;
 
     private DiskFileConvert diskFileConvert;
@@ -97,6 +103,11 @@ public class FileController {
     @Autowired
     public void setFileManager(FileManager fileManager) {
         this.fileManager = fileManager;
+    }
+
+    @Autowired
+    public void setFileEventListener(FileEventListener fileEventListener) {
+        this.fileEventListener = fileEventListener;
     }
 
     @Autowired
@@ -257,9 +268,8 @@ public class FileController {
                 .build(), fileModel);
 
         // 文件创建成功后的发送MQ消息
-        this.sendMessage(CreateFileConsumerRequestDTO.builder()
+        fileEventListener.create(CreateFileConsumerRequestDTO.builder()
                 .fileId(fileId)
-                .requestId(request.getHeader(ConstantConfig.QiNiuConstant.QI_NIU_CALLBACK_REQUEST_ID))
                 .preview(fileModel.getPreview())
                 .download(fileModel.getDownload())
                 .fileInfo(createFile)
@@ -313,8 +323,13 @@ public class FileController {
                 return Result.build(StatusCodeEnum.SYSTEM_ERROR);
             }
 
+            // 获取文件访问Url
+            fileModel = fileManager.accessUrl(FileAuthModel.builder()
+                    .userId(userInfo.getBusinessId())
+                    .build(), fileModel);
+
             // 文件创建成功后的发送MQ消息
-            this.sendMessage(CreateFileConsumerRequestDTO.builder()
+            fileEventListener.create(CreateFileConsumerRequestDTO.builder()
                     .fileId(fileId)
                     .preview(fileModel.getPreview())
                     .download(fileModel.getDownload())
@@ -324,9 +339,7 @@ public class FileController {
 
             // 构建文件鉴权模型，拼接文件访问地址
             return Result.ok(FileUploadTokenResponseDTO.builder()
-                    .fileInfo(fileManager.accessUrl(FileAuthModel.builder()
-                            .userId(userInfo.getBusinessId())
-                            .build(), fileModel))
+                    .fileInfo(fileModel)
                     .build());
         }
 
@@ -393,7 +406,46 @@ public class FileController {
         }
 
         // 根据文件id批量删除文件或文件夹
-        fileManager.delete(fileIdSearchResult, userinfo.getBusinessId(), Boolean.TRUE);
+        fileManager.delete(fileIdSearchResult, userinfo.getBusinessId());
+
+        // 筛选出其中所有的文件夹数据
+        List<String> fileFolderList = fileIdSearchResult.stream()
+                .filter(DiskFile::getFileFolder)
+                .map(DiskFile::getBusinessId)
+                .toList();
+
+        if (CollectionUtil.isNotEmpty(fileFolderList)) {
+            // 使用sync模式发送消息，保证消息发送成功，用于删除子文件夹下的所有文件
+            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
+            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
+                    .userId(userinfo.getBusinessId())
+                    .businessId(fileFolderList)
+                    .build()));
+            // 判断消息是否发送成功
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                // 消息发送失败，抛出异常
+                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
+            }
+        }
+        return Result.ok();
+    }
+
+    @SneakyThrows
+    @ResponseBody
+    @OpLog(title = "移动", businessType = "文件系统")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_UPDATE)
+    @PostMapping(value = "/move", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<String> move(@RequestBody @Valid MoveFileRequestDTO requestDTO,
+                               HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 将指定的文件移动到目标文件夹
+        fileManager.move(requestDTO.getBusinessId(), requestDTO.getTargetFolderId(), userinfo);
+
         return Result.ok();
     }
 
@@ -472,6 +524,7 @@ public class FileController {
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 return;
             }
+
         }
 
         // 获取访问的文件对象
@@ -491,8 +544,8 @@ public class FileController {
 
         // 获取缓存中总流量、已用流量
         Map<String, String> userAttr = userinfo.getUserInfo().getUserAttr();
-        String total = userAttr.get(ConstantConfig.UserAttrEnum.TOTAL_TRAFFIC.param);
-        String usedTraffic = userAttr.get(ConstantConfig.UserAttrEnum.USED_TRAFFIC.param);
+        String total = userAttr.get(ConstantConfig.UserAttrEnum.TOTAL_TRAFFIC.getParam());
+        String usedTraffic = userAttr.get(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam());
         if (StringUtils.isBlank(usedTraffic) || StringUtils.isBlank(total)) {
             // 配置异常、用户属性中没有对应配置
             response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -518,7 +571,7 @@ public class FileController {
             if (NumberConstant.INTEGER_ZERO.equals(increase)) {
                 // 不等于 -1 时需要更新用户缓存信息，获取最新的已用数据
                 BigDecimal usedTrafficValue = diskUserAttrService.getDiskUserAttrValue(userinfo.getUserInfo().getBusinessId(), ConstantConfig.UserAttrEnum.USED_TRAFFIC);
-                userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.param, usedTrafficValue.add(fileSize).stripTrailingZeros().toPlainString());
+                userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficValue.add(fileSize).stripTrailingZeros().toPlainString());
                 loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
             }
             // 更新失败
@@ -527,7 +580,7 @@ public class FileController {
         }
 
         // 服务更新成功时需要更新用户缓存信息
-        userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.param, usedTrafficBigDecimal.add(fileSize).stripTrailingZeros().toPlainString());
+        userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficBigDecimal.add(fileSize).stripTrailingZeros().toPlainString());
         loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
 
         // 响应成功的状态码
@@ -550,22 +603,6 @@ public class FileController {
     }
 
     /**
-     * 文件创建成功后对应的消息发送
-     *
-     * @param consumerRequest 创建文件时的消费者请求数据模型
-     */
-    private void sendMessage(CreateFileConsumerRequestDTO consumerRequest) {
-        // 回调地址为空时，不做处理
-        if (StringUtils.isBlank(consumerRequest.getFileInfo().getCallbackUrl())) {
-            return;
-        }
-
-        // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE;
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(consumerRequest));
-    }
-
-    /**
      * 对文件创建时参数进行校验，校验失败时抛出异常
      *
      * @param createFileAuthModel 创建文件时的鉴权参数模型
@@ -576,7 +613,7 @@ public class FileController {
             if (CollectionUtil.isNotEmpty(validateResult)) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.PARAM_INVALID, validateResult.stream()
                         .map(ConstraintViolation::getMessage)
-                        .findAny().orElse(StatusCodeEnum.PARAM_INVALID.message));
+                        .findAny().orElse(StatusCodeEnum.PARAM_INVALID.getMessage()));
             }
         }
     }

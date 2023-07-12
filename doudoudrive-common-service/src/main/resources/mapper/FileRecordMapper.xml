@@ -258,8 +258,11 @@
             <if test="null != userId and '' != userId">
                 `user_id` = #{userId} AND
             </if>
-            <if test="null != etag and '' != etag">
-                `file_etag` = #{etag} AND
+            <if test="null != etag and etag.size > 0">
+                `file_etag` IN
+                <foreach collection="etag" index="index" item="item" open="(" separator="," close=") AND">
+                    #{item}
+                </foreach>
             </if>
             <if test="null != action and '' != action">
                 `action` = #{action} AND

@@ -1,15 +1,19 @@
 package com.doudoudrive.common.util.lang;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 /**
  * <p>序列工具、用于获取表中唯一主键id</p>
@@ -76,7 +80,7 @@ public class SequenceUtil {
         // 生成序列id
         String sequenceId = timestamp
                 + LAST_TIMESTAMP.incrementAndGet()
-                + businessCode.code
+                + businessCode.getCode()
                 + WORKER_ID
                 + RandomUtil.randomNumbers(DEFAULT_RANDOM_NUMBER_LENGTH);
         if (sequenceId.length() > SEQUENCE_ID_MAX_LENGTH) {
@@ -138,6 +142,65 @@ public class SequenceUtil {
 
         // 对取余结果 +1 后补零
         return String.format(DOUBLE_DIGIT_ZERO_FILLING, complement.add(BigDecimal.ONE).longValue());
+    }
+
+    /**
+     * 获取序列生成时间月份后缀
+     *
+     * @param sequenceId 序列id
+     * @return 时间月份后缀
+     */
+    public static String generateTimeSuffix(String sequenceId) {
+        // 获取序列生成时间
+        LocalDateTime generateTime = SequenceUtil.generateTime(sequenceId);
+        if (generateTime == null) {
+            return StringUtils.EMPTY;
+        }
+
+        // 获取表后缀
+        return generateTime.format(DatePattern.SIMPLE_MONTH_FORMATTER);
+    }
+
+    /**
+     * 依照序列id的组成规则，获取序列中的时间信息，序列id的组成规则如下：
+     * <pre>
+     *     230327182923   1679912979502   11               95               040071
+     *     yyMMddHHmmss + 13位自增时间戳 + 两位业务模块标识 + 两位随机终端ID + 6位随机数
+     * </pre>
+     *
+     * @param sequenceId 序列id
+     * @return 序列生成时间，失败返回 null
+     */
+    public static LocalDateTime generateTime(String sequenceId) {
+        if (StringUtils.isBlank(sequenceId)) {
+            return null;
+        }
+        // 需要截取的开始位置和结束位置
+        final int begin = NumberConstant.INTEGER_ZERO;
+        final int end = NumberConstant.INTEGER_TEN + NumberConstant.INTEGER_TWO;
+
+        // 截取序列id中的时间信息
+        String time = sequenceId.substring(begin, end);
+        if (StringUtils.isBlank(time)) {
+            return null;
+        }
+
+        try {
+            // 将时间信息转换为 LocalDateTime
+            return LocalDateTime.parse(time, DATE_TIME_FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 指定分表数量，获取所有表后缀
+     *
+     * @param remainder 分表余数
+     * @return 所有的表后缀
+     */
+    public static List<String> tableSuffixList(Integer remainder) {
+        return IntStream.rangeClosed(NumberConstant.INTEGER_ONE, remainder).mapToObj(i -> String.format(DOUBLE_DIGIT_ZERO_FILLING, i)).toList();
     }
 
     /**

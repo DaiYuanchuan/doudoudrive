@@ -27,7 +27,7 @@ public interface FileShareModelConvert {
      * @param request 保存es文件分享信息时的请求数据模型
      * @return 用户文件分享模块信息ES数据模型
      */
-    @Mapping(target = "shareSalt", source = "salt")
+    @Mapping(target = "createTime", expression = "java(com.doudoudrive.common.util.date.DateUtils.toDate(request.getCreateTime()))")
     FileShareDTO saveEsFileShareRequestConvertFileShare(SaveElasticsearchFileShareRequestDTO request);
 
     /**

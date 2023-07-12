@@ -1,8 +1,17 @@
 package com.doudoudrive.common.cache;
 
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.util.lang.RedisSerializerUtil;
+import com.doudoudrive.common.constant.RedisDelayedQueueEnum;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +22,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -34,10 +44,28 @@ public class RedisConfig extends CachingConfigurerSupport {
         redisTemplate.setKeySerializer(stringRedisSerializer);
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
 
-        // 设置值（value）的序列化方式
-        RedisSerializerUtil<Object> redisSerializer = new RedisSerializerUtil<>();
-        redisTemplate.setHashValueSerializer(redisSerializer);
-        redisTemplate.setValueSerializer(redisSerializer);
+        ObjectMapper objectMapper = SpringBeanFactoryUtils.getBean(ObjectMapper.class).copy();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+
+        // 设置输入时忽略JSON字符串中存在而Java对象实际没有的属性
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // 设置空值不序列化
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
+        // 设置序列化输入类型
+        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        // 忽略对象中值为null的属性
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.registerModule(new JavaTimeModule());
+
+        // 设置genericJackson2序列化配置
+        GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        // 设置值（value）的序列化方式采用genericJackson2
+        redisTemplate.setHashValueSerializer(genericJackson2JsonRedisSerializer);
+        redisTemplate.setValueSerializer(genericJackson2JsonRedisSerializer);
 
         //设置连接工厂
         redisTemplate.setConnectionFactory(lettuceConnectionFactory);
@@ -66,8 +94,15 @@ public class RedisConfig extends CachingConfigurerSupport {
         // 批量注册基于模式匹配的topic(PatternTopic)
         for (ConstantConfig.Cache.ChanelEnum chanelEnum : ConstantConfig.Cache.ChanelEnum.values()) {
             // 订阅一个channel，可以添加多个messageListener，来订阅不同的channel
-            container.addMessageListener(messageListener(), new PatternTopic(chanelEnum.channel));
+            container.addMessageListener(messageListener(), new PatternTopic(chanelEnum.getChannel()));
         }
+
+        // 注册延迟队列相关topic
+        for (RedisDelayedQueueEnum delayedQueueEnum : RedisDelayedQueueEnum.values()) {
+            // 订阅一个channel，可以添加多个messageListener，来订阅不同的channel
+            container.addMessageListener(messageListener(), new PatternTopic(delayedQueueEnum.getChannelTopic()));
+        }
+
         return container;
     }
 }

@@ -1,4 +1,4 @@
-package com.doudoudrive.common.log;
+package com.doudoudrive.common.util.function;
 
 import com.doudoudrive.common.model.dto.model.OpLogInfo;
 

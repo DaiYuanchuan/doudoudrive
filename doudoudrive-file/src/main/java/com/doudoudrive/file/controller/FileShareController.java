@@ -13,12 +13,10 @@ import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileShareManager;
-import com.doudoudrive.file.model.dto.request.CancelFileShareRequestDTO;
-import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
-import com.doudoudrive.file.model.dto.request.FileCopyRequestDTO;
-import com.doudoudrive.file.model.dto.request.FileShareAnonymousRequestDTO;
+import com.doudoudrive.file.model.dto.request.*;
 import com.doudoudrive.file.model.dto.response.CreateFileShareResponseDTO;
 import com.doudoudrive.file.model.dto.response.FileShareAnonymousResponseDTO;
+import com.doudoudrive.file.model.dto.response.FileShareSearchResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -77,7 +75,7 @@ public class FileShareController {
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 过期时间不为空时判断是否在当前时间之后
-        if (createFileShareRequest.getExpiration() != null && new Date().after(createFileShareRequest.getExpiration())) {
+        if (createFileShareRequest.getExpiration() != null && LocalDateTime.now().isAfter(createFileShareRequest.getExpiration())) {
             // 过期时间在当前时间之前
             return Result.build(StatusCodeEnum.EXPIRE_TIME_INVALID);
         }
@@ -106,6 +104,7 @@ public class FileShareController {
     @SneakyThrows
     @ResponseBody
     @OpLog(title = "文件分享", businessType = "删除")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SHARE)
     @PostMapping(value = "/cancel", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody @Valid CancelFileShareRequestDTO cancelShareRequest,
                                                                        HttpServletRequest request, HttpServletResponse response) {
@@ -140,7 +139,25 @@ public class FileShareController {
 
     @SneakyThrows
     @ResponseBody
+    @OpLog(title = "文件分享", businessType = "查询")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SHARE)
+    @PostMapping(produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<FileShareSearchResponseDTO> fileShareSearch(@RequestBody @Valid FileShareSearchRequestDTO fileShareSearchRequest,
+                                                              HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 从缓存中获取当前登录的用户信息
+        DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
+
+        // 文件分享信息搜索
+        return Result.ok(fileShareManager.fileShareSearch(fileShareSearchRequest, userinfo));
+    }
+
+    @SneakyThrows
+    @ResponseBody
     @OpLog(title = "保存到我的", businessType = "复制")
+    @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SHARE)
     @PostMapping(value = "/copy", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     public Result<String> copy(@RequestBody @Valid FileCopyRequestDTO fileCopyRequest,
                                HttpServletRequest request, HttpServletResponse response) {

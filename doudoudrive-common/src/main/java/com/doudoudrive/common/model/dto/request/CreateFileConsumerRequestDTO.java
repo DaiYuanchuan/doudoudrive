@@ -1,4 +1,4 @@
-package com.doudoudrive.file.model.dto.request;
+package com.doudoudrive.common.model.dto.request;
 
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -30,11 +30,6 @@ public class CreateFileConsumerRequestDTO implements Serializable {
      * 当前文件标识
      */
     private String fileId;
-
-    /**
-     * 请求id，16位随机字符串，包含大小写
-     */
-    private String requestId;
 
     /**
      * 文件预览地址

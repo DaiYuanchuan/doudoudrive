@@ -45,7 +45,7 @@ public interface FileRecordManager {
      * @param actionEnum 动作枚举
      * @param actionType 动作类型枚举
      */
-    void deleteAction(String userId, String etag,
+    void deleteAction(String userId, List<String> etag,
                       ConstantConfig.FileRecordAction.ActionEnum actionEnum,
                       ConstantConfig.FileRecordAction.ActionTypeEnum actionType);
 

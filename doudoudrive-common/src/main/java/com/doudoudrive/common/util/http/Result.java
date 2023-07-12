@@ -52,11 +52,11 @@ public class Result<T> implements Serializable {
     }
 
     private Result(StatusCodeEnum statusCodeEnum) {
-        this(statusCodeEnum.statusCode, statusCodeEnum.message);
+        this(statusCodeEnum.getStatusCode(), statusCodeEnum.getMessage());
     }
 
     private Result(StatusCodeEnum statusCodeEnum, T obj) {
-        this(statusCodeEnum.statusCode, statusCodeEnum.message, obj);
+        this(statusCodeEnum.getStatusCode(), statusCodeEnum.getMessage(), obj);
     }
 
     /**
@@ -65,7 +65,7 @@ public class Result<T> implements Serializable {
      * @return 是否成功(true : 成功的响应)
      */
     public boolean success() {
-        return ObjectUtils.nullSafeEquals(StatusCodeEnum.SUCCESS.statusCode, this.code);
+        return ObjectUtils.nullSafeEquals(StatusCodeEnum.SUCCESS.getStatusCode(), this.code);
     }
 
     /**
@@ -76,7 +76,7 @@ public class Result<T> implements Serializable {
      */
     public static boolean isSuccess(@Nullable Result<?> result) {
         return Optional.ofNullable(result)
-                .map(x -> ObjectUtils.nullSafeEquals(StatusCodeEnum.SUCCESS.statusCode, x.code))
+                .map(x -> ObjectUtils.nullSafeEquals(StatusCodeEnum.SUCCESS.getStatusCode(), x.code))
                 .orElse(Boolean.FALSE);
     }
 

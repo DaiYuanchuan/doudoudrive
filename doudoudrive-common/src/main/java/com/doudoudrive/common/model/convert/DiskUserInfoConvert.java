@@ -98,4 +98,12 @@ public interface DiskUserInfoConvert {
      */
     DiskUserModel userSimpleModelConvert(UserSimpleModel userSimpleModel);
 
+    /**
+     * 将DiskUser(用户模块实体类) 类型转换为 DiskUserModel(通用的用户信息数据模型)
+     *
+     * @param diskUser 用户模块实体类
+     * @return 通用的用户信息数据模型
+     */
+    DiskUserModel diskUserConvertUserModel(DiskUser diskUser);
+
 }

@@ -145,11 +145,6 @@ public class RocketmqMessageListenerContainer implements InitializingBean, Dispo
     }
 
     @Override
-    public boolean isAutoStartup() {
-        return true;
-    }
-
-    @Override
     public void stop(Runnable callback) {
         stop();
         callback.run();

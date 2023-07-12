@@ -1,10 +1,12 @@
 package com.doudoudrive.auth.manager.impl;
 
 import com.doudoudrive.auth.client.UserInfoSearchFeignClient;
+import com.doudoudrive.auth.config.ShiroRealm;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.auth.manager.SysUserRoleManager;
 import com.doudoudrive.common.cache.RedisTemplateClient;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.BusinessException;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
@@ -16,14 +18,18 @@ import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.DefaultSessionKey;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <p>登录鉴权服务通用业务处理层接口实现</p>
@@ -231,9 +237,27 @@ public class LoginManagerImpl implements LoginManager {
                 Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
                 // 更新指定用户缓存信息
                 session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
+                // 清除session里面权限信息
+                session.removeAttribute(ConstantConfig.Cache.USER_ROLE_CACHE);
+
+                // 当前登录的用户名
+                String username = (String) SecurityUtils.getSubject().getPrincipal();
+
+                // 清除旧的用户权限信息缓存
+                DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager) SecurityUtils.getSecurityManager();
+                ShiroRealm shiroRealm = (ShiroRealm) securityManager.getRealms().iterator().next();
+                shiroRealm.getAuthorizationCache().remove(username);
+
+                // 需要清理的缓存key
+                List<String> cacheKey = Lists.newArrayListWithExpectedSize(NumberConstant.INTEGER_TWO);
+                // session内容
+                cacheKey.add(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + token);
+                // 用户权限信息
+                cacheKey.add(ConstantConfig.Cache.DEFAULT_CACHE_REALM_PREFIX + username);
+
                 // 更新完本地缓存后，需要通知到其他服务同步更新
                 redisTemplateClient.publish(ConstantConfig.Cache.ChanelEnum.CHANNEL_CACHE, CacheRefreshModel.builder()
-                        .cacheKey(ConstantConfig.Cache.DEFAULT_CACHE_KEY_PREFIX + token)
+                        .cacheKey(cacheKey)
                         .build());
             } catch (UnknownSessionException ignored) {
             }

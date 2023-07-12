@@ -35,8 +35,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -183,16 +183,16 @@ public class TencentCloudSmsManagerImpl implements SmsManager {
 
         // 构建sms发送记录
         SmsSendRecord smsSendRecord = new SmsSendRecord();
-        smsSendRecord.setSmsSendTime(new Date());
+        smsSendRecord.setSmsSendTime(LocalDateTime.now());
         smsSendRecord.setBusinessId(smsSendRecordModel.getBusinessId());
-        smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.status);
+        smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.getStatus());
 
         // 构建腾讯云初始化短信请求头配置Map
         Map<String, String> header = SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.builderMap();
-        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.HOST.param, smsConfig.getDomain());
-        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.AUTHORIZATION.param, signature.getSignature());
-        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.ACTION.param, ACTION);
-        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.TIMESTAMP.param, String.valueOf(signature.getTimestamp()));
+        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.HOST.getParam(), smsConfig.getDomain());
+        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.AUTHORIZATION.getParam(), signature.getSignature());
+        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.ACTION.getParam(), ACTION);
+        header.put(SmsConstant.TencentCloudSmsConfig.RequestHeaderEnum.TIMESTAMP.getParam(), String.valueOf(signature.getTimestamp()));
 
         // 请求最终构建的url,获取请求body
         try (cn.hutool.http.HttpResponse execute = HttpRequest.post(String.format(REQUEST_URL, smsConfig.getDomain()))
@@ -206,7 +206,7 @@ public class TencentCloudSmsManagerImpl implements SmsManager {
             // 获取发送状态
             TencentCloudSendSmsStatus sendStatus = tencentCloudSmsResponse.getResponse().getSendStatus().get(NumberConstant.INTEGER_ZERO);
             if (OK.equals(sendStatus.getCode())) {
-                smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.status);
+                smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.getStatus());
             } else {
                 smsSendRecord.setSmsErrorReason(execute.body());
             }
@@ -242,7 +242,7 @@ public class TencentCloudSmsManagerImpl implements SmsManager {
 
         // 发送短信
         SmsSendRecord smsSendRecord = this.send(model, smsSendRecordModel);
-        if (ConstantConfig.SmsStatusEnum.FAIL.status.equals(smsSendRecord.getSmsStatus())) {
+        if (ConstantConfig.SmsStatusEnum.FAIL.getStatus().equals(smsSendRecord.getSmsStatus())) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ABNORMAL_SMS_SENDING);
         }
     }

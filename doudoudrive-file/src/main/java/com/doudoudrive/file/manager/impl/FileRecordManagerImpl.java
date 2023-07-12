@@ -60,8 +60,8 @@ public class FileRecordManagerImpl implements FileRecordManager {
     @Override
     public Boolean isFileRecordExist(String userId, ConstantConfig.FileRecordAction.ActionEnum actionEnum, ConstantConfig.FileRecordAction.ActionTypeEnum actionType) {
         // 获取指定状态的文件操作记录数据
-        return fileRecordService.isFileRecordExist(userId, actionEnum == null ? null : actionEnum.status,
-                actionType == null ? null : actionType.status);
+        return fileRecordService.isFileRecordExist(userId, actionEnum == null ? null : actionEnum.getStatus(),
+                actionType == null ? null : actionType.getStatus());
     }
 
     /**
@@ -73,11 +73,11 @@ public class FileRecordManagerImpl implements FileRecordManager {
      * @param actionType 动作类型枚举
      */
     @Override
-    public void deleteAction(String userId, String etag,
+    public void deleteAction(String userId, List<String> etag,
                              ConstantConfig.FileRecordAction.ActionEnum actionEnum,
                              ConstantConfig.FileRecordAction.ActionTypeEnum actionType) {
-        fileRecordService.deleteAction(userId, etag, actionEnum == null ? null : actionEnum.status,
-                actionType == null ? null : actionType.status);
+        fileRecordService.deleteAction(userId, etag, actionEnum == null ? null : actionEnum.getStatus(),
+                actionType == null ? null : actionType.getStatus());
     }
 
     /**

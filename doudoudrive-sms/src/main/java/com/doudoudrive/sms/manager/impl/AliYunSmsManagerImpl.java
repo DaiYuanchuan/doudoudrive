@@ -26,8 +26,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -113,11 +113,11 @@ public class AliYunSmsManagerImpl implements SmsManager {
         SmsConfig smsConfig = diskDictionaryService.getDictionary(DictionaryConstant.SMS_CONFIG, SmsConfig.class);
         // 获取阿里大鱼初始化短信配置Map
         Map<String, String> aliYunSmsConfig = SmsConstant.AliYunSmsConfigEnum.builderMap();
-        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.ACCESS_KEY_ID.param, smsConfig.getAppId());
-        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.PHONE_NUMBER.param, smsSendRecordModel.getSmsRecipient());
-        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.SIGN_NAME.param, smsConfig.getSignName());
-        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.TEMPLATE_CODE.param, smsSendRecordModel.getSmsDataId());
-        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.TEMPLATE_PARAM.param, JSON.toJSONString(model));
+        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.ACCESS_KEY_ID.getParam(), smsConfig.getAppId());
+        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.PHONE_NUMBER.getParam(), smsSendRecordModel.getSmsRecipient());
+        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.SIGN_NAME.getParam(), smsConfig.getSignName());
+        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.TEMPLATE_CODE.getParam(), smsSendRecordModel.getSmsDataId());
+        aliYunSmsConfig.put(SmsConstant.AliYunSmsConfigEnum.TEMPLATE_PARAM.getParam(), JSON.toJSONString(model));
 
         // 获取阿里云API签名
         AliYunSignature signature = this.getAliYunSignature(aliYunSmsConfig, smsConfig.getAppKey(), smsConfig.getDomain());
@@ -127,9 +127,9 @@ public class AliYunSmsManagerImpl implements SmsManager {
 
         // 构建sms发送记录
         SmsSendRecord smsSendRecord = new SmsSendRecord();
-        smsSendRecord.setSmsSendTime(new Date());
+        smsSendRecord.setSmsSendTime(LocalDateTime.now());
         smsSendRecord.setBusinessId(smsSendRecordModel.getBusinessId());
-        smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.status);
+        smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.FAIL.getStatus());
 
         // 请求最终构建的url,获取请求body
         try (cn.hutool.http.HttpResponse execute = HttpRequest.get(signature.getRequestUrl())
@@ -138,7 +138,7 @@ public class AliYunSmsManagerImpl implements SmsManager {
             // 获取阿里大鱼短信发送响应数据
             AliYunSmsResponseDTO aliYunSmsResponse = JSON.parseObject(execute.body(), AliYunSmsResponseDTO.class);
             if (OK.equals(aliYunSmsResponse.getCode())) {
-                smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.status);
+                smsSendRecord.setSmsStatus(ConstantConfig.SmsStatusEnum.SUCCESS.getStatus());
             } else {
                 smsSendRecord.setSmsErrorReason(execute.body());
             }
@@ -173,7 +173,7 @@ public class AliYunSmsManagerImpl implements SmsManager {
 
         // 发送短信
         SmsSendRecord smsSendRecord = this.send(model, smsSendRecordModel);
-        if (ConstantConfig.SmsStatusEnum.FAIL.status.equals(smsSendRecord.getSmsStatus())) {
+        if (ConstantConfig.SmsStatusEnum.FAIL.getStatus().equals(smsSendRecord.getSmsStatus())) {
             BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ABNORMAL_SMS_SENDING);
         }
     }

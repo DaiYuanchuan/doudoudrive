@@ -2,6 +2,7 @@ package com.doudoudrive.common.model.dto.model;
 
 import cn.hutool.core.date.DatePattern;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.NumberConstant;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * <p>网盘文件分享记录信息数据模型</p>
@@ -26,12 +28,12 @@ import java.util.Date;
 public class FileShareModel implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 8664575644790011101L;
 
     /**
-     * 分享的短链接id
+     * 业务标识
      */
-    private String shareId;
+    private String businessId;
 
     /**
      * 进行分享的用户标识
@@ -39,9 +41,14 @@ public class FileShareModel implements Serializable {
     private String userId;
 
     /**
+     * 分享的短链接id
+     */
+    private String shareId;
+
+    /**
      * 进行分享的文件名(取每次进行分享的第一个文件名)
      */
-    private String shareName;
+    private String shareTitle;
 
     /**
      * 提取码(为空时表示不需要提取码)
@@ -54,23 +61,34 @@ public class FileShareModel implements Serializable {
     private String shareSalt;
 
     /**
+     * 分享的文件数量
+     */
+    private Long fileCount;
+
+    /**
      * 浏览次数，每次分享时都会+1，初始值为0，最大值为9999
      * 超过9999时不再显示，但是可以继续分享和+1
      */
-    private String viewCount;
+    private Long browseCount;
 
     /**
      * 保存、转存次数，每次分享时都会+1，初始值为0，最大值为9999
      * 超过9999时不再显示，但是可以继续分享和+1
      */
-    private String saveCount;
+    private Long saveCount;
+
+    /**
+     * 下载次数，每次下载时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续下载和+1
+     */
+    private Long downloadCount;
 
     /**
      * 到期时间，超过该时间则分享失效不可再访问，为空时表示永不过期
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
-    private Date expiration;
+    private LocalDateTime expiration;
 
     /**
      * 是否已经过期(0:false,1:true)
@@ -83,17 +101,54 @@ public class FileShareModel implements Serializable {
     private Boolean folder;
 
     /**
+     * 状态(0:正常；1:关闭)
+     */
+    private String status;
+
+    /**
      * 创建时间
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
-    private Date updateTime;
+    private LocalDateTime updateTime;
 
+    /**
+     * 浏览次数，每次分享时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续分享和+1
+     *
+     * @return 浏览次数，初始值为0，最大值为9999
+     */
+    public Long getBrowseCount() {
+        long count = Math.max(Optional.ofNullable(browseCount).orElse(NumberConstant.LONG_ZERO), NumberConstant.LONG_ZERO);
+        return Math.min(count, NumberConstant.LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE);
+    }
+
+    /**
+     * 保存、转存次数，每次分享时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续分享和+1
+     *
+     * @return 保存、转存次数，初始值为0，最大值为9999
+     */
+    public Long getSaveCount() {
+        long count = Math.max(Optional.ofNullable(saveCount).orElse(NumberConstant.LONG_ZERO), NumberConstant.LONG_ZERO);
+        return Math.min(count, NumberConstant.LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE);
+    }
+
+    /**
+     * 下载次数，每次下载时都会+1，初始值为0，最大值为9999
+     * 超过9999时不再显示，但是可以继续下载和+1
+     *
+     * @return 下载次数，初始值为0，最大值为9999
+     */
+    public Long getDownloadCount() {
+        long count = Math.max(Optional.ofNullable(downloadCount).orElse(NumberConstant.LONG_ZERO), NumberConstant.LONG_ZERO);
+        return Math.min(count, NumberConstant.LONG_NINE_THOUSAND_NINE_HUNDRED_AND_NINETY_NINE);
+    }
 }

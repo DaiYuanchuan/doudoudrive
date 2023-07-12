@@ -16,7 +16,6 @@ import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -154,9 +153,8 @@ public class TracerLogger implements CommandLineRunner {
      */
     private void uploadWorker() {
         try {
-            // 要么key达到500个，要么达到1秒，就汇总上报给worker一次
-            List<SysLogMessage> arrayList = new ArrayList<>();
-            drain(arrayList);
+            // 从队列中获取500条日志，不足500时等待1秒，汇总上报给worker一次
+            List<SysLogMessage> arrayList = CollectionUtil.pollBatchOrWait(LOG_BEAN_QUEUE, ELEMENTS_PER_LOG, NumberConstant.LONG_ONE, TimeUnit.SECONDS);
             if (CollectionUtil.isEmpty(arrayList)) {
                 return;
             }
@@ -192,34 +190,6 @@ public class TracerLogger implements CommandLineRunner {
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 从队列中获取指定数据量的日志，可用于批量上报
-     * 每次获取500条日志，如果队列中不足500条，则获取队列中所有日志
-     *
-     * @param buffer 用于存储日志的集合
-     * @throws Exception 异常
-     */
-    private static void drain(List<SysLogMessage> buffer) throws Exception {
-        // 超时时间
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(NumberConstant.INTEGER_ONE);
-        int added = NumberConstant.INTEGER_ZERO;
-
-        while (added < ELEMENTS_PER_LOG) {
-            // 从队列中删除指定数量的可用元素，并将它们添加到指定集合中
-            added += LOG_BEAN_QUEUE.drainTo(buffer, ELEMENTS_PER_LOG - added);
-            if (added < ELEMENTS_PER_LOG) {
-                // 取出来队列第一个元素并删除，可等待指定的等待时间以使元素变为可用，如果队列为空，则返回null
-                SysLogMessage element = LOG_BEAN_QUEUE.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
-                if (element == null) {
-                    break;
-                }
-                // 添加到集合中
-                buffer.add(element);
-                ++added;
-            }
         }
     }
 }

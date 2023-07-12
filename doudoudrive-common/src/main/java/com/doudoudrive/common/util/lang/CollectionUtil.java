@@ -1,11 +1,14 @@
 package com.doudoudrive.common.util.lang;
 
 import com.doudoudrive.common.constant.NumberConstant;
+import com.google.common.collect.Lists;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,6 +68,43 @@ public class CollectionUtil extends CollectionUtils {
                         .parallel()
                         .collect(Collectors.toList()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 从队列中获取指定数量的数据，可用于批量处理
+     * 每次获取指定数量的数据，如果队列中数据量不足，则等待一段时间后获取所有数据
+     *
+     * @param queue     队列
+     * @param batchSize 批量大小
+     * @param duration  持续时间
+     * @param unit      超时时间单位
+     * @param <T>       队列元素类型
+     * @return 队列元素集合
+     * @throws Exception 异常
+     */
+    public static <T> List<T> pollBatchOrWait(BlockingQueue<T> queue, int batchSize, long duration, TimeUnit unit) throws Exception {
+        // 创建一个具有指定初始容量的空ArrayList实例，用于保存队列中的元素
+        List<T> buffer = Lists.newArrayListWithExpectedSize(batchSize);
+
+        // 持续时间
+        long deadline = System.nanoTime() + unit.toNanos(duration);
+        int added = NumberConstant.INTEGER_ZERO;
+
+        while (added < batchSize) {
+            // 从队列中删除指定数量的可用元素，并将它们添加到指定集合中
+            added += queue.drainTo(buffer, batchSize - added);
+            if (added < batchSize) {
+                // 取出来队列第一个元素并删除，可等待指定的等待时间以使元素变为可用，如果队列为空，则返回null
+                T element = queue.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
+                if (element == null) {
+                    break;
+                }
+                // 添加到集合中
+                buffer.add(element);
+                ++added;
+            }
+        }
+        return buffer;
     }
 
     // ==================================================== 数组相关 ====================================================

@@ -1,11 +1,14 @@
 package com.doudoudrive.common.model.dto.model;
 
+import lombok.Getter;
+
 /**
  * <p>登录类型</p>
  * <p>2020-04-23 23:15</p>
  *
  * @author Dan
  **/
+@Getter
 public enum LoginType {
 
     /**
@@ -25,10 +28,6 @@ public enum LoginType {
 
     LoginType(String code) {
         this.code = code;
-    }
-
-    public String getCode() {
-        return code;
     }
 
 }

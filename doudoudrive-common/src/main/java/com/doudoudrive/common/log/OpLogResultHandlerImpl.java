@@ -9,6 +9,7 @@ import com.doudoudrive.common.model.dto.model.OpLogInfo;
 import com.doudoudrive.common.model.dto.model.ShiroAuthenticationModel;
 import com.doudoudrive.common.model.pojo.LogOp;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
+import com.doudoudrive.common.util.function.OpLogCompletionHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

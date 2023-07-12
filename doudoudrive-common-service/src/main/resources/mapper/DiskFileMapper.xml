@@ -339,19 +339,27 @@
     <select id="fileParentIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
         SELECT
-        `business_id`, `file_size`, `file_etag`, `is_file_folder`
+        `auto_id`, `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+        `is_file_folder`, `is_forbidden`, `is_collect`, `status`
         FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <if test="null != autoId and 0 != autoId">
                 `auto_id` > #{autoId} AND
             </if>
+            <choose>
+                <when test="parentId.size() == 1">
+                    `file_parent_id` = #{parentId[0]} AND
+                </when>
+                <otherwise>
+                    `file_parent_id` IN
+                    <foreach collection="parentId" index="index" item="item" open="(" separator="," close=") AND">
+                        #{item}
+                    </foreach>
+                </otherwise>
+            </choose>
             <if test="null != userId and '' != userId">
                 `user_id` = #{userId} AND
             </if>
-            `file_parent_id` IN
-            <foreach collection="parentId" index="index" item="item" open="(" separator="," close=")">
-                #{item}
-            </foreach>
         </trim>
         LIMIT 10000;
     </select>
@@ -360,7 +368,8 @@
     <select id="fileIdSearch" resultType="com.doudoudrive.common.model.pojo.DiskFile"
             resultMap="diskFileResultMap">
         SELECT
-        `business_id`, `file_name`, `file_size`, `file_etag`, `is_file_folder`
+        `business_id`, `user_id`, `file_name`, `file_parent_id`, `file_size`, `file_mime_type`, `file_etag`,
+        `is_file_folder`, `is_forbidden`, `is_collect`, `status`
         FROM `disk_file_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
             <if test="null != userId and '' != userId">

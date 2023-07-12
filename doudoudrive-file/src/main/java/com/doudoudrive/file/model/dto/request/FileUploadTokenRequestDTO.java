@@ -51,6 +51,7 @@ public class FileUploadTokenRequestDTO {
     /**
      * 回调Url，文件上传成功后的回调地址，对接第三方使用
      */
+    @Size(max = 500, message = "回调地址过长")
     private String callbackUrl;
 
     /**

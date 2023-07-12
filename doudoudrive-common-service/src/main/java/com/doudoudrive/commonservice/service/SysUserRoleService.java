@@ -30,9 +30,8 @@ public interface SysUserRoleService {
      * 删除指定用户关联的所有角色
      *
      * @param userId 根据用户业务id删除数据
-     * @return 返回删除的条数
      */
-    Integer deleteSysUserRole(String userId);
+    void deleteSysUserRole(String userId);
 
     /**
      * 根据用户标识查询指定用户下所有绑定的角色信息

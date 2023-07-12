@@ -1,5 +1,7 @@
 package com.doudoudrive.common.global;
 
+import lombok.Getter;
+
 /**
  * <p>业务异常错误码枚举类</p>
  * <p>定义业务异常错误码相关的枚举信息</p>
@@ -7,6 +9,7 @@ package com.doudoudrive.common.global;
  *
  * @author Dan
  **/
+@Getter
 public enum StatusCodeEnum {
 
     /**
@@ -85,6 +88,8 @@ public enum StatusCodeEnum {
     EXPIRE_TIME_INVALID(712, "无效的过期时间"),
     SHARE_PWD_INVALID(713, "请输入提取码"),
     SHARE_PWD_ERROR(714, "请输入正确的提取码"),
+    FILE_SHARE_FAILED(715, "分享链接创建失败"),
+    FILE_SHARE_BLOCKED(716, "链接违反互联网法律法规，已禁止访问"),
 
     /**
      * 接口类:8xx
@@ -99,8 +104,8 @@ public enum StatusCodeEnum {
     ROCKETMQ_SEND_MESSAGE_FAILED(901, "消息发送失败");
 
 
-    public final Integer statusCode;
-    public final String message;
+    private final Integer statusCode;
+    private final String message;
 
     StatusCodeEnum(Integer statusCode, String message) {
         this.statusCode = statusCode;

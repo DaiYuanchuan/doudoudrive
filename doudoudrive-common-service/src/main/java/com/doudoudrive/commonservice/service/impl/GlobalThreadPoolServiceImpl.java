@@ -1,6 +1,7 @@
 package com.doudoudrive.commonservice.service.impl;
 
 import cn.hutool.core.thread.ExecutorBuilder;
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.model.dto.model.ThreadPoolModel;
@@ -64,7 +65,7 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
     @Override
     public <T> Future<T> submit(ConstantConfig.ThreadPoolEnum threadPool, Callable<T> task) {
         // 获取线程池对象
-        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.name);
+        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.getName());
         if (null == executorService || executorService.isShutdown()) {
             return null;
         }
@@ -83,7 +84,7 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
     @Override
     public Future<?> submit(ConstantConfig.ThreadPoolEnum threadPool, Runnable runnable) {
         // 获取线程池对象
-        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.name);
+        ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.getName());
         if (null == executorService || executorService.isShutdown()) {
             return null;
         }
@@ -124,8 +125,8 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
         for (ThreadPoolModel threadPool : threadPoolConfig) {
             ExecutorService executorService = SYS_GLOBAL_THREAD_POOL.get(threadPool.getName());
             if (ObjectUtils.isEmpty(executorService)) {
-                // 如果线程池对象不存在，则创建线程池对象
-                executorService = ExecutorBuilder.create()
+                // 如果线程池对象不存在，则创建线程池对象(增加了对线程局部变量传递功能，这里主要用于链路追踪tracerId的传递)
+                executorService = TtlExecutors.getTtlExecutorService(ExecutorBuilder.create()
                         .setCorePoolSize(threadPool.getCorePoolSize())
                         .setMaxPoolSize(threadPool.getMaxPoolSize())
                         .setWorkQueue(new LinkedBlockingQueue<>(threadPool.getQueueCapacity()))
@@ -133,7 +134,7 @@ public class GlobalThreadPoolServiceImpl implements GlobalThreadPoolService, Com
                         .setKeepAliveTime(threadPool.getKeepAliveTime())
                         .setHandler(ConstantConfig.ThreadPoolEnum.getExecutionHandler(threadPool.getName()))
                         .setThreadFactory(new CustomizableThreadFactory(String.format(THREAD_POOL_NAME, threadPool.getName())))
-                        .build();
+                        .build());
                 SYS_GLOBAL_THREAD_POOL.put(threadPool.getName(), executorService);
             }
         }

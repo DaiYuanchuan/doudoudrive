@@ -118,13 +118,13 @@ public interface DiskFileService {
     List<DiskFile> listDiskFile(DiskFile diskFile, String startTime, String endTime, Integer page, Integer pageSize);
 
     /**
-     * 获取指定文件节点下所有的子节点信息 （递归）
+     * 获取指定父目录下的所有文件信息
      *
-     * @param userId   用户系统内唯一标识
-     * @param parentId 文件父级标识
-     * @param consumer 回调函数中返回查找到的用户文件模块数据集合
+     * @param userId       用户系统内唯一标识
+     * @param parentFileId 文件父级标识
+     * @param consumer     回调函数中返回查找到的用户文件模块数据集合
      */
-    void getUserFileAllNode(String userId, List<String> parentId, Consumer<List<DiskFile>> consumer);
+    void getAllFileInfo(String userId, List<String> parentFileId, Consumer<List<DiskFile>> consumer);
 
     /**
      * 根据文件业务标识批量查询用户文件信息

@@ -64,12 +64,13 @@ public class SysUserRoleManagerImpl implements SysUserRoleManager {
      * @param roleCodeList 角色编码列表
      */
     @Override
-    public void insert(String userId, List<String> roleCodeList) {
+    public void insert(String userId, List<RoleCodeEnum> roleCodeList) {
         List<SysUserRole> sysUserRoleList = new ArrayList<>();
-        for (String roleCode : roleCodeList) {
+        for (RoleCodeEnum roleCode : roleCodeList) {
             sysUserRoleList.add(SysUserRole.builder()
                     .userId(userId)
-                    .roleCode(roleCode)
+                    .roleCode(roleCode.getRoleCode())
+                    .remarks(roleCode.getAuthName())
                     .build());
         }
         sysUserRoleService.insertBatch(sysUserRoleList);
@@ -101,7 +102,7 @@ public class SysUserRoleManagerImpl implements SysUserRoleManager {
         List<String> roleCodeList = sysUserRoleList.stream().map(SysUserRole::getRoleCode).toList();
 
         // 如果当前用户具有管理员权限，则自动为用户注入系统所有角色、权限
-        if (roleCodeList.contains(RoleCodeEnum.ADMINISTRATOR.roleCode)) {
+        if (roleCodeList.contains(RoleCodeEnum.ADMINISTRATOR.getRoleCode())) {
             // 系统内所有的角色列表
             List<SysRole> sysRoleList = sysRoleService.listSysRoleFindAll();
             roleCodeList = sysRoleList.stream().map(SysRole::getRoleCode).toList();

@@ -34,7 +34,7 @@ public class BusinessException extends RuntimeException {
     }
 
     public BusinessException(StatusCodeEnum statusCode) {
-        this(statusCode, statusCode.message);
+        this(statusCode, statusCode.getMessage());
     }
 
     public BusinessException(StatusCodeEnum statusCode, String reason) {
@@ -42,7 +42,7 @@ public class BusinessException extends RuntimeException {
     }
 
     public BusinessException(StatusCodeEnum statusCode, String reason, Object data) {
-        this(statusCode.statusCode, reason, data);
+        this(statusCode.getStatusCode(), reason, data);
     }
 
     public BusinessException(Integer statusCode, String reason, Object data) {

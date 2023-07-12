@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -43,21 +43,21 @@ public class FileShareAnonymousResponseDTO {
     /**
      * 进行分享的文件名(取每次进行分享的第一个文件名)
      */
-    private String shareName;
+    private String shareTitle;
 
     /**
      * 到期时间，超过该时间则分享失效不可再访问，为空时表示永不过期
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
-    private Date expiration;
+    private LocalDateTime expiration;
 
     /**
      * 分享链接的创建时间
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DatePattern.NORM_DATETIME_PATTERN, timezone = ConstantConfig.TimeZone.DEFAULT_TIME_ZONE)
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      * 搜索结果

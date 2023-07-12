@@ -41,7 +41,7 @@ public class DataSourceAspect {
     private Object process(ProceedingJoinPoint point) throws Throwable {
         DataSource dataSource = getDataSource(point);
         // 方法执行前开始设置当前线程数据源
-        DataSourceContextHolder.push(dataSource.value().dataSource);
+        DataSourceContextHolder.push(dataSource.value().getDataSource());
         Object object = point.proceed();
         // 方法执行后清空当前线程数据源
         DataSourceContextHolder.poll();

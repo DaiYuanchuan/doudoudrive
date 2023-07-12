@@ -115,7 +115,7 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
         try {
             // 获取更新结果
-            return diskUserAttrDao.deducted(userId, userAttrEnum.param, size, tableSuffix);
+            return diskUserAttrDao.deducted(userId, userAttrEnum.getParam(), size, tableSuffix);
         } catch (Exception e) {
             return NumberConstant.INTEGER_MINUS_ONE;
         }
@@ -136,7 +136,7 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
         try {
             // 获取更新结果
-            return diskUserAttrDao.increase(userId, userAttrEnum.param, size, upperLimit, tableSuffix);
+            return diskUserAttrDao.increase(userId, userAttrEnum.getParam(), size, upperLimit, tableSuffix);
         } catch (Exception e) {
             return NumberConstant.INTEGER_MINUS_ONE;
         }
@@ -153,7 +153,7 @@ public class DiskUserAttrServiceImpl implements DiskUserAttrService {
     public BigDecimal getDiskUserAttrValue(String userId, ConstantConfig.UserAttrEnum attrName) {
         // 获取表后缀
         String tableSuffix = SequenceUtil.tableSuffix(userId, ConstantConfig.TableSuffix.DISK_USER_ATTR);
-        return diskUserAttrDao.getDiskUserAttrValue(userId, attrName.param, tableSuffix);
+        return diskUserAttrDao.getDiskUserAttrValue(userId, attrName.getParam(), tableSuffix);
     }
 
     /**
