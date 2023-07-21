@@ -71,6 +71,7 @@ public class MethodInvoker implements ApplicationContextAware, InitializingBean 
             plugins.values().forEach(plugin -> plugin.preHandle(body, messageContext));
         } catch (Exception e) {
             handleHookException(e);
+            return;
         }
         Class<?>[] parameterTypes = method.getParameterTypes();
         // 检查方法中是否有MessageContext参数
