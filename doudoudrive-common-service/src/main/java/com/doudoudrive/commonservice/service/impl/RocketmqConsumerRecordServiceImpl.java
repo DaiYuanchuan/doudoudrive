@@ -1,5 +1,8 @@
 package com.doudoudrive.commonservice.service.impl;
 
+import com.doudoudrive.common.cache.lock.RedisLockManager;
+import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.RedisLockEnum;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.global.BusinessException;
 import com.doudoudrive.common.global.StatusCodeEnum;
@@ -30,9 +33,16 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
 
     private RocketmqConsumerRecordDao rocketmqConsumerRecordDao;
 
+    private RedisLockManager redisLockManager;
+
     @Autowired
     public void setRocketmqConsumerRecordDao(RocketmqConsumerRecordDao rocketmqConsumerRecordDao) {
         this.rocketmqConsumerRecordDao = rocketmqConsumerRecordDao;
+    }
+
+    @Autowired
+    public void setRedisLockManager(RedisLockManager redisLockManager) {
+        this.redisLockManager = redisLockManager;
     }
 
     /**
@@ -58,20 +68,61 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
      */
     @Override
     public void insertException(RocketmqConsumerRecord record) throws BusinessException {
-        // 先查找消费记录是否存在
-        RocketmqConsumerRecord consumerRecord = this.getRocketmqConsumerRecord(record.getMsgId(), record.getSendTime());
-        if (consumerRecord != null) {
-            // 已经消费过，不再消费
-            throw new BusinessException(StatusCodeEnum.ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST);
-        }
-
+        // 锁的名称，根据msgId生成
+        String name = RedisLockEnum.MQ_CONSUMER_RECORD.getLockName() + record.getMsgId();
+        String lock = redisLockManager.lock(name);
         try {
-            // 保存消息消费记录
-            this.insert(record);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new BusinessException(StatusCodeEnum.ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST);
+            // 先查找消费记录是否存在
+            RocketmqConsumerRecord consumerRecord = this.getRocketmqConsumerRecord(record.getMsgId(), record.getSendTime());
+            // 如果消费记录存在，且状态不是待消费的，说明在消费中、或者已完成消费，抛出异常
+            if (consumerRecord != null && !ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus().equals(consumerRecord.getStatus())) {
+                throw new BusinessException(StatusCodeEnum.ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST);
+            }
+
+            try {
+                // 如果消费记录不存在，则新增消费记录
+                if (consumerRecord == null) {
+                    // 保存消息消费记录
+                    this.insert(record);
+                } else {
+                    // 更新消费记录状态
+                    rocketmqConsumerRecordDao.updateConsumerStatus(record.getMsgId(), record.getStatus(), DateUtils.toMonth(record.getSendTime()));
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new BusinessException(StatusCodeEnum.ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST);
+            }
+        } finally {
+            redisLockManager.unlock(name, lock);
         }
+    }
+
+    /**
+     * 根据msgId删除RocketMQ消费记录
+     *
+     * @param record 需要删除的RocketMQ消费记录实体
+     */
+    @Override
+    public void delete(RocketmqConsumerRecord record) {
+        if (record == null || StringUtils.isBlank(record.getMsgId()) || record.getSendTime() == null) {
+            return;
+        }
+        rocketmqConsumerRecordDao.delete(record.getMsgId(), DateUtils.toMonth(record.getSendTime()));
+    }
+
+    /**
+     * 根据msgId更改RocketMQ消费者记录状态为: 已消费
+     *
+     * @param msgId    根据MQ消息唯一标识查找
+     * @param sendTime 消息发送、生产时间
+     * @param status   消费记录的状态枚举，参考：{@link ConstantConfig.RocketmqConsumerStatusEnum}
+     */
+    @Override
+    public void updateConsumerStatus(String msgId, Date sendTime, ConstantConfig.RocketmqConsumerStatusEnum status) {
+        if (StringUtils.isBlank(msgId) || sendTime == null || status == null) {
+            return;
+        }
+        rocketmqConsumerRecordDao.updateConsumerStatus(msgId, status.getStatus(), DateUtils.toMonth(sendTime));
     }
 
     /**

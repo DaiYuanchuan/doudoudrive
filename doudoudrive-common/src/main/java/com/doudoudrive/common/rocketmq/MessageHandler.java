@@ -2,7 +2,6 @@ package com.doudoudrive.common.rocketmq;
 
 import com.doudoudrive.common.constant.ConsumeStatusEnum;
 import com.doudoudrive.common.model.dto.model.MessageContext;
-import com.doudoudrive.common.model.dto.model.MessageModel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
@@ -35,12 +34,9 @@ public class MessageHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("开始消费，msgId={}，msg={}", msg.getMsgId(), msg);
                 }
-                // 解压缩消息体
-                MessageModel messageModel = MessageBuilder.convert(msg.getBody());
                 // 消费者接受的消息类型
                 Class<?> type = listener.getConsumerConfig().getTags().get(msg.getTags());
-                Object message = MessageModel.class.equals(type) ? messageModel : (messageModel == null ? null : messageModel.getMessage());
-                listener.onMessage(message, msg.getBody(), messageContext);
+                listener.onMessage(msg.getBody(), type, messageContext);
                 if (log.isDebugEnabled()) {
                     log.debug("消费完成");
                 }

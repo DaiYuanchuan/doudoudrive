@@ -3,6 +3,7 @@ package com.doudoudrive.common.rocketmq;
 import cn.hutool.core.util.ReflectUtil;
 import com.doudoudrive.common.global.ConsumeException;
 import com.doudoudrive.common.model.dto.model.MessageContext;
+import com.doudoudrive.common.model.dto.model.MessageModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -49,12 +50,12 @@ public class MethodInvoker implements ApplicationContextAware, InitializingBean 
      *
      * @param delegate       目标类
      * @param methods        目标方法
-     * @param message        接收到的消息
      * @param body           消息体
+     * @param type           消费者接受的消息类型
      * @param messageContext 消息的上下文信息
      */
-    public void invoke(Object delegate, Collection<Method> methods, Object message, byte[] body, MessageContext messageContext) {
-        methods.forEach(method -> invoke(delegate, method, message, body, messageContext));
+    public void invoke(Object delegate, Collection<Method> methods, byte[] body, Class<?> type, MessageContext messageContext) {
+        methods.forEach(method -> invoke(delegate, method, body, type, messageContext));
     }
 
     /**
@@ -62,13 +63,18 @@ public class MethodInvoker implements ApplicationContextAware, InitializingBean 
      *
      * @param delegate       方法所在对象
      * @param method         对应方法
-     * @param message        接收到的消息
      * @param body           消息体
+     * @param type           消费者接受的消息类型
      * @param messageContext 消息的上下文信息
      */
-    public void invoke(Object delegate, final Method method, Object message, byte[] body, MessageContext messageContext) {
+    public void invoke(Object delegate, final Method method, byte[] body, Class<?> type, MessageContext messageContext) {
+        // 解压缩消息体
+        MessageModel messageModel = MessageBuilder.convert(body);
+        // 消费者接受的消息类型
+        Object message = MessageModel.class.equals(type) ? messageModel : (messageModel == null ? null : messageModel.getMessage());
+
         try {
-            plugins.values().forEach(plugin -> plugin.preHandle(body, messageContext));
+            plugins.values().forEach(plugin -> plugin.preHandle(messageModel, messageContext));
         } catch (Exception e) {
             handleHookException(e);
             return;
@@ -83,11 +89,11 @@ public class MethodInvoker implements ApplicationContextAware, InitializingBean 
                 ReflectUtil.invoke(delegate, method, message);
             }
         } catch (Exception e) {
-            plugins.values().forEach(plugin -> plugin.nextHandle(false, body, messageContext));
+            plugins.values().forEach(plugin -> plugin.nextHandle(false, messageModel, messageContext));
             throw new ConsumeException(e);
         }
         try {
-            plugins.values().forEach(plugin -> plugin.nextHandle(true, body, messageContext));
+            plugins.values().forEach(plugin -> plugin.nextHandle(true, messageModel, messageContext));
         } catch (Exception e) {
             handleHookException(e);
         }

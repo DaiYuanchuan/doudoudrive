@@ -33,6 +33,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
@@ -47,8 +48,6 @@ import com.google.common.collect.Maps;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -74,32 +73,17 @@ import java.util.stream.Collectors;
 public class FileManagerImpl implements FileManager {
 
     private CacheManagerConfig cacheManagerConfig;
-
     private DiskFileService diskFileService;
-
     private OssFileManager ossFileManager;
-
     private DiskFileConvert diskFileConvert;
-
     private DiskFileSearchFeignClient diskFileSearchFeignClient;
-
-    /**
-     * 数据字典模块服务
-     */
     private DiskDictionaryService diskDictionaryService;
-
     private LoginManager loginManager;
-
     private FileRecordManager fileRecordManager;
-
-    /**
-     * RocketMQ消息模型
-     */
     private RocketMQTemplate rocketmqTemplate;
-
     private FileRecordConvert fileRecordConvert;
-
     private DiskUserAttrManager diskUserAttrManager;
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
 
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
@@ -154,6 +138,11 @@ public class FileManagerImpl implements FileManager {
     @Autowired
     public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
         this.diskUserAttrManager = diskUserAttrManager;
+    }
+
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
     }
 
     /**
@@ -257,20 +246,15 @@ public class FileManagerImpl implements FileManager {
             return userFile;
         } catch (Exception e) {
             // 发送MQ消息，异步回滚文件和用户磁盘容量数据
-            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE_ROLLBACK;
-            // 使用sync模式发送消息，保证消息发送成功
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(CreateFileRollbackConsumerRequestDTO.builder()
+            CreateFileRollbackConsumerRequestDTO copyFileConsumerRequest = CreateFileRollbackConsumerRequestDTO.builder()
                     .userId(userFile.getUserId())
                     .fileId(userFile.getBusinessId())
                     .size(ossFile.getSize())
                     .retryCount(NumberConstant.INTEGER_ZERO)
-                    .build()));
-            // 判断消息是否发送成功
-            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                log.error("send to mq, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}, sendResult:{}, fileId:{}",
-                        destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage(), sendResult, userFile.getBusinessId());
-            }
-            log.error(e.getMessage(), e);
+                    .build();
+            // 使用RocketMQ同步模式发送消息
+            MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.CREATE_FILE_ROLLBACK, copyFileConsumerRequest,
+                    rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
             return null;
         }
     }
@@ -386,17 +370,14 @@ public class FileManagerImpl implements FileManager {
                     BusinessExceptionUtil.throwBusinessException(deleteElasticResponse);
                 }
             } catch (Exception e) {
-                // 出现异常时，使用sync模式发送MQ消息，保证数据会被删除
-                String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE_ES;
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
+                // 构建文件删除的消费者消息
+                DeleteFileConsumerRequestDTO delFileConsumerRequest = DeleteFileConsumerRequestDTO.builder()
                         .userId(userId)
                         .businessId(allFileId)
-                        .build()));
-                // 判断消息是否发送成功
-                if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                    // 消息发送失败，抛出异常
-                    BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-                }
+                        .build();
+                // 使用RocketMQ同步模式发送消息
+                MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SEARCH_SERVICE, ConstantConfig.Tag.DELETE_FILE_ES, delFileConsumerRequest,
+                        rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
             }
         }
     }
@@ -928,16 +909,13 @@ public class FileManagerImpl implements FileManager {
                     BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
                 }
             } catch (Exception e) {
-                // 出现异常时，使用sync模式发送MQ消息，保证数据会被添加到MQ消息队列中
-                String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.SAVE_FILE_ES;
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(SaveFileConsumerRequestDTO.builder()
+                // 构建保存文件信息的消费者消息
+                SaveFileConsumerRequestDTO saveFileConsumerRequest = SaveFileConsumerRequestDTO.builder()
                         .fileInfo(fileInfo)
-                        .build()));
-                // 判断消息是否发送成功
-                if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                    // 消息发送失败，抛出异常
-                    BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-                }
+                        .build();
+                // 使用RocketMQ同步模式发送消息
+                MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SEARCH_SERVICE, ConstantConfig.Tag.SAVE_FILE_ES, saveFileConsumerRequest,
+                        rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
             }
         });
     }

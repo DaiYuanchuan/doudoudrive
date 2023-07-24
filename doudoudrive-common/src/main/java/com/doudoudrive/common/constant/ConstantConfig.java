@@ -1,6 +1,5 @@
 package com.doudoudrive.common.constant;
 
-import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.model.pojo.DiskUserAttr;
 import com.doudoudrive.common.model.pojo.FileShare;
 import com.doudoudrive.common.util.lang.ReflectUtil;
@@ -328,7 +327,7 @@ public interface ConstantConfig {
         public static String getStatusValue(SendStatus sendStatus) {
             return Stream.of(MqMessageSendStatus.values())
                     .filter(anEnum -> anEnum.sendStatus.equals(sendStatus))
-                    .map(anEnum -> anEnum.status).findFirst().orElse(CharSequenceUtil.EMPTY);
+                    .map(anEnum -> anEnum.status).findFirst().orElse(NumberConstant.STRING_FOUR);
         }
     }
 
@@ -1254,6 +1253,36 @@ public interface ConstantConfig {
         public static RetryLevelEnum getLevel(Integer retry) {
             return Stream.of(values())
                     .filter(anEnum -> anEnum.retry.equals(retry)).findFirst().orElse(null);
+        }
+    }
+
+    /**
+     * RocketMQ消息消费状态类型美枚举
+     */
+    @Getter
+    enum RocketmqConsumerStatusEnum {
+        /**
+         * 等待消费
+         */
+        WAIT("1"),
+
+        /**
+         * 消费中
+         */
+        CONSUMING("2"),
+
+        /**
+         * 完成消费
+         */
+        COMPLETED("3");
+
+        /**
+         * RocketMQ消费状态
+         */
+        private final String status;
+
+        RocketmqConsumerStatusEnum(String status) {
+            this.status = status;
         }
     }
 

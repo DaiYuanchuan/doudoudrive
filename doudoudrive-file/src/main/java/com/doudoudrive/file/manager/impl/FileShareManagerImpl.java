@@ -22,6 +22,7 @@ import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskUserService;
 import com.doudoudrive.commonservice.service.FileShareDetailService;
 import com.doudoudrive.commonservice.service.FileShareService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileManager;
 import com.doudoudrive.file.manager.FileShareManager;
@@ -38,8 +39,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,28 +66,15 @@ public class FileShareManagerImpl implements FileShareManager {
      * 进行分享的文件名后缀-带文件夹
      */
     private static final String SHARE_FILE_NAME_SUFFIX_FILE_FOLDER = SHARE_FILE_NAME_SUFFIX_FILE + "(夹)";
-
     private DiskFileSearchFeignClient diskFileSearchFeignClient;
-
     private FileShareConvert fileShareConvert;
-
     private FileShareService fileShareService;
-
     private FileShareDetailService fileShareDetailService;
-
     private DiskUserService diskUserService;
-
     private FileManager fileManager;
-
-    /**
-     * RocketMQ消息模型
-     */
     private RocketMQTemplate rocketmqTemplate;
-
-    /**
-     * 服务框架缓存实现
-     */
     private CacheManagerConfig cacheManagerConfig;
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
 
     @Autowired
     public void setDiskFileSearchFeignClient(DiskFileSearchFeignClient diskFileSearchFeignClient) {
@@ -128,6 +114,11 @@ public class FileShareManagerImpl implements FileShareManager {
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
         this.cacheManagerConfig = cacheManagerConfig;
+    }
+
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
     }
 
     /**
@@ -373,21 +364,16 @@ public class FileShareManagerImpl implements FileShareManager {
 
         // 如果存在文件夹，则异步复制子文件夹下的文件信息
         if (CollectionUtil.isNotEmpty(fileFolderList)) {
-            // 使用sync模式发送消息，保证消息发送成功
-            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.COPY_FILE;
-            // 发送MQ消息，用于复制文件夹下的所有文件
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(CopyFileConsumerRequestDTO.builder()
+            CopyFileConsumerRequestDTO copyFileConsumerRequest = CopyFileConsumerRequestDTO.builder()
                     .targetUserId(userinfo.getBusinessId())
                     .fromUserId(content.getUserId())
                     .targetFolderId(fileCopyRequest.getTargetFolderId())
                     .treeStructureMap(nodeMap)
                     .preCopyFileList(fileFolderList)
-                    .build()));
-            // 判断消息是否发送成功
-            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                // 消息发送失败，抛出异常
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-            }
+                    .build();
+            // 使用RocketMQ同步模式发送消息
+            MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.COPY_FILE, copyFileConsumerRequest,
+                    rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
         }
     }
 

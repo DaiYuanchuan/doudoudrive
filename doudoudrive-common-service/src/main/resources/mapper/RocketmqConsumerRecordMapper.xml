@@ -15,6 +15,9 @@
         <result property="queueId" column="queue_id"/>
         <result property="queueOffset" column="queue_offset"/>
         <result property="sendTime" column="send_time"/>
+        <result property="sendStatus" column="send_status"/>
+        <result property="status" column="status"/>
+        <result property="body" column="body"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
@@ -23,7 +26,8 @@
     <sql id="rocketmqConsumerRecord">
         `auto_id`
         , `business_id`, `msg_id`, `offset_msg_id`, `retry_count`, `topic`, `tag`,
-        `broker_name`, `queue_id`, `queue_offset`, `send_time`, `create_time`, `update_time`
+        `broker_name`, `queue_id`, `queue_offset`, `send_time`, `send_status`, `status`,
+        `body`, `create_time`, `update_time`
     </sql>
 
     <!-- 新增RocketMQ消费记录 -->
@@ -62,6 +66,15 @@
             <if test="null != record.sendTime">
                 `send_time`,
             </if>
+            <if test="null != record.sendStatus and '' != record.sendStatus">
+                `send_status`,
+            </if>
+            <if test="null != record.status and '' != record.status">
+                `status`,
+            </if>
+            <if test="null != record.body and '' != record.body">
+                `body`,
+            </if>
         </trim>
         )
         VALUES
@@ -97,15 +110,24 @@
             <if test="null != record.sendTime">
                 #{record.sendTime},
             </if>
+            <if test="null != record.sendStatus and '' != record.sendStatus">
+                #{record.sendStatus},
+            </if>
+            <if test="null != record.status and '' != record.status">
+                #{record.status},
+            </if>
+            <if test="null != record.body and '' != record.body">
+                #{record.body},
+            </if>
         </trim>
         )
     </insert>
 
-    <!-- 根据业务id(businessId)删除RocketMQ消费记录 -->
+    <!-- 根据MQ消息唯一标识删除RocketMQ消费记录 -->
     <delete id="delete" parameterType="java.lang.String" flushCache="true">
         DELETE FROM `rocketmq_consumer_record_${tableSuffix}`
         <where>
-            `business_id` = #{businessId}
+            `msg_id` = #{msgId}
         </where>
     </delete>
 
@@ -140,9 +162,29 @@
             <if test="null != rocketmqConsumerRecord.sendTime">
                 `send_time` = #{rocketmqConsumerRecord.sendTime},
             </if>
+            <if test="null != rocketmqConsumerRecord.sendStatus and '' != rocketmqConsumerRecord.sendStatus">
+                `send_status` = #{rocketmqConsumerRecord.sendStatus},
+            </if>
+            <if test="null != rocketmqConsumerRecord.status and '' != rocketmqConsumerRecord.status">
+                `status` = #{rocketmqConsumerRecord.status},
+            </if>
+            <if test="null != rocketmqConsumerRecord.body and '' != rocketmqConsumerRecord.body">
+                `body` = #{rocketmqConsumerRecord.body},
+            </if>
         </trim>
         <where>
             `business_id` = #{rocketmqConsumerRecord.businessId}
+        </where>
+    </update>
+
+    <!-- 根据msgId更改RocketMQ消费者记录状态为: 已消费 -->
+    <update id="updateConsumerStatus" flushCache="true">
+        UPDATE `rocketmq_consumer_record_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            `status` = #{status}
+        </trim>
+        <where>
+            `msg_id` = #{msgId}
         </where>
     </update>
 
@@ -152,9 +194,14 @@
         SELECT
         <include refid="rocketmqConsumerRecord"/>
         FROM `rocketmq_consumer_record_${tableSuffix}`
-        <where>
-            `msg_id` = #{msgId};
-        </where>
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != msgId and '' != msgId">
+                `msg_id` = #{msgId} AND
+            </if>
+            <if test="null != status and '' != status">
+                `status` = #{status} AND
+            </if>
+        </trim>
     </select>
 
 </mapper>

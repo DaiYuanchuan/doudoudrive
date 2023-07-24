@@ -28,11 +28,11 @@ public interface RocketmqConsumerRecordDao {
     /**
      * 删除RocketMQ消费记录
      *
-     * @param businessId  根据业务id(businessId)删除数据
+     * @param msgId       根据MQ消息唯一标识删除数据
      * @param tableSuffix 表后缀
      * @return 返回删除的条数
      */
-    Integer delete(@Param("businessId") String businessId, @Param("tableSuffix") String tableSuffix);
+    Integer delete(@Param("msgId") String msgId, @Param("tableSuffix") String tableSuffix);
 
     /**
      * 修改RocketMQ消费记录
@@ -42,6 +42,18 @@ public interface RocketmqConsumerRecordDao {
      * @return 返回修改的条数
      */
     Integer update(@Param("rocketmqConsumerRecord") RocketmqConsumerRecord rocketmqConsumerRecord, @Param("tableSuffix") String tableSuffix);
+
+    /**
+     * 根据msgId更改RocketMQ消费者记录状态为: 已消费
+     *
+     * @param msgId       根据MQ消息唯一标识查找
+     * @param status      消费记录的状态
+     * @param tableSuffix 表后缀
+     * @return 返回修改的条数
+     */
+    Integer updateConsumerStatus(@Param("msgId") String msgId,
+                                 @Param("status") String status,
+                                 @Param("tableSuffix") String tableSuffix);
 
     /**
      * 查找RocketMQ消费记录

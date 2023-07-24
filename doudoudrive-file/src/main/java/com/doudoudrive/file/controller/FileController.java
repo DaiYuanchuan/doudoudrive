@@ -23,6 +23,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.manager.*;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
@@ -31,8 +32,6 @@ import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,34 +65,18 @@ import java.util.Set;
 public class FileController {
 
     private LoginManager loginManager;
-
     private FileManager fileManager;
-
     private FileEventListener fileEventListener;
-
     private FileShareManager fileShareManager;
-
     private DiskFileConvert diskFileConvert;
-
     private DiskUserAttrService diskUserAttrService;
-
     private QiNiuManager qiNiuManager;
-
-    /**
-     * 数据字典模块服务
-     */
     private DiskDictionaryService diskDictionaryService;
-
-    /**
-     * RocketMQ消息模型
-     */
     private RocketMQTemplate rocketmqTemplate;
-
     private DiskUserService diskUserService;
-
     private OssFileManager ossFileManager;
-
     private DiskUserAttrManager diskUserAttrManager;
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
 
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
@@ -153,6 +136,11 @@ public class FileController {
     @Autowired
     public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
         this.diskUserAttrManager = diskUserAttrManager;
+    }
+
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
     }
 
     @SneakyThrows
@@ -415,17 +403,14 @@ public class FileController {
                 .toList();
 
         if (CollectionUtil.isNotEmpty(fileFolderList)) {
-            // 使用sync模式发送消息，保证消息发送成功，用于删除子文件夹下的所有文件
-            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
+            // 构建文件删除的消费者请求消息
+            DeleteFileConsumerRequestDTO delFileConsumerRequest = DeleteFileConsumerRequestDTO.builder()
                     .userId(userinfo.getBusinessId())
                     .businessId(fileFolderList)
-                    .build()));
-            // 判断消息是否发送成功
-            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                // 消息发送失败，抛出异常
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-            }
+                    .build();
+            // 使用RocketMQ同步模式发送消息
+            MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.DELETE_FILE, delFileConsumerRequest,
+                    rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
         }
         return Result.ok();
     }
