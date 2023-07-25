@@ -58,7 +58,7 @@ public class MessageBuilder {
      * @param tag      消息标签
      * @param message  消息内容
      * @param template RocketMQTemplate实例
-     * @param record   消息消费记录的回调，包含消息发送状态，通常用于保存记录
+     * @param record   消息消费记录的回调，包含消息发送状态，只有消息发送失败时才会发起回调，通常用于保存记录
      */
     public static void syncSend(String topic, String tag, Object message,
                                 RocketMQTemplate template, Consumer<RocketmqConsumerRecord> record) {
@@ -82,10 +82,9 @@ public class MessageBuilder {
             // 消息发送失败，保存消息消费记录
             if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
                 consumerRecord.setRetryCount(consumerRecord.getRetryCount() + NumberConstant.INTEGER_ONE);
+                // 发起消费记录回调
+                record.accept(consumerRecord);
             }
-
-            // 发起消费记录回调
-            record.accept(consumerRecord);
         } catch (Exception e) {
             log.error("send to mq, topic {}:{}, errorMsg:{}", topic, tag, e.getMessage(), e);
         }
