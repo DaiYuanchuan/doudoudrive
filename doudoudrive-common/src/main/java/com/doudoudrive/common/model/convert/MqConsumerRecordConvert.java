@@ -4,6 +4,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
+import com.doudoudrive.common.util.lang.ConvertUtil;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.common.message.MessageQueue;
@@ -13,7 +14,6 @@ import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
-import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -23,7 +23,7 @@ import java.util.Date;
  * @author Dan
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {ConstantConfig.class, Date.class, MessageConst.class, NumberConstant.class, Base64.class})
+        imports = {ConstantConfig.class, Date.class, MessageConst.class, NumberConstant.class, ConvertUtil.class})
 public interface MqConsumerRecordConvert {
 
     /**
@@ -45,7 +45,7 @@ public interface MqConsumerRecordConvert {
             @Mapping(target = "sendStatus", expression = "java(ConstantConfig.MqMessageSendStatus.getStatusValue(sendResult.getSendStatus()))"),
             @Mapping(target = "sendTime", expression = "java(new Date())"),
             @Mapping(target = "status", expression = "java(ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus())"),
-            @Mapping(target = "body", expression = "java(Base64.getEncoder().encodeToString(body))"),
+            @Mapping(target = "body", expression = "java(ConvertUtil.convertBase64(body))"),
             @Mapping(target = "createTime", expression = "java(new Date())"),
             @Mapping(target = "updateTime", expression = "java(new Date())")
     })
@@ -69,7 +69,7 @@ public interface MqConsumerRecordConvert {
             @Mapping(target = "queueOffset", source = "messageContext.messageExt.queueOffset"),
             @Mapping(target = "sendTime", expression = "java(new Date(messageContext.getMessageExt().getBornTimestamp()))"),
             @Mapping(target = "status", expression = "java(ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus())"),
-            @Mapping(target = "body", expression = "java(Base64.getEncoder().encodeToString(body))"),
+            @Mapping(target = "body", expression = "java(ConvertUtil.convertBase64(body))"),
             @Mapping(target = "createTime", expression = "java(new Date())"),
             @Mapping(target = "updateTime", expression = "java(new Date())")
     })
