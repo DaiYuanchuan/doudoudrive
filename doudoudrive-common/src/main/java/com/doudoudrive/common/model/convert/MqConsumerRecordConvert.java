@@ -59,6 +59,7 @@ public interface MqConsumerRecordConvert {
      * @return RocketMQ消费记录
      */
     @Mappings({
+            @Mapping(target = "businessId", source = "messageContext.messageExt.keys"),
             @Mapping(target = "msgId", source = "messageContext.messageExt.msgId"),
             @Mapping(target = "offsetMsgId", expression = "java(messageContext.getMessageExt().getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX))"),
             @Mapping(target = "retryCount", expression = "java(NumberConstant.INTEGER_ZERO)"),

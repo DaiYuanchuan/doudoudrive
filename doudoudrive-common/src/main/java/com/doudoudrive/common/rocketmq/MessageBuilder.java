@@ -2,6 +2,7 @@ package com.doudoudrive.common.rocketmq;
 
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.log.tracer.context.TracerContextFactory;
 import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.LogLabelModel;
@@ -9,10 +10,12 @@ import com.doudoudrive.common.model.dto.model.MessageModel;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.util.lang.CompressionUtil;
 import com.doudoudrive.common.util.lang.ProtostuffUtil;
+import com.doudoudrive.common.util.lang.SequenceUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 
 import java.util.Map;
@@ -62,13 +65,20 @@ public class MessageBuilder {
         try {
             // 获取一个通用消息数据模型
             byte[] messageBuild = build(message);
+            // 生成消费记录的业务id，用于幂等性校验
+            String businessId = SequenceUtil.nextId(SequenceModuleEnum.ROCKETMQ_CONSUMER_RECORD);
             // 使用sync模式发送消息，保证消息发送成功
             String destination = topic + ConstantConfig.SpecialSymbols.ENGLISH_COLON + tag;
-            SendResult sendResult = template.syncSend(destination, messageBuild);
+            // 发送消息
+            SendResult sendResult = template.syncSend(destination, org.springframework.messaging.support.MessageBuilder.withPayload(messageBuild)
+                    // 设置消息唯一标识
+                    .setHeader(MessageConst.PROPERTY_KEYS, businessId)
+                    .build());
             // 构建消息消费记录
             MqConsumerRecordConvert consumerRecordConvert = MqConsumerRecordConvert.INSTANCE;
             RocketmqConsumerRecord consumerRecord = consumerRecordConvert.sendResultConvertConsumerRecord(sendResult,
                     sendResult.getMessageQueue(), tag, messageBuild);
+            consumerRecord.setBusinessId(businessId);
             // 消息发送失败，保存消息消费记录
             if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
                 consumerRecord.setRetryCount(consumerRecord.getRetryCount() + NumberConstant.INTEGER_ONE);

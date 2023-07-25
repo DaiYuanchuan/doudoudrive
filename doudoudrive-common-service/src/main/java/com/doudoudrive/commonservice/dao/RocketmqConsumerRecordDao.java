@@ -30,11 +30,11 @@ public interface RocketmqConsumerRecordDao {
     /**
      * 删除RocketMQ消费记录
      *
-     * @param msgId       根据MQ消息唯一标识删除数据
+     * @param businessId  根据消费记录的业务标识删除数据
      * @param tableSuffix 表后缀
      * @return 返回删除的条数
      */
-    Integer delete(@Param("msgId") String msgId, @Param("tableSuffix") String tableSuffix);
+    Integer delete(@Param("businessId") String businessId, @Param("tableSuffix") String tableSuffix);
 
     /**
      * 修改RocketMQ消费记录
@@ -56,25 +56,26 @@ public interface RocketmqConsumerRecordDao {
                         @Param("tableSuffix") String tableSuffix);
 
     /**
-     * 根据msgId更改RocketMQ消费者记录状态为: 已消费
+     * 根据businessId更改RocketMQ消费者记录状态为: 已消费
      *
-     * @param msgId       根据MQ消息唯一标识查找
+     * @param businessId  根据消费记录的业务标识查找
      * @param status      消费记录的状态
      * @param tableSuffix 表后缀
      * @return 返回修改的条数
      */
-    Integer updateConsumerStatus(@Param("msgId") String msgId,
+    Integer updateConsumerStatus(@Param("businessId") String businessId,
                                  @Param("status") String status,
                                  @Param("tableSuffix") String tableSuffix);
 
     /**
      * 查找RocketMQ消费记录
      *
-     * @param msgId       根据MQ消息唯一标识查找
+     * @param businessId  根据消费记录的业务标识查找
      * @param tableSuffix 表后缀
      * @return 返回查找到的RocketMQ消费记录实体
      */
-    RocketmqConsumerRecord getRocketmqConsumerRecord(@Param("msgId") String msgId, @Param("tableSuffix") String tableSuffix);
+    RocketmqConsumerRecord getRocketmqConsumerRecord(@Param("businessId") String businessId,
+                                                     @Param("tableSuffix") String tableSuffix);
 
     /**
      * 根据状态信息批量查询RocketMQ消费记录数据，用于定时任务的重发消息

@@ -127,7 +127,7 @@
     <delete id="delete" parameterType="java.lang.String" flushCache="true">
         DELETE FROM `rocketmq_consumer_record_${tableSuffix}`
         <where>
-            `msg_id` = #{msgId}
+            `business_id` = #{businessId}
         </where>
     </delete>
 
@@ -274,7 +274,7 @@
             `status` = #{status}
         </trim>
         <where>
-            `msg_id` = #{msgId}
+            `business_id` = #{businessId}
         </where>
     </update>
 
@@ -285,8 +285,8 @@
         <include refid="rocketmqConsumerRecord"/>
         FROM `rocketmq_consumer_record_${tableSuffix}`
         <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
-            <if test="null != msgId and '' != msgId">
-                `msg_id` = #{msgId} AND
+            <if test="null != businessId and '' != businessId">
+                `business_id` = #{businessId} AND
             </if>
         </trim>
     </select>

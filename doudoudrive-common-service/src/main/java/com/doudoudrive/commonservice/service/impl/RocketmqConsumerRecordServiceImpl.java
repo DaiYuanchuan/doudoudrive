@@ -70,12 +70,12 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
      */
     @Override
     public void insertException(RocketmqConsumerRecord record) throws BusinessException {
-        // 锁的名称，根据msgId生成
-        String name = RedisLockEnum.MQ_CONSUMER_RECORD.getLockName() + record.getMsgId();
+        // 锁的名称，根据businessId生成
+        String name = RedisLockEnum.MQ_CONSUMER_RECORD.getLockName() + record.getBusinessId();
         String lock = redisLockManager.lock(name);
         try {
             // 先查找消费记录是否存在
-            RocketmqConsumerRecord consumerRecord = this.getRocketmqConsumerRecord(record.getMsgId(), record.getSendTime());
+            RocketmqConsumerRecord consumerRecord = this.getRocketmqConsumerRecord(record.getBusinessId(), record.getSendTime());
             // 如果消费记录存在，且状态不是待消费的，说明在消费中、或者已完成消费，抛出异常
             if (consumerRecord != null && !ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus().equals(consumerRecord.getStatus())) {
                 throw new BusinessException(StatusCodeEnum.ROCKETMQ_CONSUMER_RECORD_ALREADY_EXIST);
@@ -88,7 +88,7 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
                     this.insert(record);
                 } else {
                     // 更新消费记录状态
-                    rocketmqConsumerRecordDao.updateConsumerStatus(record.getMsgId(), record.getStatus(), DateUtils.toMonth(record.getSendTime()));
+                    rocketmqConsumerRecordDao.updateConsumerStatus(record.getBusinessId(), record.getStatus(), DateUtils.toMonth(record.getSendTime()));
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -100,16 +100,16 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
     }
 
     /**
-     * 根据msgId删除RocketMQ消费记录
+     * 根据businessId删除RocketMQ消费记录
      *
      * @param record 需要删除的RocketMQ消费记录实体
      */
     @Override
     public void delete(RocketmqConsumerRecord record) {
-        if (record == null || StringUtils.isBlank(record.getMsgId()) || record.getSendTime() == null) {
+        if (record == null || StringUtils.isBlank(record.getBusinessId()) || record.getSendTime() == null) {
             return;
         }
-        rocketmqConsumerRecordDao.delete(record.getMsgId(), DateUtils.toMonth(record.getSendTime()));
+        rocketmqConsumerRecordDao.delete(record.getBusinessId(), DateUtils.toMonth(record.getSendTime()));
     }
 
     /**
@@ -128,30 +128,33 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
     }
 
     /**
-     * 根据msgId更改RocketMQ消费者记录状态为: 已消费
+     * 根据businessId更改RocketMQ消费者记录状态为: 已消费
      *
-     * @param msgId    根据MQ消息唯一标识查找
-     * @param sendTime 消息发送、生产时间
-     * @param status   消费记录的状态枚举，参考：{@link ConstantConfig.RocketmqConsumerStatusEnum}
+     * @param businessId 根据消费记录的业务标识查找
+     * @param sendTime   消息发送、生产时间
+     * @param status     消费记录的状态枚举，参考：{@link ConstantConfig.RocketmqConsumerStatusEnum}
      */
     @Override
-    public void updateConsumerStatus(String msgId, Date sendTime, ConstantConfig.RocketmqConsumerStatusEnum status) {
-        if (StringUtils.isBlank(msgId) || sendTime == null || status == null) {
+    public void updateConsumerStatus(String businessId, Date sendTime, ConstantConfig.RocketmqConsumerStatusEnum status) {
+        if (StringUtils.isBlank(businessId) || sendTime == null || status == null) {
             return;
         }
-        rocketmqConsumerRecordDao.updateConsumerStatus(msgId, status.getStatus(), DateUtils.toMonth(sendTime));
+        rocketmqConsumerRecordDao.updateConsumerStatus(businessId, status.getStatus(), DateUtils.toMonth(sendTime));
     }
 
     /**
      * 查找RocketMQ消费记录
      *
-     * @param msgId    根据MQ消息唯一标识查找
-     * @param sendTime 消息发送、生产时间
+     * @param businessId 根据消费记录的业务标识查找
+     * @param sendTime   消息发送、生产时间
      * @return 返回查找到的RocketMQ消费记录实体
      */
     @Override
-    public RocketmqConsumerRecord getRocketmqConsumerRecord(String msgId, Date sendTime) {
-        return rocketmqConsumerRecordDao.getRocketmqConsumerRecord(msgId, DateUtils.toMonth(sendTime));
+    public RocketmqConsumerRecord getRocketmqConsumerRecord(String businessId, Date sendTime) {
+        if (StringUtils.isBlank(businessId)) {
+            return null;
+        }
+        return rocketmqConsumerRecordDao.getRocketmqConsumerRecord(businessId, DateUtils.toMonth(sendTime));
     }
 
     /**

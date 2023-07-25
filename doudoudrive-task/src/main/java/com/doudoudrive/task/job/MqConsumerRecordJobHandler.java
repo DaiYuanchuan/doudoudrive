@@ -10,8 +10,10 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -73,9 +75,11 @@ public class MqConsumerRecordJobHandler {
             try {
                 // 使用sync模式发送消息，保证消息发送成功
                 String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
-                // 发送的原始消息体
-                byte[] message = DECODER.decode(consumerRecord.getBody());
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, message);
+                // 发送息体
+                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.withPayload(DECODER.decode(consumerRecord.getBody()))
+                        // 设置消息唯一标识
+                        .setHeader(MessageConst.PROPERTY_KEYS, consumerRecord.getBusinessId())
+                        .build());
                 // 重置消息发送状态
                 consumerRecord.setSendStatus(ConstantConfig.MqMessageSendStatus.getStatusValue(sendResult.getSendStatus()));
                 consumerRecord.setSendTime(new Date());
