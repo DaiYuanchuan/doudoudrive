@@ -320,7 +320,6 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable, Interc
                 ? ConstantConfig.RocketmqConsumerStatusEnum.COMPLETED
                 : ConstantConfig.RocketmqConsumerStatusEnum.WAIT;
         // 更新消费记录状态信息
-        rocketmqConsumerRecordService.updateConsumerStatus(consumerRecord.getMsgId(),
-                consumerRecord.getSendTime(), status);
+        rocketmqConsumerRecordService.updateConsumerStatus(consumerRecord.getBusinessId(), consumerRecord.getSendTime(), status);
     }
 }
