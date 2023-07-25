@@ -198,9 +198,6 @@
             <if test="null != msgId and '' != msgId">
                 `msg_id` = #{msgId} AND
             </if>
-            <if test="null != status and '' != status">
-                `status` = #{status} AND
-            </if>
         </trim>
     </select>
 
