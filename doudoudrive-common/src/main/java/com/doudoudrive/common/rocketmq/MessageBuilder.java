@@ -50,6 +50,16 @@ public class MessageBuilder {
     }
 
     /**
+     * 构建通用消息内容，序列化消息内容后压缩
+     *
+     * @param messageModel 通用消息数据模型
+     * @return 通用消息内容的字节数组
+     */
+    public static byte[] build(MessageModel messageModel) {
+        return CompressionUtil.compress(SERIALIZER.serialize(messageModel));
+    }
+
+    /**
      * RocketMq 使用sync模式同步发送消息，生成消费记录
      *
      * @param topic    消息主题

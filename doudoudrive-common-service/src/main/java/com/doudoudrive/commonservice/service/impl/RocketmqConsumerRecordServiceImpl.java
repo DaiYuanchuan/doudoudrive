@@ -8,6 +8,7 @@ import com.doudoudrive.common.global.BusinessException;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 import com.doudoudrive.common.util.date.DateUtils;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.dao.RocketmqConsumerRecordDao;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * <p>RocketMQ消费记录服务层实现</p>
@@ -111,6 +113,21 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
     }
 
     /**
+     * 批量修改RocketMQ消费记录信息
+     *
+     * @param list        需要进行修改的RocketMQ消费记录集合
+     * @param tableSuffix 表后缀
+     */
+    @Override
+    public void updateBatch(List<RocketmqConsumerRecord> list, String tableSuffix) {
+        CollectionUtil.collectionCutting(list, ConstantConfig.MAX_BATCH_TASKS_QUANTITY).forEach(consumerRecord -> {
+            if (CollectionUtil.isNotEmpty(consumerRecord)) {
+                rocketmqConsumerRecordDao.updateBatch(consumerRecord, tableSuffix);
+            }
+        });
+    }
+
+    /**
      * 根据msgId更改RocketMQ消费者记录状态为: 已消费
      *
      * @param msgId    根据MQ消息唯一标识查找
@@ -135,5 +152,16 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
     @Override
     public RocketmqConsumerRecord getRocketmqConsumerRecord(String msgId, Date sendTime) {
         return rocketmqConsumerRecordDao.getRocketmqConsumerRecord(msgId, DateUtils.toMonth(sendTime));
+    }
+
+    /**
+     * 根据状态信息批量查询RocketMQ消费记录数据，用于定时任务的重发消息
+     *
+     * @param tableSuffix 表后缀
+     * @return 返回查找到的RocketMQ消费记录实体集合
+     */
+    @Override
+    public List<RocketmqConsumerRecord> listResendMessage(String tableSuffix) {
+        return rocketmqConsumerRecordDao.listResendMessage(tableSuffix);
     }
 }

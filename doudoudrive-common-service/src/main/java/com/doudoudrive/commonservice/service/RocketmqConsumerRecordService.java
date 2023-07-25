@@ -5,6 +5,7 @@ import com.doudoudrive.common.global.BusinessException;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * <p>RocketMQ消费记录服务层接口</p>
@@ -37,6 +38,14 @@ public interface RocketmqConsumerRecordService {
     void delete(RocketmqConsumerRecord record);
 
     /**
+     * 批量修改RocketMQ消费记录信息
+     *
+     * @param list        需要进行修改的RocketMQ消费记录集合
+     * @param tableSuffix 表后缀
+     */
+    void updateBatch(List<RocketmqConsumerRecord> list, String tableSuffix);
+
+    /**
      * 根据msgId更改RocketMQ消费者记录状态为: 已消费
      *
      * @param msgId    根据MQ消息唯一标识查找
@@ -53,5 +62,13 @@ public interface RocketmqConsumerRecordService {
      * @return 返回查找到的RocketMQ消费记录实体
      */
     RocketmqConsumerRecord getRocketmqConsumerRecord(String msgId, Date sendTime);
+
+    /**
+     * 根据状态信息批量查询RocketMQ消费记录数据，用于定时任务的重发消息
+     *
+     * @param tableSuffix 表后缀
+     * @return 返回查找到的RocketMQ消费记录实体集合
+     */
+    List<RocketmqConsumerRecord> listResendMessage(String tableSuffix);
 
 }
