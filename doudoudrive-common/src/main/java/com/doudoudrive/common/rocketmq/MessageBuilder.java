@@ -92,6 +92,20 @@ public class MessageBuilder {
     }
 
     /**
+     * RocketMq 使用one-way模式发送消息，不生成消费记录，发送端发送完消息后会立即返回，不等待服务器响应
+     *
+     * @param topic    消息主题
+     * @param tag      消息标签
+     * @param message  消息内容
+     * @param template RocketMQTemplate实例
+     */
+    public static void sendOneWay(String topic, String tag, Object message, RocketMQTemplate template) {
+        // 使用one-way模式发送消息
+        String destination = topic + ConstantConfig.SpecialSymbols.ENGLISH_COLON + tag;
+        template.sendOneWay(destination, build(message));
+    }
+
+    /**
      * 反序列化通用消息数据内容，解压缩消息内容后反序列化
      *
      * @param message 通用消息内容的字节数组

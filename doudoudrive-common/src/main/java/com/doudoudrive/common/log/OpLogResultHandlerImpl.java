@@ -97,8 +97,7 @@ public class OpLogResultHandlerImpl implements OpLogCompletionHandler {
         });
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.ACCESS_LOG_RECORD;
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(logOpInfo));
+        MessageBuilder.sendOneWay(ConstantConfig.Topic.LOG_RECORD, ConstantConfig.Tag.ACCESS_LOG_RECORD, logOpInfo, rocketmqTemplate);
     }
 
     /**

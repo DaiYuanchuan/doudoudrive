@@ -147,8 +147,7 @@ public class LoginController {
         logLogin.setSessionId(userLoginInfo.getToken());
 
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.LOGIN_LOG_RECORD;
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(logLogin));
+        MessageBuilder.sendOneWay(ConstantConfig.Topic.LOG_RECORD, ConstantConfig.Tag.LOGIN_LOG_RECORD, logLogin, rocketmqTemplate);
 
         return Result.ok(userLoginInfo);
     }
@@ -210,8 +209,7 @@ public class LoginController {
         logLogin.setMsg(msg);
         setLocation(logLogin, future);
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
-        String destination = ConstantConfig.Topic.LOG_RECORD + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.LOGIN_LOG_RECORD;
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(logLogin));
+        MessageBuilder.sendOneWay(ConstantConfig.Topic.LOG_RECORD, ConstantConfig.Tag.LOGIN_LOG_RECORD, logLogin, rocketmqTemplate);
     }
 
     /**
