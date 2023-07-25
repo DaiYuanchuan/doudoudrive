@@ -389,7 +389,7 @@ CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
- UNIQUE INDEX `uk_msg_id`(`msg_id`) USING BTREE COMMENT 'MQ消息唯一标识'
+ INDEX `idx_msg_id`(`msg_id`) USING BTREE COMMENT 'MQ消息标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'RocketMQ消费记录' ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS `cloud-log`.`callback_record`;
