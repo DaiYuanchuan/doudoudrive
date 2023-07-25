@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -73,6 +74,7 @@ public class MqConsumerRecordJobHandler {
                 SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(message));
                 // 重置消息发送状态
                 consumerRecord.setSendStatus(ConstantConfig.MqMessageSendStatus.getStatusValue(sendResult.getSendStatus()));
+                consumerRecord.setSendTime(new Date());
                 // 消息发送失败，重试次数+1
                 if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
                     consumerRecord.setRetryCount(consumerRecord.getRetryCount() + NumberConstant.INTEGER_ONE);
