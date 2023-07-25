@@ -88,7 +88,7 @@ public class RocketmqConsumerRecordServiceImpl implements RocketmqConsumerRecord
                     this.insert(record);
                 } else {
                     // 更新消费记录状态
-                    rocketmqConsumerRecordDao.updateConsumerStatus(record.getBusinessId(), record.getStatus(), DateUtils.toMonth(record.getSendTime()));
+                    rocketmqConsumerRecordDao.update(record, DateUtils.toMonth(record.getSendTime()));
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
