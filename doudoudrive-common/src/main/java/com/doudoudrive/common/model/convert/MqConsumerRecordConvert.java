@@ -13,6 +13,7 @@ import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -22,7 +23,7 @@ import java.util.Date;
  * @author Dan
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {ConstantConfig.class, Date.class, MessageConst.class, NumberConstant.class})
+        imports = {ConstantConfig.class, Date.class, MessageConst.class, NumberConstant.class, Base64.class})
 public interface MqConsumerRecordConvert {
 
     /**
@@ -42,12 +43,13 @@ public interface MqConsumerRecordConvert {
     @Mappings({
             @Mapping(target = "retryCount", expression = "java(NumberConstant.INTEGER_ZERO)"),
             @Mapping(target = "sendStatus", expression = "java(ConstantConfig.MqMessageSendStatus.getStatusValue(sendResult.getSendStatus()))"),
-            @Mapping(target = "status", expression = "java(ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus())"),
             @Mapping(target = "sendTime", expression = "java(new Date())"),
+            @Mapping(target = "status", expression = "java(ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus())"),
+            @Mapping(target = "body", expression = "java(Base64.getEncoder().encodeToString(body))"),
             @Mapping(target = "createTime", expression = "java(new Date())"),
             @Mapping(target = "updateTime", expression = "java(new Date())")
     })
-    RocketmqConsumerRecord sendResultConvertConsumerRecord(SendResult sendResult, MessageQueue messageQueue, String tag, String body);
+    RocketmqConsumerRecord sendResultConvertConsumerRecord(SendResult sendResult, MessageQueue messageQueue, String tag, byte[] body);
 
     /**
      * 将 MessageContext(消息上下文) 类型转换为 RocketmqConsumerRecord(RocketMQ消费记录)
@@ -67,9 +69,10 @@ public interface MqConsumerRecordConvert {
             @Mapping(target = "queueOffset", source = "messageContext.messageExt.queueOffset"),
             @Mapping(target = "sendTime", expression = "java(new Date(messageContext.getMessageExt().getBornTimestamp()))"),
             @Mapping(target = "status", expression = "java(ConstantConfig.RocketmqConsumerStatusEnum.WAIT.getStatus())"),
+            @Mapping(target = "body", expression = "java(Base64.getEncoder().encodeToString(body))"),
             @Mapping(target = "createTime", expression = "java(new Date())"),
             @Mapping(target = "updateTime", expression = "java(new Date())")
     })
-    RocketmqConsumerRecord messageContextConvertConsumerRecord(MessageContext messageContext, String body);
+    RocketmqConsumerRecord messageContextConvertConsumerRecord(MessageContext messageContext, byte[] body);
 
 }

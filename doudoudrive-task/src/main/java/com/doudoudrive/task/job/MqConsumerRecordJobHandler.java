@@ -1,12 +1,9 @@
 package com.doudoudrive.task.job;
 
 import cn.hutool.core.date.DatePattern;
-import com.alibaba.fastjson2.JSON;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
-import com.doudoudrive.common.model.dto.model.MessageModel;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
-import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -46,6 +44,11 @@ public class MqConsumerRecordJobHandler {
     }
 
     /**
+     * Base64解码器
+     */
+    private static final Base64.Decoder DECODER = Base64.getDecoder();
+
+    /**
      * 每10分钟重发上次MQ消费失败的消息
      * 配置定时任务 ，每10分钟执行(cron = 0 0/10 * * * ?)
      *
@@ -70,8 +73,9 @@ public class MqConsumerRecordJobHandler {
             try {
                 // 使用sync模式发送消息，保证消息发送成功
                 String destination = consumerRecord.getTopic() + ConstantConfig.SpecialSymbols.ENGLISH_COLON + consumerRecord.getTag();
-                MessageModel message = JSON.parseObject(consumerRecord.getBody(), MessageModel.class);
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(message));
+                // 发送的原始消息体
+                byte[] message = DECODER.decode(consumerRecord.getBody());
+                SendResult sendResult = rocketmqTemplate.syncSend(destination, message);
                 // 重置消息发送状态
                 consumerRecord.setSendStatus(ConstantConfig.MqMessageSendStatus.getStatusValue(sendResult.getSendStatus()));
                 consumerRecord.setSendTime(new Date());

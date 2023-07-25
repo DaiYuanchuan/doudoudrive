@@ -1,7 +1,6 @@
 package com.doudoudrive.task.consumer;
 
 import cn.hutool.http.HttpRequest;
-import com.alibaba.fastjson.JSONObject;
 import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
 import com.doudoudrive.common.cache.timer.RedisDelayedQueue;
@@ -89,7 +88,7 @@ public class DelayMessageQueueServiceConsumer {
     @RocketmqTagDistribution(messageClass = CallbackRecord.class, tag = ConstantConfig.Tag.EXTERNAL_CALLBACK_TASK)
     public void createFileConsumer(CallbackRecord record, MessageContext messageContext) {
         // 构建消息消费记录
-        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, JSONObject.toJSONString(record));
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, null);
 
         try {
             // 保存消息消费记录

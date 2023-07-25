@@ -1,6 +1,5 @@
 package com.doudoudrive.common.rocketmq;
 
-import com.alibaba.fastjson.JSON;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.log.tracer.context.TracerContextFactory;
@@ -50,16 +49,6 @@ public class MessageBuilder {
     }
 
     /**
-     * 构建通用消息内容，序列化消息内容后压缩
-     *
-     * @param messageModel 通用消息数据模型
-     * @return 通用消息内容的字节数组
-     */
-    public static byte[] build(MessageModel messageModel) {
-        return CompressionUtil.compress(SERIALIZER.serialize(messageModel));
-    }
-
-    /**
      * RocketMq 使用sync模式同步发送消息，生成消费记录
      *
      * @param topic    消息主题
@@ -72,19 +61,14 @@ public class MessageBuilder {
                                 RocketMQTemplate template, Consumer<RocketmqConsumerRecord> record) {
         try {
             // 获取一个通用消息数据模型
-            Map<String, String> contextMap = TracerContextFactory.get();
-            MessageModel messageModel = MessageModel.builder()
-                    .tracerId(contextMap.getOrDefault(ConstantConfig.LogTracer.TRACER_ID, StringUtils.EMPTY))
-                    .spanId(contextMap.getOrDefault(ConstantConfig.LogTracer.SPAN_ID, StringUtils.EMPTY))
-                    .message(message)
-                    .build();
+            byte[] messageBuild = build(message);
             // 使用sync模式发送消息，保证消息发送成功
             String destination = topic + ConstantConfig.SpecialSymbols.ENGLISH_COLON + tag;
-            SendResult sendResult = template.syncSend(destination, CompressionUtil.compress(SERIALIZER.serialize(messageModel)));
+            SendResult sendResult = template.syncSend(destination, messageBuild);
             // 构建消息消费记录
             MqConsumerRecordConvert consumerRecordConvert = MqConsumerRecordConvert.INSTANCE;
             RocketmqConsumerRecord consumerRecord = consumerRecordConvert.sendResultConvertConsumerRecord(sendResult,
-                    sendResult.getMessageQueue(), tag, JSON.toJSONString(messageModel));
+                    sendResult.getMessageQueue(), tag, messageBuild);
             // 消息发送失败，保存消息消费记录
             if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
                 consumerRecord.setRetryCount(consumerRecord.getRetryCount() + NumberConstant.INTEGER_ONE);

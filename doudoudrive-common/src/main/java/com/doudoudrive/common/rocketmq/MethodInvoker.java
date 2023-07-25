@@ -74,7 +74,7 @@ public class MethodInvoker implements ApplicationContextAware, InitializingBean 
         Object message = MessageModel.class.equals(type) ? messageModel : (messageModel == null ? null : messageModel.getMessage());
 
         try {
-            plugins.values().forEach(plugin -> plugin.preHandle(messageModel, messageContext));
+            plugins.values().forEach(plugin -> plugin.preHandle(body, messageContext));
         } catch (Exception e) {
             handleHookException(e);
             return;
@@ -89,11 +89,11 @@ public class MethodInvoker implements ApplicationContextAware, InitializingBean 
                 ReflectUtil.invoke(delegate, method, message);
             }
         } catch (Exception e) {
-            plugins.values().forEach(plugin -> plugin.nextHandle(false, messageModel, messageContext));
+            plugins.values().forEach(plugin -> plugin.nextHandle(false, body, messageContext));
             throw new ConsumeException(e);
         }
         try {
-            plugins.values().forEach(plugin -> plugin.nextHandle(true, messageModel, messageContext));
+            plugins.values().forEach(plugin -> plugin.nextHandle(true, body, messageContext));
         } catch (Exception e) {
             handleHookException(e);
         }

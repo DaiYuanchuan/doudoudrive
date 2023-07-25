@@ -1,7 +1,6 @@
 package com.doudoudrive.file.consumer;
 
 import cn.hutool.core.thread.ExecutorBuilder;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.doudoudrive.common.annotation.RocketmqListener;
 import com.doudoudrive.common.annotation.RocketmqTagDistribution;
@@ -9,7 +8,6 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.MessageContext;
-import com.doudoudrive.common.model.dto.model.MessageModel;
 import com.doudoudrive.common.model.dto.request.CopyFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
@@ -294,13 +292,13 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable, Interc
     /**
      * 方法执行前的拦截
      *
-     * @param messageModel   消息构建时通用消息数据模型
+     * @param body           消息体
      * @param messageContext 方法执行的参数
      */
     @Override
-    public void preHandle(MessageModel messageModel, MessageContext messageContext) {
+    public void preHandle(byte[] body, MessageContext messageContext) {
         // 构建消息消费记录
-        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, JSON.toJSONString(messageModel));
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, body);
         consumerRecord.setStatus(ConstantConfig.RocketmqConsumerStatusEnum.CONSUMING.getStatus());
         // 保存消息消费记录，保存失败时阻止消费方法的执行
         rocketmqConsumerRecordService.insertException(consumerRecord);
@@ -310,11 +308,11 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable, Interc
      * 方法执行后的拦截
      *
      * @param methodSuccess  方法是否回调成功
-     * @param messageModel   消息构建时通用消息数据模型
+     * @param body           消息体
      * @param messageContext 方法执行的参数
      */
     @Override
-    public void nextHandle(boolean methodSuccess, MessageModel messageModel, MessageContext messageContext) {
+    public void nextHandle(boolean methodSuccess, byte[] body, MessageContext messageContext) {
         // 构建消息消费记录
         RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, null);
         // 根据方法执行结果设置消费记录的状态信息
