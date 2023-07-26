@@ -26,6 +26,7 @@ public enum StatusCodeEnum {
     EMAIL_FORMAT_ERROR(400, "邮箱格式不正确，请重新输入"),
     SHARE_PWD_LENGTH_INVALID(400, "请输入6位数字或字母"),
     SHARE_ID_INVALID(400, "你打开的链接有误，请重试"),
+    ENUM_TYPE_ERROR(400, "枚举类型错误"),
 
     /**
      * 应用请求访问类:4xx
