@@ -62,22 +62,35 @@ public class MessageBuilder {
      */
     public static void syncSend(String topic, String tag, Object message,
                                 RocketMQTemplate template, Consumer<RocketmqConsumerRecord> record) {
+        // 获取一个通用消息数据模型
+        syncSend(topic, tag, build(message), template, record);
+    }
+
+    /**
+     * RocketMq 使用sync模式同步发送消息，生成消费记录
+     *
+     * @param topic    消息主题
+     * @param tag      消息标签
+     * @param message  消息内容
+     * @param template RocketMQTemplate实例
+     * @param record   消息消费记录的回调，包含消息发送状态，只有消息发送失败时才会发起回调，通常用于保存记录
+     */
+    public static void syncSend(String topic, String tag, byte[] message,
+                                RocketMQTemplate template, Consumer<RocketmqConsumerRecord> record) {
         try {
-            // 获取一个通用消息数据模型
-            byte[] messageBuild = build(message);
             // 生成消费记录的业务id，用于幂等性校验
             String businessId = SequenceUtil.nextId(SequenceModuleEnum.ROCKETMQ_CONSUMER_RECORD);
             // 使用sync模式发送消息，保证消息发送成功
             String destination = topic + ConstantConfig.SpecialSymbols.ENGLISH_COLON + tag;
             // 发送消息
-            SendResult sendResult = template.syncSend(destination, org.springframework.messaging.support.MessageBuilder.withPayload(messageBuild)
+            SendResult sendResult = template.syncSend(destination, org.springframework.messaging.support.MessageBuilder.withPayload(message)
                     // 设置消息唯一标识
                     .setHeader(MessageConst.PROPERTY_KEYS, businessId)
                     .build());
             // 构建消息消费记录
             MqConsumerRecordConvert consumerRecordConvert = MqConsumerRecordConvert.INSTANCE;
             RocketmqConsumerRecord consumerRecord = consumerRecordConvert.sendResultConvertConsumerRecord(sendResult,
-                    sendResult.getMessageQueue(), tag, messageBuild);
+                    sendResult.getMessageQueue(), tag, message);
             consumerRecord.setBusinessId(businessId);
             // 消息发送失败，保存消息消费记录
             if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
