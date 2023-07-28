@@ -7,7 +7,7 @@ import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.request.*;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchShareUserIdResponseDTO;
@@ -173,14 +173,14 @@ public class FileShareManagerImpl implements FileShareManager {
      */
     @Override
     @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.FILE_SHARE_TRANSACTION_MANAGER)
-    public DeleteElasticsearchFileShareResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo) {
+    public DeleteElasticsearchResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo) {
         // 根据分享短链接标识批量删除分享记录信息
         fileShareService.deleteBatch(shareId, userinfo.getBusinessId());
         // 根据分享短链接标识批量删除分享记录详情数据
         fileShareDetailService.delete(shareId, userinfo.getBusinessId());
 
         // 删除es文件分享记录信息
-        Result<DeleteElasticsearchFileShareResponseDTO> deleteElasticShareResult = diskFileSearchFeignClient.cancelShare(DeleteElasticsearchFileShareRequestDTO.builder()
+        Result<DeleteElasticsearchResponseDTO> deleteElasticShareResult = diskFileSearchFeignClient.cancelShare(DeleteElasticsearchFileShareRequestDTO.builder()
                 .userId(userinfo.getBusinessId())
                 .shareId(shareId)
                 .build());

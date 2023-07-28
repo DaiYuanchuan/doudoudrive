@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * <p>删除es文件分享记录信息时的响应数据模型</p>
- * <p>2022-09-27 23:37</p>
+ * <p>删除es信息时的通用响应数据模型</p>
+ * <p>2023-07-28 11:54</p>
  *
  * @author Dan
  **/
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeleteElasticsearchFileShareResponseDTO {
+public class DeleteElasticsearchResponseDTO {
 
     /**
      * 已成功删除的文档数量

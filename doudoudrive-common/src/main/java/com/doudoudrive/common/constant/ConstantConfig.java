@@ -543,6 +543,11 @@ public interface ConstantConfig {
          * 文件分享信息索引
          */
         String DISK_SHARE_FILE = "file_share";
+
+        /**
+         * 文件临时操作记录信息索引
+         */
+        String FILE_RECORD = "file_record";
     }
 
     /**
@@ -747,17 +752,7 @@ public interface ConstantConfig {
             /**
              * 文件内容状态
              */
-            FILE_CONTENT("1"),
-
-            /**
-             * 文件复制任务
-             */
-            COPY("2"),
-
-            /**
-             * 文件删除任务
-             */
-            DELETE("3");
+            FILE_CONTENT("1");
 
             /**
              * 状态标识
@@ -790,21 +785,9 @@ public interface ConstantConfig {
             REVIEWED("0"),
 
             /**
-             * 待删除
+             * 通常用于审核失败时的文件待删除
              */
-            TO_DELETE("1"),
-
-            // Action为2、3时对应的动作类型
-
-            /**
-             * 任务待处理
-             */
-            TASK_BE_PROCESSED("0"),
-
-            /**
-             * 任务处理中
-             */
-            TASK_PROCESSING("1");
+            TO_DELETE("1");
 
             /**
              * 状态标识

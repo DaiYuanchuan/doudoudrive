@@ -19,7 +19,7 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.*;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.*;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.model.pojo.FileRecord;
@@ -363,7 +363,7 @@ public class FileManagerImpl implements FileManager {
         for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_ONE_THOUSAND)) {
             try {
                 // 删除es中保存的用户文件信息
-                Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticResponse = diskFileSearchFeignClient.deleteElasticsearchDiskFile(DeleteElasticsearchDiskFileRequestDTO.builder()
+                Result<DeleteElasticsearchResponseDTO> deleteElasticResponse = diskFileSearchFeignClient.deleteElasticsearchDiskFile(DeleteElasticsearchDiskFileRequestDTO.builder()
                         .businessId(allFileId)
                         .build());
                 if (Result.isNotSuccess(deleteElasticResponse)) {
@@ -902,7 +902,7 @@ public class FileManagerImpl implements FileManager {
             // 文件数据类型转换
             List<SaveElasticsearchDiskFileRequestDTO> fileInfo = diskFileConvert.diskFileConvertSaveElasticsearchDiskFileRequest(fileList);
             try {
-                Result<String> saveElasticsearchResult = diskFileSearchFeignClient.saveElasticsearchDiskFile(SaveBatchElasticsearchDiskFileRequestDTO.builder()
+                Result<String> saveElasticsearchResult = diskFileSearchFeignClient.saveElasticsearchDiskFile(BatchSaveElasticsearchDiskFileRequestDTO.builder()
                         .fileInfo(fileInfo)
                         .build());
                 if (Result.isNotSuccess(saveElasticsearchResult)) {

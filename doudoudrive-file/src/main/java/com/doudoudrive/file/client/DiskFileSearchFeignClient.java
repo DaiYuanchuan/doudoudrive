@@ -2,7 +2,10 @@ package com.doudoudrive.file.client;
 
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.*;
-import com.doudoudrive.common.model.dto.response.*;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdResponseDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchShareUserIdResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +29,7 @@ public interface DiskFileSearchFeignClient {
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<String> saveElasticsearchDiskFile(@RequestBody SaveBatchElasticsearchDiskFileRequestDTO requestDTO);
+    Result<String> saveElasticsearchDiskFile(@RequestBody BatchSaveElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 删除es中保存的用户文件信息
@@ -35,7 +38,7 @@ public interface DiskFileSearchFeignClient {
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
+    Result<DeleteElasticsearchResponseDTO> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 批量更新es中保存的用户文件信息
@@ -91,7 +94,7 @@ public interface DiskFileSearchFeignClient {
      * @return 返回删除结果
      */
     @PostMapping(value = "/search/file-share/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody DeleteElasticsearchFileShareRequestDTO cancelShareRequest);
+    Result<DeleteElasticsearchResponseDTO> cancelShare(@RequestBody DeleteElasticsearchFileShareRequestDTO cancelShareRequest);
 
     /**
      * 根据用户标识搜索es文件分享记录信息

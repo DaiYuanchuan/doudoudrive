@@ -3,7 +3,7 @@ package com.doudoudrive.file.manager;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.FileNestedModel;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.file.model.dto.request.CreateFileShareRequestDTO;
@@ -41,7 +41,7 @@ public interface FileShareManager {
      * @param userinfo 当前分享的用户信息
      * @return 删除es文件分享记录信息时的响应数据模型
      */
-    DeleteElasticsearchFileShareResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo);
+    DeleteElasticsearchResponseDTO cancelShare(List<String> shareId, DiskUserModel userinfo);
 
     /**
      * 根据分享链接的唯一标识获取分享链接的详细信息，包括分享的文件列表

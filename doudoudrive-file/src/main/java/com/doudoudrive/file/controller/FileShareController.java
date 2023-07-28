@@ -7,7 +7,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -106,8 +106,8 @@ public class FileShareController {
     @OpLog(title = "文件分享", businessType = "删除")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SHARE)
     @PostMapping(value = "/cancel", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody @Valid CancelFileShareRequestDTO cancelShareRequest,
-                                                                       HttpServletRequest request, HttpServletResponse response) {
+    public Result<DeleteElasticsearchResponseDTO> cancelShare(@RequestBody @Valid CancelFileShareRequestDTO cancelShareRequest,
+                                                              HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
