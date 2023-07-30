@@ -7,8 +7,10 @@ import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.RedisLockEnum;
 import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.FileReviewConfig;
-import com.doudoudrive.common.model.pojo.FileRecord;
+import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileRecordRequestDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileRecordResponseDTO;
 import com.doudoudrive.common.model.pojo.OssFile;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.OssFileService;
 import com.doudoudrive.file.manager.FileRecordManager;
@@ -17,6 +19,7 @@ import com.doudoudrive.file.model.convert.DiskFileConvert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -90,12 +93,12 @@ public class OssFileManagerImpl implements OssFileManager {
                 || fileReviewConfig.getVideoTypes().contains(createFile.getFileMimeType());
         if (isReview) {
             // 需要内容审核时将文件写入文件记录表中，状态标识为待审核
-            FileRecord fileRecordModel = diskFileConvert.createFileAuthModelConvertFileRecord(createFile, fileId,
+            SaveElasticsearchFileRecordRequestDTO fileRecordModel = diskFileConvert.createFileAuthModelConvertFileRecord(createFile, fileId,
                     ConstantConfig.FileRecordAction.ActionEnum.FILE_CONTENT.getStatus(), ConstantConfig.FileRecordAction.ActionTypeEnum.REVIEWED.getStatus());
             // 获取指定状态的文件操作记录数据
-            FileRecord record = fileRecordManager.getFileRecordByAction(createFile.getUserId(),
+            List<QueryElasticsearchFileRecordResponseDTO> record = fileRecordManager.getFileRecordByAction(createFile.getUserId(),
                     createFile.getFileEtag(), fileRecordModel.getAction(), fileRecordModel.getActionType());
-            if (record == null) {
+            if (CollectionUtil.isEmpty(record)) {
                 // 记录不存在时，添加文件记录信息
                 fileRecordManager.insert(fileRecordModel);
             }

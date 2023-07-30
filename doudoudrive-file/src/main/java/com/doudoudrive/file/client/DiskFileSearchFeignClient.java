@@ -2,10 +2,7 @@ package com.doudoudrive.file.client;
 
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.*;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdResponseDTO;
-import com.doudoudrive.common.model.dto.response.QueryElasticsearchShareUserIdResponseDTO;
+import com.doudoudrive.common.model.dto.response.*;
 import com.doudoudrive.common.util.http.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -114,5 +111,34 @@ public interface DiskFileSearchFeignClient {
      */
     @PostMapping(value = "/search/file-share/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<QueryElasticsearchFileShareIdResponseDTO> shareIdResponse(@RequestBody QueryElasticsearchFileShareIdRequestDTO shareIdRequest);
+
+    // ============================================= 以下为文件操作记录搜索 ==============================================
+
+    /**
+     * 保存文件操作记录
+     *
+     * @param saveFileRecordRequest 批量保存es文件临时操作记录信息时的请求数据模型
+     * @return 通用状态返回类
+     */
+    @PostMapping(value = "/search/file-record/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<String> saveFileRecord(@RequestBody BatchSaveElasticsearchFileRecordRequestDTO saveFileRecordRequest);
+
+    /**
+     * 删除文件操作记录
+     *
+     * @param deleteFileRecordRequest 删除es文件临时操作记录信息时的请求数据模型
+     * @return 删除es信息时的通用响应数据模型
+     */
+    @PostMapping(value = "/search/file-record/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<DeleteElasticsearchResponseDTO> deleteFileRecord(DeleteElasticsearchFileRecordRequestDTO deleteFileRecordRequest);
+
+    /**
+     * 指定动作标识查询文件操作记录信息
+     *
+     * @param deleteFileRecordRequest 搜索es文件临时操作记录信息时的请求数据模型
+     * @return 搜索es文件临时操作记录信息时的响应数据模型
+     */
+    @PostMapping(value = "/search/file-record", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<List<QueryElasticsearchFileRecordResponseDTO>> fileRecordSearch(QueryElasticsearchFileRecordRequestDTO deleteFileRecordRequest);
 
 }

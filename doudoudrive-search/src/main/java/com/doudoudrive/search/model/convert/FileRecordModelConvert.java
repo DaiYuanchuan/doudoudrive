@@ -1,14 +1,14 @@
 package com.doudoudrive.search.model.convert;
 
+import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileRecordRequestDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileRecordResponseDTO;
+import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.search.model.elasticsearch.FileRecordDTO;
-import org.mapstruct.Mapper;
-import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import org.springframework.data.elasticsearch.core.SearchHit;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,7 +20,8 @@ import java.util.List;
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
+        imports = {SequenceUtil.class, SequenceModuleEnum.class, Date.class})
 public interface FileRecordModelConvert {
 
     /**
@@ -30,6 +31,19 @@ public interface FileRecordModelConvert {
      * @return 文件临时操作记录信息ES数据模型
      */
     List<FileRecordDTO> saveFileRecordConvertFileRecord(List<SaveElasticsearchFileRecordRequestDTO> fileRecordInfo);
+
+    /**
+     * 将SaveElasticsearchFileRecordRequestDTO(保存es文件临时操作记录信息时的请求数据模型) 类型转换为 FileRecordDTO(文件临时操作记录信息ES数据模型)
+     *
+     * @param saveElasticsearchFileRecordRequestDTO 保存es文件临时操作记录信息时的请求数据模型
+     * @return 文件临时操作记录信息ES数据模型
+     */
+    @Mappings({
+            @Mapping(target = "businessId", expression = "java(SequenceUtil.nextId(SequenceModuleEnum.FILE_RECORD))"),
+            @Mapping(target = "createTime", expression = "java(new Date())"),
+            @Mapping(target = "updateTime", expression = "java(new Date())")
+    })
+    FileRecordDTO saveFileRecordConvertFileRecord(SaveElasticsearchFileRecordRequestDTO saveElasticsearchFileRecordRequestDTO);
 
     /**
      * 将List<SearchHit<DiskFileDTO>>(用户文件实体信息ES数据模型) 类型转换为 List<QueryElasticsearchDiskFileResponseDTO>(搜索es用户文件信息时的响应数据模型)

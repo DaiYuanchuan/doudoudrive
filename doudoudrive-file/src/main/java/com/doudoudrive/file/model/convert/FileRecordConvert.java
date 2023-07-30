@@ -1,7 +1,7 @@
 package com.doudoudrive.file.model.convert;
 
+import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileRecordRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
-import com.doudoudrive.common.model.pojo.FileRecord;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -20,7 +20,7 @@ import java.util.Date;
 public interface FileRecordConvert {
 
     /**
-     * 将 DiskFile(用户文件模块实体类) 类型转换为 FileRecord(文件临时操作记录模块实体)
+     * 将 DiskFile(用户文件模块实体类) 类型转换为 SaveElasticsearchFileRecordRequestDTO(保存es文件临时操作记录信息时的请求数据模型)
      *
      * @param content    用户文件模块实体类
      * @param userId     用户id
@@ -31,11 +31,7 @@ public interface FileRecordConvert {
     @Mappings({
             @Mapping(target = "fileId", source = "content.businessId"),
             @Mapping(target = "userId", source = "userId"),
-            @Mapping(target = "autoId", expression = "java(null)"),
-            @Mapping(target = "businessId", expression = "java(null)"),
-            @Mapping(target = "createTime", expression = "java(new Date())"),
-            @Mapping(target = "updateTime", expression = "java(new Date())")
     })
-    FileRecord diskFileConvertFileRecord(DiskFile content, String userId, String action, String actionType);
+    SaveElasticsearchFileRecordRequestDTO diskFileConvertFileRecord(DiskFile content, String userId, String action, String actionType);
 
 }

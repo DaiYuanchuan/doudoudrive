@@ -22,7 +22,6 @@ import com.doudoudrive.common.model.dto.request.*;
 import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
-import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.date.DateUtils;
@@ -330,7 +329,7 @@ public class FileManagerImpl implements FileManager {
         List<String> allFileIdList = new ArrayList<>();
 
         // 构建文件操作记录信息
-        List<FileRecord> fileRecordList = new ArrayList<>();
+        List<SaveElasticsearchFileRecordRequestDTO> fileRecordList = new ArrayList<>();
 
         // 当前删除的文件大小总量
         BigDecimal totalSize = BigDecimal.ZERO;

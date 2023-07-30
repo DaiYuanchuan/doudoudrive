@@ -21,13 +21,6 @@ import javax.validation.constraints.Size;
 public class SaveElasticsearchFileRecordRequestDTO {
 
     /**
-     * 业务标识
-     */
-    @NotBlank(message = "业务标识不能为空")
-    @Size(min = 1, max = 35, message = "业务标识长度错误")
-    private String businessId;
-
-    /**
      * 用户系统内唯一标识
      */
     @NotBlank(message = "用户标识不能为空")
