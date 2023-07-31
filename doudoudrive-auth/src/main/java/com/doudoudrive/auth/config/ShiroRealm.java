@@ -132,10 +132,6 @@ public class ShiroRealm extends AuthorizingRealm {
         UsernamePasswordToken upToken = (UsernamePasswordToken) authenticationToken;
 
         MockToken tk = (MockToken) authenticationToken;
-        // 如果是免密登录直接返回
-        if (tk.getType().equals(LoginType.NO_PASSWORD)) {
-            return new SimpleAuthenticationInfo(upToken.getUsername(), upToken.getUsername(), getName());
-        }
 
         // 通过登陆的 用户名 、 用户邮箱 、 手机号 查找对应的用户信息
         Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(upToken.getUsername());
@@ -149,6 +145,11 @@ public class ShiroRealm extends AuthorizingRealm {
             UserSimpleModel userSimpleModel = diskUserInfoConvert.usernameSearchResponseConvertUserSimpleModel(usernameSearchResult.getData());
             // 抛出禁用帐户异常
             throw new DisabledAccountException(JSON.toJSONString(userSimpleModel));
+        }
+
+        // 如果是免密登录直接返回
+        if (tk.getType().equals(LoginType.NO_PASSWORD)) {
+            return new SimpleAuthenticationInfo(upToken.getUsername(), upToken.getUsername(), getName());
         }
 
         // 这里的盐值可以自定义
