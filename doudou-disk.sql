@@ -749,25 +749,6 @@ CREATE TABLE `cloud-file`.`disk_file`  (
  INDEX `idx_file_etag`(`file_etag`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户文件模块' ROW_FORMAT = Dynamic;
 
--- 文件操作记录模块
-DROP TABLE IF EXISTS `cloud-file`.`file_record`;
-CREATE TABLE `cloud-file`.`file_record`(
- `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
- `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
- `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
- `file_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件标识',
- `file_etag` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
- `action` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作(0:文件状态；1:文件内容状态；2:文件复制；3:文件删除)',
- `action_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作类型(action为0:{0:文件被删除}；action为1:{0:待审核；1:待删除}；action为2:{0:任务待处理；1:任务处理中}；action为3:{0:任务待处理；1:任务处理中})',
- `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
- PRIMARY KEY (`auto_id`) USING BTREE,
- UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
- UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
- INDEX `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引',
- INDEX `idx_file_etag`(`file_etag`) USING BTREE COMMENT '文件的ETag'
-) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件操作记录' ROW_FORMAT = Dynamic;
-
 -- OSS文件对象存储表 根据 etag 平均分300个表
 CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_01` LIKE `cloud-file`.`oss_file`;
 CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_02` LIKE `cloud-file`.`oss_file`;
