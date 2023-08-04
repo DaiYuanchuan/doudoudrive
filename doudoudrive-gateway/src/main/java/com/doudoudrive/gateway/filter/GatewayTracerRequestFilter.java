@@ -28,9 +28,7 @@ import java.util.function.Consumer;
 public class GatewayTracerRequestFilter implements GlobalFilter {
 
 
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 获取网关中的请求头
+    private static LogLabelModel getLogLabelModel(ServerWebExchange exchange) {
         HttpHeaders headers = exchange.getRequest().getHeaders();
         LogLabelModel logLabelModel = new LogLabelModel();
 
@@ -45,6 +43,13 @@ public class GatewayTracerRequestFilter implements GlobalFilter {
         if (CollectionUtil.isNotEmpty(spanIdList)) {
             logLabelModel.setSpanId(spanIdList.get(NumberConstant.INTEGER_ZERO));
         }
+        return logLabelModel;
+    }
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 获取网关中的请求头
+        LogLabelModel logLabelModel = getLogLabelModel(exchange);
 
         // 设置日志追踪内容
         TracerContextFactory.set(logLabelModel);
