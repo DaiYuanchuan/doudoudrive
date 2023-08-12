@@ -65,7 +65,7 @@ public class DiskFileSearchManagerImpl implements DiskFileSearchManager {
     /**
      * 文件搜索时的支持的排序字段
      */
-    private static final List<String> FILE_SEARCH_SORT_FIELD = Lists.newArrayList(BUSINESS_ID, FILE_SIZE, CREATE_TIME, UPDATE_TIME);
+    private static final List<String> FILE_SEARCH_SORT_FIELD = Lists.newArrayList(BUSINESS_ID, FILE_NAME, FILE_SIZE, CREATE_TIME, UPDATE_TIME);
 
     /**
      * 模糊搜索文件名时的通配符
