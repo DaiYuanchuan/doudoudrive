@@ -303,8 +303,10 @@ public class FileController {
             String fileId = SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE);
 
             // 创建文件
-            DiskFile diskFile = fileManager.createFile(diskFileConvert.ossFileConvertCreateFileAuthModel(ossFile, userInfo.getBusinessId(),
-                    tokenRequest.getName(), tokenRequest.getFileParentId()), fileId, totalDiskCapacity, usedDiskCapacity);
+            CreateFileAuthModel fileAuthModel = diskFileConvert.ossFileConvertCreateFileAuthModel(ossFile, userInfo.getBusinessId(),
+                    tokenRequest.getName(), tokenRequest.getFileParentId());
+            fileAuthModel.setToken(userToken);
+            DiskFile diskFile = fileManager.createFile(fileAuthModel, fileId, totalDiskCapacity, usedDiskCapacity);
             // 类型转换
             DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(diskFile);
             if (fileModel == null) {
