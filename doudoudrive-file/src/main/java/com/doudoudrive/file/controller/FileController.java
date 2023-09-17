@@ -427,6 +427,11 @@ public class FileController {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
+        // 需要移动的文件中不能包含目标文件夹
+        if (requestDTO.getBusinessId().contains(requestDTO.getTargetFolderId())) {
+            return Result.build(StatusCodeEnum.FILE_MOVE_FAILED);
+        }
+
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
 

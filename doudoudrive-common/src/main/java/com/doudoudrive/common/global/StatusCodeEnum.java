@@ -91,6 +91,7 @@ public enum StatusCodeEnum {
     SHARE_PWD_ERROR(714, "请输入正确的提取码"),
     FILE_SHARE_FAILED(715, "分享链接创建失败"),
     FILE_SHARE_BLOCKED(716, "链接违反互联网法律法规，已禁止访问"),
+    FILE_MOVE_FAILED(717, "文件移动失败"),
 
     /**
      * 接口类:8xx
