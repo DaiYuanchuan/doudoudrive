@@ -97,6 +97,14 @@ public class FileShareController {
             return Result.build(StatusCodeEnum.FILE_NOT_FOUND);
         }
 
+        // 过滤所有被禁止访问的文件
+        List<DiskFile> content = shareFileList.stream().filter(file -> !file.getForbidden()).toList();
+        if (CollectionUtil.isEmpty(content)) {
+            // 文件暂不支持分享
+            return Result.build(StatusCodeEnum.FILE_SHARE_FORBIDDEN);
+        }
+
+
         // 创建分享记录，返回分享记录标识
         return Result.ok(fileShareManager.createShare(userinfo.getBusinessId(), createFileShareRequest, shareFileList));
     }

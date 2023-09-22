@@ -92,6 +92,7 @@ public enum StatusCodeEnum {
     FILE_SHARE_FAILED(715, "分享链接创建失败"),
     FILE_SHARE_BLOCKED(716, "链接违反互联网法律法规，已禁止访问"),
     FILE_MOVE_FAILED(717, "文件移动失败"),
+    FILE_SHARE_FORBIDDEN(718, "文件涉嫌违规暂不支持分享"),
 
     /**
      * 接口类:8xx
