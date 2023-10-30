@@ -17,7 +17,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -62,7 +61,7 @@ public class MqConsumerRecordJobHandler {
         log.info("resendMessageJobHandler start...");
 
         // 当前时间减去10分钟，获取10分钟前的时间
-        LocalDateTime tenMinutesAgo = LocalDateTime.now().minus(NumberConstant.INTEGER_TEN, ChronoUnit.MINUTES);
+        LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(NumberConstant.INTEGER_TEN);
 
         // 格式化为yyyyMM字符串，用于查询消费记录表
         String tableSuffix = tenMinutesAgo.format(DatePattern.SIMPLE_MONTH_FORMATTER);
