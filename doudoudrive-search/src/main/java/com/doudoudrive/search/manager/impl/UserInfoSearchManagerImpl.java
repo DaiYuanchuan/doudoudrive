@@ -40,11 +40,11 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
     }
 
     /**
-     * 用户名、邮箱、密码对应字段的字符串
+     * 用户名、邮箱、电话对应字段的字符串
      */
-    private static final String USER_NAME = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserName));
-    private static final String USER_EMAIL = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserEmail));
-    private static final String USER_TEL = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserTel));
+    private static final String USER_NAME = ReflectUtil.property(UserInfoDTO::getUserName);
+    private static final String USER_EMAIL = ReflectUtil.property(UserInfoDTO::getUserEmail);
+    private static final String USER_TEL = ReflectUtil.property(UserInfoDTO::getUserTel);
 
     /**
      * 保存用户信息，es中保存用户信息
