@@ -8,6 +8,7 @@ import com.doudoudrive.common.global.ConsumeException;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.dto.model.SubscriptionGroup;
 import com.google.common.collect.Maps;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -26,6 +27,7 @@ public class RocketmqListenerMethodAdapter implements RocketmqConsumerListener {
 
     private ConsumerConfig consumerConfig;
 
+    @Setter
     private MethodInvoker invoker;
 
     public RocketmqListenerMethodAdapter(SubscriptionGroup subscriptionGroup) {
@@ -69,10 +71,6 @@ public class RocketmqListenerMethodAdapter implements RocketmqConsumerListener {
     @Override
     public ConsumerConfig getConsumerConfig() {
         return this.consumerConfig;
-    }
-
-    public void setInvoker(MethodInvoker invoker) {
-        this.invoker = invoker;
     }
 
     private void initConfig(SubscriptionGroup subscriptionGroup) {
