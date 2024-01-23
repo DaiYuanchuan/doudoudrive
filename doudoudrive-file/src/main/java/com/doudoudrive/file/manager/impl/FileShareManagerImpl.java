@@ -532,14 +532,6 @@ public class FileShareManagerImpl implements FileShareManager {
         }
         response.setContent(fileShareDetailModelList);
         response.setMarker(fileSearchResponse.getMarker());
-
-        // 判断分享的文件列表中是否包含文件夹
-        boolean containFolder = fileShareDetailModelList.stream().anyMatch(FileShareDetailModel::getFileFolder);
-
-        // 获取文件列表中的第一个文件名
-        String firstFileName = fileShareDetailModelList.get(NumberConstant.INTEGER_ZERO).getFileName();
-        // 获取分享文件的文件名
-        response.setShareTitle(this.getShareTitle(firstFileName, content.getFileCount(), containFolder));
         return response;
     }
 
