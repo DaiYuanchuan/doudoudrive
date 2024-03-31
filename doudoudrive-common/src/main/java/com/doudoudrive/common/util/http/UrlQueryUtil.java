@@ -134,6 +134,12 @@ public class UrlQueryUtil {
             return null;
         }
 
+        // 检查字符串是否以问号开头
+        if (paramStr.startsWith(ConstantConfig.SpecialSymbols.QUESTION_MARK)) {
+            // 删除第一个字符
+            paramStr = paramStr.substring(NumberConstant.INTEGER_ONE);
+        }
+
         JSONObject jsonObject = new JSONObject();
         String name = null;
         // 未处理字符开始位置
