@@ -198,7 +198,7 @@
         (
         <trim suffixOverrides=",">
             <if test="null != logOp.businessId and '' != logOp.businessId">#{logOp.businessId},</if>
-            <if test="null != logOp.ip and '' != logOp.ip">INET_ATON(#{ip}),</if>
+            <if test="null != logOp.ip and '' != logOp.ip">INET_ATON(#{logOp.ip}),</if>
             <if test="null != logOp.location and '' != logOp.location">#{logOp.location},</if>
             <if test="null != logOp.businessType and '' != logOp.businessType">#{logOp.businessType},</if>
             <if test="null != logOp.title and '' != logOp.title">#{logOp.title},</if>
