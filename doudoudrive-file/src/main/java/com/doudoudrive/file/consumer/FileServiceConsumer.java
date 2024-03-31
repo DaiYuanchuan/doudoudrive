@@ -232,6 +232,29 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable, Interc
     }
 
     /**
+     * 合并所有的子集，如果key相同，则将所有的文件信息合并到一起
+     *
+     * @param fileList 文件信息集合
+     * @return 返回合并后的文件信息
+     */
+    private static Map<String, List<DiskFile>> getMergedMap(List<Map<String, List<DiskFile>>> fileList) {
+        Map<String, List<DiskFile>> mergedMap = Maps.newHashMapWithExpectedSize(fileList.size());
+        for (Map<String, List<DiskFile>> map : fileList) {
+            // 遍历当前子集中的每个键值对
+            for (Map.Entry<String, List<DiskFile>> entry : map.entrySet()) {
+                mergedMap.compute(entry.getKey(), (key, list) -> {
+                    if (CollectionUtil.isEmpty(list)) {
+                        return new ArrayList<>(entry.getValue());
+                    }
+                    list.addAll(entry.getValue());
+                    return list;
+                });
+            }
+        }
+        return mergedMap;
+    }
+
+    /**
      * 删除文件队列处理程序，用于消费队列中的数据
      */
     private void deleteHandler() {
@@ -245,19 +268,7 @@ public class FileServiceConsumer implements CommandLineRunner, Closeable, Interc
                 }
 
                 // 合并所有的子集，如果key相同，则将所有的文件信息合并到一起
-                Map<String, List<DiskFile>> mergedMap = Maps.newHashMapWithExpectedSize(fileList.size());
-                for (Map<String, List<DiskFile>> map : fileList) {
-                    // 遍历当前子集中的每个键值对
-                    for (Map.Entry<String, List<DiskFile>> entry : map.entrySet()) {
-                        mergedMap.compute(entry.getKey(), (key, list) -> {
-                            if (CollectionUtil.isEmpty(list)) {
-                                return new ArrayList<>(entry.getValue());
-                            }
-                            list.addAll(entry.getValue());
-                            return list;
-                        });
-                    }
-                }
+                Map<String, List<DiskFile>> mergedMap = getMergedMap(fileList);
 
                 // 批量删除文件信息
                 mergedMap.forEach((userId, content) -> fileDelete(content, userId));

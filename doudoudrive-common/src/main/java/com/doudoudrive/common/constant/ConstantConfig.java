@@ -157,6 +157,11 @@ public interface ConstantConfig {
          * IPV4的本地ip
          */
         String IPV4_LOCAL_IP = "127.0.0.1";
+
+        /**
+         * 请求头中用于标识当前服务端接收到的请求时间
+         */
+        String REQUEST_TIME = "requestTime";
     }
 
     /**

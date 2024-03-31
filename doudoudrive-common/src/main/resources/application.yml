@@ -94,12 +94,12 @@ mybatis:
 
 worker:
   tcp:
-    url: http://192.168.31.200:1082/receive
+    url: http://192.168.31.73:1082/receive
     enable: true
   # 日志工蜂模块udp通信参数配置
   udp:
     # udp通信服务地址
-    server: 192.168.31.200
+    server: 192.168.31.73
     # udp通信端口
     port: 1082
     # 是否需要进行长度检查，如果为true，数据包将包含一个长度，以便在接收端进行检查

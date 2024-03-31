@@ -74,12 +74,12 @@
         <!-- shiro权限框架版本号 -->
         <shiro.version>1.11.0</shiro.version>
         <!-- lombok 版本号 -->
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.26</lombok.version>
         <!-- mapstruct 版本号 -->
         <mapstruct.version>1.5.2.Final</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <!-- hutool工具包 版本号 -->
-        <hutool.version>5.8.12</hutool.version>
+        <hutool.version>5.8.25</hutool.version>
         <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
         <zstd.version>1.5.2-5</zstd.version>
         <!-- protostuff序列化工具 -->
@@ -233,7 +233,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.84.Final</version>
+            <version>4.1.90.Final</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -29,6 +29,11 @@ public class ShiroAuthenticationModel implements Serializable {
     private Serializable sessionId;
 
     /**
+     * 当前登录的用户id
+     */
+    private String userId;
+
+    /**
      * 当前登录的用户名
      */
     private String username;
