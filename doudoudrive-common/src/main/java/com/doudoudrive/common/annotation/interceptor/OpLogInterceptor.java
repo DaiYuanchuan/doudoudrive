@@ -307,15 +307,13 @@ public class OpLogInterceptor implements InitializingBean {
         } catch (Exception e) {
             responseParameter = CharSequenceUtil.EMPTY;
         }
+        try {
+            // 异步回调所有实现了回调接口的类
+            plugins.values().forEach(plugin -> plugin.complete(opLogInfo));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
         log.info("结束调用<-- {}.{} 返回值:{} 耗时:{}", opLogInfo.getClassName(), opLogInfo.getMethodName(), responseParameter, opLogInfo.getCostTime());
-        ThreadUtil.execAsync(() -> {
-            try {
-                // 异步回调所有实现了回调接口的类
-                plugins.values().forEach(plugin -> plugin.complete(opLogInfo));
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        });
     }
 
     /**
