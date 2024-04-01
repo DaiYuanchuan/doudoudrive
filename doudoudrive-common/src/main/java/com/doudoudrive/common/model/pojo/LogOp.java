@@ -165,7 +165,7 @@ public class LogOp implements Serializable {
     /**
      * 请求大小，单位字节
      */
-    private Integer requestSize;
+    private String requestSize;
 
     /**
      * 当前请求时间
@@ -180,7 +180,7 @@ public class LogOp implements Serializable {
     /**
      * 响应大小，单位字节
      */
-    private Integer responseSize;
+    private String responseSize;
 
     /**
      * 响应状态码

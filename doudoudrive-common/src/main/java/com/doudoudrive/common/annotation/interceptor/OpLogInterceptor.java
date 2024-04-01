@@ -101,7 +101,7 @@ public class OpLogInterceptor implements InitializingBean {
                 opLogInfo.setRequestUri(opLogInfo.getRequestUri() + ConstantConfig.SpecialSymbols.QUESTION_MARK + requestAttributes.getRequest().getQueryString());
             }
 
-            opLogInfo.setRequestSize(requestAttributes.getRequest().getContentLength());
+            opLogInfo.setRequestSize(String.valueOf(requestAttributes.getRequest().getContentLength()));
             opLogInfo.setResponseTime(LocalDateTime.now());
             opLogInfo.setContentType(requestAttributes.getRequest().getContentType());
             if (requestAttributes.getResponse() != null) {
@@ -239,7 +239,6 @@ public class OpLogInterceptor implements InitializingBean {
         opLogInfo.setBusinessType(opLog.businessType());
         opLogInfo.setClassName(formatClassName(joinPoint.getTarget().getClass().getName()));
         opLogInfo.setMethodName(joinPoint.getSignature().getName());
-        opLogInfo.setResponseSize(result.toString().getBytes().length);
 
         // 是否需要保存URL的请求参数
         if (opLog.isSaveRequestData()) {
@@ -307,12 +306,17 @@ public class OpLogInterceptor implements InitializingBean {
         } catch (Exception e) {
             responseParameter = CharSequenceUtil.EMPTY;
         }
-        try {
-            // 异步回调所有实现了回调接口的类
-            plugins.values().forEach(plugin -> plugin.complete(opLogInfo));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+
+        opLogInfo.setResponseSize(String.valueOf(responseParameter.length()));
+        // 回调所有实现了回调接口的类
+        plugins.values().forEach(plugin -> {
+            try {
+                plugin.complete(opLogInfo);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+
         log.info("结束调用<-- {}.{} 返回值:{} 耗时:{}", opLogInfo.getClassName(), opLogInfo.getMethodName(), responseParameter, opLogInfo.getCostTime());
     }
 
