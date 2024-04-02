@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -26,6 +27,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
+@Setting(shards = 2, replicas = 0)
 @Document(indexName = ConstantConfig.IndexName.USERINFO)
 public class UserInfoDTO implements Serializable {
 
@@ -80,6 +82,12 @@ public class UserInfoDTO implements Serializable {
      */
     @Field(type = FieldType.Text)
     private String userSalt;
+
+    /**
+     * 原始用户名密码的MD5值，取值为:MD5({username}#{pwd})，用于回调、鉴权时的加密用
+     */
+    @Field(type = FieldType.Text)
+    private String secretKey;
 
     /**
      * 当前账号是否可用(0:false,1:true)
