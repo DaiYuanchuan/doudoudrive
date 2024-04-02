@@ -16,6 +16,7 @@ import com.doudoudrive.common.model.dto.model.OpLogInfo;
 import com.doudoudrive.common.model.dto.model.Region;
 import com.doudoudrive.common.util.function.OpLogCompletionHandler;
 import com.doudoudrive.common.util.ip.IpUtils;
+import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SpiderUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 /**
  * <p>操作日志的注解实现类</p>
@@ -262,17 +262,20 @@ public class OpLogInterceptor implements InitializingBean {
             return CharSequenceUtil.EMPTY;
         } else {
             List<Object> objectList = Arrays.asList(args);
-            String parameter;
             try {
-                parameter = JSON.toJSONString(objectList.stream()
+                // 过滤掉HttpServletRequest和HttpServletResponse
+                List<Object> paramList = objectList.stream()
                         .filter(arg -> (!(arg instanceof HttpServletRequest) && !(arg instanceof HttpServletResponse)))
-                        .collect(Collectors.toList()));
+                        .toList();
+                if (CollectionUtil.isEmpty(paramList)) {
+                    return CharSequenceUtil.EMPTY;
+                }
+                // 序列化参数
+                return JSON.toJSONString(paramList.size() > 1 ? paramList : paramList.get(0));
             } catch (Exception exception) {
                 // 如果序列化出现异常时 ，使用空的参数
-                parameter = CharSequenceUtil.EMPTY;
+                return CharSequenceUtil.EMPTY;
             }
-            // 尝试获取过滤后body中的参数
-            return parameter;
         }
     }
 
