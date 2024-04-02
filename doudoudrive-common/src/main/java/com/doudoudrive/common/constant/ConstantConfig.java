@@ -193,6 +193,11 @@ public interface ConstantConfig {
          * 延迟消息队列服务
          */
         String DELAY_MESSAGE_QUEUE_SERVICE = "DELAY_MESSAGE_QUEUE_SERVICE";
+
+        /**
+         * CDN访问日志服务
+         */
+        String CDN_ACCESS_LOG_SERVICE = "CDN_ACCESS_LOG_SERVICE";
     }
 
     /**
@@ -249,6 +254,11 @@ public interface ConstantConfig {
          * 订单超时延迟任务
          */
         String ORDER_TIMEOUT_TASK = "ORDER_TIMEOUT_TASK";
+
+        /**
+         * CDN访问日志服务
+         */
+        String CDN_ACCESS_LOG_RECORD = "CDN_ACCESS_LOG_RECORD";
     }
 
     /**
@@ -280,6 +290,11 @@ public interface ConstantConfig {
          * 延迟消息队列服务所属消费者组
          */
         String DELAY_MESSAGE_QUEUE = "DELAY_MESSAGE_QUEUE_CONSUMER_GROUP";
+
+        /**
+         * CDN访问日志服务所属消费者组
+         */
+        String CDN_ACCESS_LOG_CONSUMER_GROUP = "CDN_ACCESS_LOG_CONSUMER_GROUP";
     }
 
     /**
