@@ -6,6 +6,7 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.ConvertUtil;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ import java.util.*;
  * @author Dan
  **/
 @Slf4j
+@Getter
 @Component
 @Scope("singleton")
 public class CacheManagerConfig implements RedisMessageSubscriber {
@@ -222,15 +224,6 @@ public class CacheManagerConfig implements RedisMessageSubscriber {
             log.error("get keys error", e);
             return Collections.emptySet();
         }
-    }
-
-    /**
-     * 获取Redis客户端操作工具方法
-     *
-     * @return Redis客户端操作相关工具类
-     */
-    public RedisTemplateClient getRedisTemplateClient() {
-        return redisTemplateClient;
     }
 
     /**

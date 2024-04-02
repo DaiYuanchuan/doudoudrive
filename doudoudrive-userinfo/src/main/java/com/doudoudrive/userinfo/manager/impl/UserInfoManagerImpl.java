@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -214,18 +215,22 @@ public class UserInfoManagerImpl implements UserInfoManager {
      * 重置用户密码
      *
      * @param businessId 用户系统内唯一标识
+     * @param username   用户名
      * @param password   用户需要修改的新密码
      */
     @Override
     @Transactional(rollbackFor = Exception.class, value = TransactionManagerConstant.USERINFO_TRANSACTION_MANAGER)
-    public void resetPassword(String businessId, String password) {
+    public void resetPassword(String businessId, String username, String password) {
         // 对明文密码进行加盐加密
         SecretSaltingInfo saltingInfo = EncryptionUtil.secretSalting(password);
+        // 原始用户名密码的MD5值
+        String secretKey = DigestUtils.md5DigestAsHex((username + ConstantConfig.SpecialSymbols.COMMENT_SIGN + password).getBytes());
         // 先修改数据库信息
         Integer integer = diskUserService.update(DiskUser.builder()
                 .businessId(businessId)
                 .userPwd(saltingInfo.getPassword())
                 .userSalt(saltingInfo.getSalt())
+                .secretKey(secretKey)
                 .build());
         if (integer > NumberConstant.INTEGER_ZERO) {
             // 数据库修改成功后再修改es数据
@@ -233,6 +238,7 @@ public class UserInfoManagerImpl implements UserInfoManager {
                     .businessId(businessId)
                     .userPwd(saltingInfo.getPassword())
                     .userSalt(saltingInfo.getSalt())
+                    .secretKey(secretKey)
                     .build());
             if (Result.isNotSuccess(result)) {
                 BusinessExceptionUtil.throwBusinessException(result);

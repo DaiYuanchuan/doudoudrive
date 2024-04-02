@@ -4,7 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
-import com.doudoudrive.common.model.dto.model.ShiroAuthenticationModel;
+import com.doudoudrive.common.model.dto.model.auth.ShiroAuthenticationModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import lombok.extern.slf4j.Slf4j;

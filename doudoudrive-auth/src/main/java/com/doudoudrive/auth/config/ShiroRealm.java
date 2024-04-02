@@ -7,9 +7,9 @@ import com.doudoudrive.auth.model.dto.MockToken;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.LoginType;
-import com.doudoudrive.common.model.dto.model.SysUserAuthModel;
 import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
 import com.doudoudrive.common.model.dto.model.UserSimpleModel;
+import com.doudoudrive.common.model.dto.model.auth.SysUserAuthModel;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -40,26 +40,13 @@ import java.util.Optional;
 @Component(value = "ShiroRealm")
 public class ShiroRealm extends AuthorizingRealm {
 
-    /**
-     * 用户搜索服务注入
-     */
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
-
-    /**
-     * 登录服务注入
-     */
-    private LoginManager loginManager;
-
+    private LoginManager loginManager = null;
     private DiskUserInfoConvert diskUserInfoConvert;
 
     @Autowired
     public void setUserInfoSearchFeignClient(UserInfoSearchFeignClient userInfoSearchFeignClient) {
         this.userInfoSearchFeignClient = userInfoSearchFeignClient;
-    }
-
-    @Autowired
-    public void setLoginManager(LoginManager loginManager) {
-        this.loginManager = loginManager;
     }
 
     @Autowired(required = false)

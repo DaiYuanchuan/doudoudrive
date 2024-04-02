@@ -81,6 +81,11 @@ public class UsernameSearchResponseDTO {
     private String userSalt;
 
     /**
+     * 原始用户名密码的MD5值，取值为:MD5({username}#{pwd})，用于回调、鉴权时的加密用
+     */
+    private String secretKey;
+
+    /**
      * 创建时间
      */
     @DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)

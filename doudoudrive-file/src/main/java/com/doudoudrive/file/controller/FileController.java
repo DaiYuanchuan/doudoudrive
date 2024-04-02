@@ -7,7 +7,11 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.*;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.FileNestedModel;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
@@ -489,7 +493,7 @@ public class FileController {
         }
 
         // 解密签名字符串
-        FileAuthModel fileAuth = fileManager.decrypt(sign, FileAuthModel.class);
+        FileAuthModel fileAuth = diskDictionaryService.decrypt(sign, FileAuthModel.class);
         if (fileAuth == null || StringUtils.isBlank(fileAuth.getUserId()) || StringUtils.isBlank(fileAuth.getFileId())) {
             // 签名解密失败
             response.setStatus(HttpStatus.FORBIDDEN.value());

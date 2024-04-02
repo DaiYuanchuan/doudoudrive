@@ -1,11 +1,14 @@
 package com.doudoudrive.commonservice.service.impl;
 
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
+import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.doudoudrive.common.cache.RedisMessageSubscriber;
 import com.doudoudrive.common.constant.ConstantConfig;
+import com.doudoudrive.common.constant.DictionaryConstant;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
@@ -13,13 +16,11 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.response.PageResponse;
 import com.doudoudrive.common.model.pojo.DiskDictionary;
 import com.doudoudrive.common.util.date.DateUtils;
-import com.doudoudrive.common.util.lang.CollectionUtil;
-import com.doudoudrive.common.util.lang.ConvertUtil;
-import com.doudoudrive.common.util.lang.PageDataUtil;
-import com.doudoudrive.common.util.lang.SequenceUtil;
+import com.doudoudrive.common.util.lang.*;
 import com.doudoudrive.commonservice.dao.DiskDictionaryDao;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.google.common.collect.Maps;
+import io.netty.util.concurrent.FastThreadLocal;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +57,11 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
      * 系统字典数据缓存
      */
     private static final Map<String, String> SYS_DICTIONARY_CACHE = Maps.newHashMapWithExpectedSize(10);
+
+    /**
+     * 对称加密对象本地缓存线程
+     */
+    private static final FastThreadLocal<SymmetricCrypto> SYMMETRIC_CRYPTO_CACHE = new FastThreadLocal<>();
 
     /**
      * 新增数据字典模块
@@ -317,6 +324,73 @@ public class DiskDictionaryServiceImpl implements DiskDictionaryService, RedisMe
     @Override
     public Long countSearch(DiskDictionary diskDictionary, String startTime, String endTime) {
         return diskDictionaryDao.countSearch(diskDictionary, startTime, endTime);
+    }
+
+    /**
+     * 鉴权参数加密
+     *
+     * @param object 需要鉴权的参数对象
+     * @return 加密后的签名
+     */
+    @Override
+    public String encrypt(Object object) {
+        // 获取对称加密SymmetricCrypto对象
+        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
+        return symmetricCrypto.encryptBase64(CompressionUtil.compress(JSON.toJSONBytes(object)));
+    }
+
+    /**
+     * 鉴权参数解密
+     *
+     * @param sign  签名
+     * @param clazz 签名解密后需要转换的对象类
+     * @return 解密后的对象串，如果解密失败则返回null
+     */
+    @Override
+    public <T> T decrypt(String sign, Class<T> clazz) {
+        try {
+            // 获取解密后的内容
+            return JSON.parseObject(this.decrypt(sign), clazz);
+        } catch (Exception e) {
+            // 出现异常响应null值
+            return null;
+        }
+    }
+
+    /**
+     * 签名解密
+     *
+     * @param sign 签名
+     * @return 解密后的数据
+     */
+    private byte[] decrypt(String sign) {
+        // 获取对称加密SymmetricCrypto对象
+        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
+        try {
+            // 获取解密后的内容
+            return CompressionUtil.decompressBytes(symmetricCrypto.decrypt(sign));
+        } catch (Exception e) {
+            // 出现异常响应null值
+            return null;
+        }
+    }
+
+    /**
+     * 获取对称加密SymmetricCrypto对象
+     *
+     * @return SymmetricCrypto对象
+     */
+    @Override
+    public SymmetricCrypto getSymmetricCrypto() {
+        // 获取本地缓存对象
+        SymmetricCrypto symmetricCrypto = SYMMETRIC_CRYPTO_CACHE.get();
+        if (symmetricCrypto == null) {
+            // 获取全局对称加密密钥
+            String cipher = this.getDictionary(DictionaryConstant.CIPHER, String.class);
+            symmetricCrypto = new SymmetricCrypto(SymmetricAlgorithm.AES, cipher.getBytes(StandardCharsets.UTF_8));
+            SYMMETRIC_CRYPTO_CACHE.set(symmetricCrypto);
+        }
+        return symmetricCrypto;
     }
 
     /**

@@ -12,6 +12,7 @@
         <result property="userTel" column="user_tel"/>
         <result property="userPwd" column="user_pwd"/>
         <result property="userSalt" column="user_salt"/>
+        <result property="secretKey" column="secret_key"/>
         <result property="available" column="is_available"/>
         <result property="userReason" column="user_reason"/>
         <result property="userBanTime" column="user_ban_time"/>
@@ -23,7 +24,7 @@
     <!-- sql字段信息 -->
     <sql id="diskUser">
         `auto_id`
-        ,`business_id`,`user_name`,`user_avatar`,`user_email`,`user_tel`,`user_pwd`,`user_salt`,
+        ,`business_id`,`user_name`,`user_avatar`,`user_email`,`user_tel`,`user_pwd`,`user_salt`,`secret_key`,
         `is_available`,`user_reason`,`user_ban_time`,`user_unlock_time`,`create_time`,`update_time`
     </sql>
 
@@ -40,6 +41,7 @@
             <if test="null != diskUser.userTel and '' != diskUser.userTel">`user_tel`,</if>
             <if test="null != diskUser.userPwd and '' != diskUser.userPwd">`user_pwd`,</if>
             <if test="null != diskUser.userSalt and '' != diskUser.userSalt">`user_salt`,</if>
+            <if test="null != diskUser.secretKey and '' != diskUser.secretKey">`secret_key`,</if>
             <if test="null != diskUser.available">`is_available`,</if>
             <if test="null != diskUser.userReason and '' != diskUser.userReason">`user_reason`,</if>
             <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">`user_ban_time`,</if>
@@ -56,6 +58,7 @@
             <if test="null != diskUser.userTel and '' != diskUser.userTel">#{diskUser.userTel},</if>
             <if test="null != diskUser.userPwd and '' != diskUser.userPwd">#{diskUser.userPwd},</if>
             <if test="null != diskUser.userSalt and '' != diskUser.userSalt">#{diskUser.userSalt},</if>
+            <if test="null != diskUser.secretKey and '' != diskUser.secretKey">#{diskUser.secretKey},</if>
             <if test="null != diskUser.available">#{diskUser.available},</if>
             <if test="null != diskUser.userReason and '' != diskUser.userReason">#{diskUser.userReason},</if>
             <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">#{diskUser.userBanTime},</if>
@@ -82,6 +85,8 @@
             <if test="null != diskUser.userTel and '' != diskUser.userTel">`user_tel` = #{diskUser.userTel},</if>
             <if test="null != diskUser.userPwd and '' != diskUser.userPwd">`user_pwd` = #{diskUser.userPwd},</if>
             <if test="null != diskUser.userSalt and '' != diskUser.userSalt">`user_salt` = #{diskUser.userSalt},</if>
+            <if test="null != diskUser.secretKey and '' != diskUser.secretKey">`secret_key` = #{diskUser.secretKey},
+            </if>
             <if test="null != diskUser.available">`is_available` = #{diskUser.available},</if>
             <if test="null != diskUser.userReason and '' != diskUser.userReason">`user_reason` = #{diskUser.userReason},</if>
             <if test="null != diskUser.userBanTime and 0 != diskUser.userBanTime">`user_ban_time` = #{diskUser.userBanTime},</if>

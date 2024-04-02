@@ -26,6 +26,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -157,8 +158,8 @@ public class UserInfoController {
         }
 
         // 修改用户信息
-        userInfoManager.resetPassword(usernameSearchResult.getData().getBusinessId(), requestDTO.getPassword());
-
+        userInfoManager.resetPassword(usernameSearchResult.getData().getBusinessId(),
+                usernameSearchResult.getData().getUserName(), requestDTO.getPassword());
         return Result.ok();
     }
 
@@ -236,6 +237,9 @@ public class UserInfoController {
                 return Result.build(StatusCodeEnum.ORIGINAL_PASSWORD_ERROR);
             }
             find.setUserPwd(requestDTO.getPassword());
+            // 原始用户名密码的MD5值
+            byte[] secretKey = (userinfo.getUserName() + ConstantConfig.SpecialSymbols.COMMENT_SIGN + requestDTO.getPassword()).getBytes();
+            find.setSecretKey(DigestUtils.md5DigestAsHex(secretKey));
             isPerform = Boolean.TRUE;
         }
 

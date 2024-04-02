@@ -1,4 +1,4 @@
-package com.doudoudrive.common.model.dto.model;
+package com.doudoudrive.common.model.dto.model.auth;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

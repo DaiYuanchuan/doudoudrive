@@ -15,6 +15,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.util.DigestUtils;
 
 import java.util.Date;
 
@@ -25,7 +26,7 @@ import java.util.Date;
  * @author Dan
  **/
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {Boolean.class, CharSequenceUtil.class, Date.class})
+        imports = {Boolean.class, CharSequenceUtil.class, Date.class, DigestUtils.class})
 public interface DiskUserInfoConvert {
 
     /**
@@ -41,6 +42,7 @@ public interface DiskUserInfoConvert {
             @Mapping(target = "userAvatar", source = "avatar"),
             @Mapping(target = "userPwd", source = "saltingInfo.password"),
             @Mapping(target = "userSalt", source = "saltingInfo.salt"),
+            @Mapping(target = "secretKey", expression = "java(DigestUtils.md5DigestAsHex((requestDTO.getUserName() + \"#\" + requestDTO.getUserPwd()).getBytes()))"),
             @Mapping(target = "available", expression = "java(Boolean.TRUE)"),
             @Mapping(target = "userReason", expression = "java(CharSequenceUtil.EMPTY)"),
             @Mapping(target = "userBanTime", constant = NumberConstant.STRING_ZERO),

@@ -14,9 +14,11 @@ import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.CacheRefreshModel;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
 import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
+import com.doudoudrive.common.model.dto.model.auth.FileVisitorAuthModel;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
+import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -41,20 +43,11 @@ import java.util.List;
 public class LoginManagerImpl implements LoginManager {
 
     private DiskUserInfoConvert diskUserInfoConvert;
-
     private SysUserRoleManager sysUserRoleManager;
-
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
-
-    /**
-     * 用户属性服务
-     */
     private DiskUserAttrService diskUserAttrService;
-
-    /**
-     * Redis客户端操作相关工具类
-     */
     private RedisTemplateClient redisTemplateClient;
+    private DiskDictionaryService diskDictionaryService;
 
     @Autowired(required = false)
     public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
@@ -81,6 +74,11 @@ public class LoginManagerImpl implements LoginManager {
         this.redisTemplateClient = redisTemplateClient;
     }
 
+    @Autowired
+    public void setDiskDictionaryService(DiskDictionaryService diskDictionaryService) {
+        this.diskDictionaryService = diskDictionaryService;
+    }
+
     /**
      * 从session中获取当前登录的用户信息
      * 不能从缓存中获取用户信息时，通过当前登录的用户名去搜素用户信息
@@ -101,14 +99,22 @@ public class LoginManagerImpl implements LoginManager {
                     if (Result.isNotSuccess(usernameSearchResult)) {
                         return null;
                     }
+                    // 保存用户机密信息
+                    UserConfidentialInfo userConfidential = diskUserInfoConvert.usernameSearchResponseConvertUserConfidential(usernameSearchResult.getData());
+                    session.setAttribute(ConstantConfig.Cache.USER_CONFIDENTIAL, userConfidential);
+                    // 保存用户信息
                     userInfo = diskUserInfoConvert.usernameSearchResponseConvert(usernameSearchResult.getData());
+                    // 生成文件访问密钥信息
+                    userInfo.setFileAccessKey(diskDictionaryService.encrypt(FileVisitorAuthModel.builder()
+                            .userId(userInfo.getBusinessId())
+                            .username(userInfo.getUserName())
+                            .secretKey(userConfidential.getSecretKey())
+                            .build()));
+
                     // 获取当前登录用户所有角色、权限、属性等信息
                     userInfo.setRoleInfo(sysUserRoleManager.listSysUserRoleInfo(userInfo.getBusinessId()));
                     userInfo.setUserAttr(diskUserAttrService.listDiskUserAttr(userInfo.getBusinessId()));
                     session.setAttribute(ConstantConfig.Cache.USERINFO_CACHE, userInfo);
-                    // 保存用户机密信息
-                    UserConfidentialInfo userConfidential = diskUserInfoConvert.usernameSearchResponseConvertUserConfidential(usernameSearchResult.getData());
-                    session.setAttribute(ConstantConfig.Cache.USER_CONFIDENTIAL, userConfidential);
                 }
 
                 // 构建用户登录模块响应数据DTO模型
