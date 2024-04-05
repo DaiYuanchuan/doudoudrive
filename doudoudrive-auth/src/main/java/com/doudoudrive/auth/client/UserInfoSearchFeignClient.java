@@ -4,7 +4,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.dto.request.DeleteElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateElasticsearchUserInfoRequestDTO;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +58,7 @@ public interface UserInfoSearchFeignClient {
      * @return 用户实体信息ES数据模型
      */
     @GetMapping(value = "/search/userinfo/username-search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<UsernameSearchResponseDTO> usernameSearch(@RequestParam(value = "username", defaultValue = "") String username);
+    Result<UserinfoSearchResponseDTO> usernameSearch(@RequestParam(value = "username", defaultValue = "") String username);
 
     /**
      * 查询用户关键信息是否存在
@@ -72,4 +72,13 @@ public interface UserInfoSearchFeignClient {
     Result<String> userInfoKeyExistsSearch(@RequestParam(value = "username", defaultValue = "") String username,
                                            @RequestParam(value = "userEmail", defaultValue = "") String userEmail,
                                            @RequestParam(value = "userTel", defaultValue = "") String userTel);
+
+    /**
+     * 根据用户Id查询指定用户信息
+     *
+     * @param userId 用户Id
+     * @return 用户实体信息ES数据模型
+     */
+    @GetMapping(value = "/search/userinfo", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<UserinfoSearchResponseDTO> userIdQuery(@RequestParam(value = "userId", defaultValue = "") String userId);
 }

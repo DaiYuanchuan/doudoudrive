@@ -10,7 +10,7 @@ import com.doudoudrive.common.model.dto.model.LoginType;
 import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
 import com.doudoudrive.common.model.dto.model.UserSimpleModel;
 import com.doudoudrive.common.model.dto.model.auth.SysUserAuthModel;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
@@ -121,7 +121,7 @@ public class ShiroRealm extends AuthorizingRealm {
         MockToken tk = (MockToken) authenticationToken;
 
         // 通过登陆的 用户名 、 用户邮箱 、 手机号 查找对应的用户信息
-        Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(upToken.getUsername());
+        Result<UserinfoSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(upToken.getUsername());
         if (Result.isNotSuccess(usernameSearchResult)) {
             // 抛出用户名不存在的异常
             throw new UnknownAccountException();

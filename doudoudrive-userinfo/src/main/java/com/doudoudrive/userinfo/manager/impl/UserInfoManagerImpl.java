@@ -29,7 +29,6 @@ import org.springframework.util.DigestUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <p>用户信息服务的通用业务处理层接口实现</p>
@@ -258,14 +257,7 @@ public class UserInfoManagerImpl implements UserInfoManager {
             return;
         }
 
-        // 获取需要刷新的用户信息
-        Optional.ofNullable(diskUserInfoConvert.diskUserConvertUserModel(diskUserService.getDiskUser(businessId))).ifPresent(userinfo -> {
-            // 获取当前用户的所有角色、权限、属性等信息
-            userinfo.setRoleInfo(sysUserRoleManager.listSysUserRoleInfo(userinfo.getBusinessId()));
-            userinfo.setUserAttr(diskUserAttrService.listDiskUserAttr(userinfo.getBusinessId()));
-
-            // 尝试去更新指定用户的会话缓存信息
-            loginManager.attemptUpdateUserSession(userLoginResponse.getToken(), userinfo);
-        });
+        // 尝试去更新指定用户的会话缓存信息
+        loginManager.attemptUpdateUserSession(userLoginResponse.getToken(), businessId);
     }
 }

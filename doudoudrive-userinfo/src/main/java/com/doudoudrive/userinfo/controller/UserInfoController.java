@@ -16,7 +16,7 @@ import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.VerifyCodeRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.userinfo.client.SmsFeignClient;
@@ -152,7 +152,7 @@ public class UserInfoController {
         }
 
         // 获取当前用户信息
-        Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(requestDTO.getUsername());
+        Result<UserinfoSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(requestDTO.getUsername());
         if (Result.isNotSuccess(usernameSearchResult)) {
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
         }
