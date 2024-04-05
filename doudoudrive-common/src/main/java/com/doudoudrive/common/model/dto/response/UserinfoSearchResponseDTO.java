@@ -12,7 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.util.Date;
 
 /**
- * <p>通过用户名查询用户信息请求的响应数据模型</p>
+ * <p>用户信息查询时请求的响应数据模型</p>
  * <p>2022-03-21 14:46</p>
  *
  * @author Dan
@@ -21,7 +21,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsernameSearchResponseDTO {
+public class UserinfoSearchResponseDTO {
 
     /**
      * 用户系统内唯一标识
