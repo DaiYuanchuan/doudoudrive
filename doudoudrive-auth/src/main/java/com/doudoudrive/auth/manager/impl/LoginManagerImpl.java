@@ -17,9 +17,11 @@ import com.doudoudrive.common.model.dto.model.UserConfidentialInfo;
 import com.doudoudrive.common.model.dto.model.auth.FileVisitorAuthModel;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
 import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
+import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
+import com.doudoudrive.commonservice.service.DiskUserService;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -42,12 +44,18 @@ import java.util.List;
 @Service("loginManager")
 public class LoginManagerImpl implements LoginManager {
 
+    private DiskUserService diskUserService;
     private DiskUserInfoConvert diskUserInfoConvert;
     private SysUserRoleManager sysUserRoleManager;
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
     private DiskUserAttrService diskUserAttrService;
     private RedisTemplateClient redisTemplateClient;
     private DiskDictionaryService diskDictionaryService;
+
+    @Autowired
+    public void setDiskUserService(DiskUserService diskUserService) {
+        this.diskUserService = diskUserService;
+    }
 
     @Autowired(required = false)
     public void setDiskUserInfoConvert(DiskUserInfoConvert diskUserInfoConvert) {
@@ -95,7 +103,11 @@ public class LoginManagerImpl implements LoginManager {
                 if (userInfo == null || session.getAttribute(ConstantConfig.Cache.USER_CONFIDENTIAL) == null) {
                     String username = (String) SecurityUtils.getSubject().getPrincipal();
                     // 通过登陆的 用户名 查找对应的用户信息
-                    this.assignsUserSessionCache(session, userInfoSearchFeignClient.usernameSearch(username));
+                    Result<UserinfoSearchResponseDTO> searchResult = userInfoSearchFeignClient.usernameSearch(username);
+                    if (Result.isNotSuccess(searchResult)) {
+                        return null;
+                    }
+                    this.assignsUserSessionCache(session, searchResult.getData());
                     userInfo = (DiskUserModel) session.getAttribute(ConstantConfig.Cache.USERINFO_CACHE);
                 }
 
@@ -223,8 +235,10 @@ public class LoginManagerImpl implements LoginManager {
             try {
                 // 通过token尝试获取用户的session对象
                 Session session = SecurityUtils.getSecurityManager().getSession(new DefaultSessionKey(token));
+                // 根据用户Id查询指定用户信息
+                DiskUser userinfo = diskUserService.getDiskUser(userId);
                 // 重新分配用户会话缓存信息
-                assignsUserSessionCache(session, userInfoSearchFeignClient.userIdQuery(userId));
+                assignsUserSessionCache(session, diskUserInfoConvert.diskUserConvertUserinfoSearchResponse(userinfo));
 
                 // 清除session里面权限信息
                 session.removeAttribute(ConstantConfig.Cache.USER_ROLE_CACHE);
@@ -259,16 +273,16 @@ public class LoginManagerImpl implements LoginManager {
      * @param session              会话对象
      * @param userinfoSearchResult 需要赋值的用户信息
      */
-    private void assignsUserSessionCache(Session session, Result<UserinfoSearchResponseDTO> userinfoSearchResult) {
-        if (Result.isNotSuccess(userinfoSearchResult)) {
+    private void assignsUserSessionCache(Session session, UserinfoSearchResponseDTO userinfoSearchResult) {
+        if (userinfoSearchResult == null) {
             return;
         }
 
         // 保存用户机密信息
-        UserConfidentialInfo userConfidential = diskUserInfoConvert.usernameSearchResponseConvertUserConfidential(userinfoSearchResult.getData());
+        UserConfidentialInfo userConfidential = diskUserInfoConvert.usernameSearchResponseConvertUserConfidential(userinfoSearchResult);
         session.setAttribute(ConstantConfig.Cache.USER_CONFIDENTIAL, userConfidential);
         // 保存用户基本信息
-        DiskUserModel userInfo = diskUserInfoConvert.usernameSearchResponseConvert(userinfoSearchResult.getData());
+        DiskUserModel userInfo = diskUserInfoConvert.usernameSearchResponseConvert(userinfoSearchResult);
         // 生成文件访问密钥信息
         userInfo.setFileAccessKey(diskDictionaryService.encrypt(FileVisitorAuthModel.builder()
                 .userId(userInfo.getBusinessId())

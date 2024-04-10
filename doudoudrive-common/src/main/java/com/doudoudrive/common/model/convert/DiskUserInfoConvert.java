@@ -108,4 +108,12 @@ public interface DiskUserInfoConvert {
      */
     DiskUserModel diskUserConvertUserModel(DiskUser diskUser);
 
+    /**
+     * 将DiskUser(用户模块实体类) 类型转换为 UserinfoSearchResponseDTO(用户信息查询时请求的响应数据模型)
+     *
+     * @param userinfo 用户模块实体类
+     * @return 用户信息查询时请求的响应数据模型
+     */
+    UserinfoSearchResponseDTO diskUserConvertUserinfoSearchResponse(DiskUser userinfo);
+
 }
