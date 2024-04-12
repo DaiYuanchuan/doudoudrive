@@ -2,7 +2,6 @@ package com.doudoudrive.common.annotation.interceptor;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.useragent.UserAgent;
@@ -36,7 +35,6 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.Future;
 
 /**
  * <p>操作日志的注解实现类</p>
@@ -116,10 +114,10 @@ public class OpLogInterceptor implements InitializingBean {
             }
         }
 
-        Future<Region> future = null;
+        Region region = null;
         if (isGetIp) {
-            // 异步获取IP实际地理位置信息
-            future = ThreadUtil.execAsync(() -> IpUtils.getIpLocationByBtree(opLogInfo.getIp()));
+            // 获取IP实际地理位置信息
+            region = IpUtils.getIpLocation(opLogInfo.getIp());
         }
 
         // 获取/赋值 浏览器、os系统等信息
@@ -154,9 +152,8 @@ public class OpLogInterceptor implements InitializingBean {
             opLogInfo.setErrorMsg(CharSequenceUtil.EMPTY);
         }
 
-        if (future != null) {
+        if (region != null) {
             try {
-                Region region = future.get();
                 opLogInfo.setLocation(region.getCountry() + ConstantConfig.SpecialSymbols.HYPHEN
                         + region.getProvince() + ConstantConfig.SpecialSymbols.HYPHEN + region.getCity() + StringUtils.SPACE
                         + region.getIsp());

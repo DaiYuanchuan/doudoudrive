@@ -2,7 +2,6 @@ package com.doudoudrive.auth.controller;
 
 import cn.hutool.core.date.BetweenFormatter;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
@@ -36,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.Date;
-import java.util.concurrent.Future;
 
 /**
  * <p>登陆模块控制层</p>
@@ -95,9 +93,6 @@ public class LoginController {
         // 构建系统登录日志
         LogLogin logLogin = builderLogLogin(request, requestDTO.getUsername());
 
-        // 异步获取IP实际地理位置信息
-        Future<Region> future = ThreadUtil.execAsync(() -> IpUtils.getIpLocationByBtree(logLogin.getIp()));
-
         try {
             // 开始登录流程
             SecurityUtils.getSubject().login(new MockToken(requestDTO.getUsername(), requestDTO.getPassword()));
@@ -114,20 +109,20 @@ public class LoginController {
                 Date beginDate = DateUtil.offsetSecond(userInfo.getUserUnlockTime(), userInfo.getUserBanTime() * -1);
                 responseInfo.setUserBanTimeFormat(DateUtil.formatBetween(beginDate, userInfo.getUserUnlockTime(), BetweenFormatter.Level.SECOND));
             }
-            saveLoginFail(StatusCodeEnum.ACCOUNT_FORBIDDEN.getMessage(), logLogin, future);
+            saveLoginFail(StatusCodeEnum.ACCOUNT_FORBIDDEN.getMessage(), logLogin);
             return Result.build(StatusCodeEnum.ACCOUNT_FORBIDDEN, responseInfo);
         } catch (UnknownAccountException e) {
-            saveLoginFail(StatusCodeEnum.USER_NO_EXIST.getMessage(), logLogin, future);
+            saveLoginFail(StatusCodeEnum.USER_NO_EXIST.getMessage(), logLogin);
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
         } catch (IncorrectCredentialsException e) {
-            saveLoginFail(StatusCodeEnum.ACCOUNT_NO_EXIST.getMessage(), logLogin, future);
+            saveLoginFail(StatusCodeEnum.ACCOUNT_NO_EXIST.getMessage(), logLogin);
             return Result.build(StatusCodeEnum.ACCOUNT_NO_EXIST);
         } catch (ExpiredCredentialsException e) {
-            saveLoginFail(StatusCodeEnum.EXPIRED_CREDENTIALS.getMessage(), logLogin, future);
+            saveLoginFail(StatusCodeEnum.EXPIRED_CREDENTIALS.getMessage(), logLogin);
             return Result.build(StatusCodeEnum.EXPIRED_CREDENTIALS);
         } catch (AuthenticationException e) {
             // 身份验证失败
-            saveLoginFail(StatusCodeEnum.AUTHENTICATION.getMessage(), logLogin, future);
+            saveLoginFail(StatusCodeEnum.AUTHENTICATION.getMessage(), logLogin);
             return Result.build(StatusCodeEnum.AUTHENTICATION);
         }
 
@@ -135,7 +130,7 @@ public class LoginController {
         UserLoginResponseDTO userLoginInfo = loginManager.getUserInfoToSession();
         if (userLoginInfo == null) {
             // 无法获取用户信息
-            saveLoginFail(StatusCodeEnum.INVALID_USERINFO.getMessage(), logLogin, future);
+            saveLoginFail(StatusCodeEnum.INVALID_USERINFO.getMessage(), logLogin);
             return Result.build(StatusCodeEnum.INVALID_USERINFO);
         }
 
@@ -202,12 +197,11 @@ public class LoginController {
      *
      * @param msg      提示的消息
      * @param logLogin 登录日志实体信息
-     * @param future   异步获取到的IP地址实际地理信息
      */
-    private void saveLoginFail(String msg, LogLogin logLogin, Future<Region> future) {
+    private void saveLoginFail(String msg, LogLogin logLogin) {
         logLogin.setSuccess(false);
         logLogin.setMsg(msg);
-        setLocation(logLogin, future);
+        setLocation(logLogin);
         // 使用one-way模式发送消息，发送端发送完消息后会立即返回
         MessageBuilder.sendOneWay(ConstantConfig.Topic.LOG_RECORD, ConstantConfig.Tag.LOGIN_LOG_RECORD, logLogin, rocketmqTemplate);
     }
@@ -216,11 +210,10 @@ public class LoginController {
      * 将异步获取到的IP地址实际地理位置信息赋值到系统登录日志实体中
      *
      * @param logLogin 登录日志实体信息
-     * @param future   异步获取到的IP地址实际地理信息
      */
-    private void setLocation(LogLogin logLogin, Future<Region> future) {
+    private void setLocation(LogLogin logLogin) {
         try {
-            Region region = future.get();
+            Region region = IpUtils.getIpLocation(logLogin.getIp());
             logLogin.setLocation(region.getCountry() + ConstantConfig.SpecialSymbols.HYPHEN
                     + region.getProvince() + ConstantConfig.SpecialSymbols.HYPHEN + region.getCity() + StringUtils.SPACE
                     + region.getIsp());

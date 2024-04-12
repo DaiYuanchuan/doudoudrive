@@ -1,6 +1,5 @@
 package com.doudoudrive.file.consumer;
 
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
 import com.alibaba.fastjson2.JSONObject;
@@ -33,7 +32,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.Future;
 
 /**
  * <p>内容分发网络CDN（Content Delivery Network）访问日志消费者</p>
@@ -121,9 +119,6 @@ public class ContentDeliveryNetworkAccessLogConsumer {
         LogOp log = logOpInfoConvert.cdnLogModelConvert(cdnLogModel);
 
         try {
-            // 异步获取IP实际地理位置信息
-            Future<Region> future = ThreadUtil.execAsync(() -> IpUtils.getIpLocationByBtree(cdnLogModel.getIp()));
-
             // 设置请求、响应时间
             Optional.ofNullable(cdnLogModel.getUnixTime()).ifPresent(unixTime -> {
                 // 使用atZone()方法将Instant对象转换为指定时区的ZonedDateTime对象
@@ -144,7 +139,7 @@ public class ContentDeliveryNetworkAccessLogConsumer {
 
             // 获取/赋值 浏览器、os系统等信息
             assignBrowserInfo(log);
-            Region region = future.get();
+            Region region = IpUtils.getIpLocation(cdnLogModel.getIp());
             log.setLocation(region.getCountry() + ConstantConfig.SpecialSymbols.HYPHEN
                     + region.getProvince() + ConstantConfig.SpecialSymbols.HYPHEN + region.getCity() + StringUtils.SPACE
                     + region.getIsp());
