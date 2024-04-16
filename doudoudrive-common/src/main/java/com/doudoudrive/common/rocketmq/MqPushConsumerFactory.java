@@ -3,6 +3,8 @@ package com.doudoudrive.common.rocketmq;
 import com.doudoudrive.common.config.ConsumerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.google.common.collect.Maps;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.springframework.beans.BeansException;
@@ -25,32 +27,28 @@ public class MqPushConsumerFactory implements InitializingBean, ApplicationConte
 
     private final String nameServer;
 
+    @Getter
     private SimpleListenerFactory listenerFactory;
 
     private ApplicationContext applicationContext;
 
+    @Getter
     private Map<String, DefaultMQPushConsumer> pushConsumerMap;
 
     private List<DefaultMQPushConsumer> pushConsumers;
 
+    @Setter
     private int consumeThreadMin;
 
+    @Setter
     private int consumeThreadMax;
 
     public MqPushConsumerFactory(String nameServer) {
         this.nameServer = nameServer;
     }
 
-    public Map<String, DefaultMQPushConsumer> getPushConsumerMap() {
-        return pushConsumerMap;
-    }
-
     public List<DefaultMQPushConsumer> getAllMqPushConsumer() {
         return pushConsumers;
-    }
-
-    public SimpleListenerFactory getListenerFactory() {
-        return listenerFactory;
     }
 
     @Override
@@ -74,19 +72,7 @@ public class MqPushConsumerFactory implements InitializingBean, ApplicationConte
         this.applicationContext = applicationContext;
     }
 
-    public void setConsumeThreadMin(int consumeThreadMin) {
-        this.consumeThreadMin = consumeThreadMin;
-    }
-
-    public void setConsumeThreadMax(int consumeThreadMax) {
-        this.consumeThreadMax = consumeThreadMax;
-    }
-
-    private DefaultMQPushConsumer createDefaultMqPushConsumer(RocketmqConsumerListener rocketmqConsumerListener) {
-        ConsumerConfig config = rocketmqConsumerListener.getConsumerConfig();
-        DefaultMQPushConsumer defaultMqPushConsumer = new DefaultMQPushConsumer();
-        defaultMqPushConsumer.setNamesrvAddr(nameServer);
-        defaultMqPushConsumer.setConsumerGroup(config.getConsumerGroup());
+    private static StringBuilder getStringBuilder(ConsumerConfig config) {
         Map<String, Class<?>> tags = config.getTags();
         StringBuilder tagBuilder = new StringBuilder();
         List<String> tmpTags = new ArrayList<>(tags.keySet());
@@ -99,6 +85,15 @@ public class MqPushConsumerFactory implements InitializingBean, ApplicationConte
                 tagBuilder.append(ConstantConfig.SpecialSymbols.OR);
             }
         }
+        return tagBuilder;
+    }
+
+    private DefaultMQPushConsumer createDefaultMqPushConsumer(RocketmqConsumerListener rocketmqConsumerListener) {
+        ConsumerConfig config = rocketmqConsumerListener.getConsumerConfig();
+        DefaultMQPushConsumer defaultMqPushConsumer = new DefaultMQPushConsumer();
+        defaultMqPushConsumer.setNamesrvAddr(nameServer);
+        defaultMqPushConsumer.setConsumerGroup(config.getConsumerGroup());
+        StringBuilder tagBuilder = getStringBuilder(config);
         try {
             defaultMqPushConsumer.subscribe(config.getTopic(), tagBuilder.toString());
             defaultMqPushConsumer.subscribe(config.getTopic(), ConstantConfig.SpecialSymbols.ASTERISK);
