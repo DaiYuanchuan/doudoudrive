@@ -3,7 +3,7 @@ package com.doudoudrive.common.util.http;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.IterUtil;
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.HexUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
@@ -12,7 +12,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.net.URLEncoder;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Serial;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -61,6 +63,36 @@ public class UrlQueryUtil {
     private static final Integer SIXTEEN = NumberConstant.INTEGER_TEN + NumberConstant.INTEGER_SIX;
 
     /**
+     * 保留字符，encode时会对除了这些字符之外的字符进行转义
+     * 默认遵循URI规范，即保留字符： 'A'-'Z'， 'a'-'z'， '0'-'9'， '-'， '.'， '_' 和 '~'
+     * <ul>
+     *     <li>URI：遵循RFC 3986保留字规范</li>
+     *     <li>application/x-www-form-urlencoded，遵循W3C HTML Form content types规范，如空格须转+</li>
+     * </ul>
+     */
+    private static final Map<Character, String> RESERVED_CHARACTER = new HashMap<>(NumberConstant.INTEGER_HUNDRED) {
+        @Serial
+        private static final long serialVersionUID = -6432360240387582445L;
+
+        {
+            char i;
+            for (i = 'A'; i <= 'Z'; i++) {
+                put(i, String.valueOf(i));
+            }
+            for (i = 'a'; i <= 'z'; i++) {
+                put(i, String.valueOf(i));
+            }
+            for (i = '0'; i <= '9'; i++) {
+                put(i, String.valueOf(i));
+            }
+            put('-', "-");
+            put('.', ".");
+            put('_', "_");
+            put('~', "~");
+        }
+    };
+
+    /**
      * 构建URL查询字符串，即将key-value键值对转换为{@code key1=v1&key2=v2&key3=v3}形式。<br>
      * 对于{@code null}处理规则如下：
      * <ul>
@@ -93,7 +125,7 @@ public class UrlQueryUtil {
      */
     public static String buildUrlQueryParams(Map<String, Object> paramMap, boolean encode, boolean sort, Charset charset, Map<Character, String> customSafe) {
         if (CollectionUtil.isEmpty(paramMap)) {
-            return CharSequenceUtil.EMPTY;
+            return StringUtils.EMPTY;
         }
 
         StringBuilder content = new StringBuilder();
@@ -181,13 +213,58 @@ public class UrlQueryUtil {
     /**
      * URL 编码，可以自定义需要转换的字符
      *
-     * @param src        需要编码的字符串
+     * @param str        需要编码的字符串
      * @param charset    encode编码
      * @param customSafe 自定义的安全字符
      * @return 编码后的字符串
      */
-    public static String encode(String src, Charset charset, Map<Character, String> customSafe) {
-        return escapeStr(URLEncoder.encode(src, charset), customSafe);
+    public static String encode(String str, Charset charset, Map<Character, String> customSafe) {
+        if (StringUtils.isBlank(str) || null == charset) {
+            return StringUtils.EMPTY;
+        }
+
+        // 默认一个空的安全字符集
+        if (CollectionUtil.isEmpty(customSafe)) {
+            customSafe = new HashMap<>(NumberConstant.INTEGER_ZERO);
+        }
+        customSafe.putAll(RESERVED_CHARACTER);
+
+        final StringBuilder rewrittenPath = new StringBuilder(str.length());
+        try (final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+             final OutputStreamWriter writer = new OutputStreamWriter(buffer, charset)) {
+
+            char singleChar;
+            for (int i = 0; i < str.length(); i++) {
+                singleChar = str.charAt(i);
+                // 定义的安全字符不需要转义
+                String customSafeChar = customSafe.get(singleChar);
+                if (customSafeChar != null) {
+                    rewrittenPath.append(customSafeChar);
+                } else {
+                    try {
+                        // 在十六进制转换之前转换为外部编码
+                        writer.write(singleChar);
+                        writer.flush();
+                    } catch (IOException e) {
+                        buffer.reset();
+                        continue;
+                    }
+
+                    // 兼容双字节的Unicode符处理（如部分emoji）
+                    for (byte toEncode : buffer.toByteArray()) {
+                        // 缓冲区中的每个字节转为16进制
+                        rewrittenPath.append((char) ESCAPE_CHAR);
+                        HexUtil.appendHex(rewrittenPath, toEncode, false);
+                    }
+                    buffer.reset();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // 返回编码后的字符串
+        return rewrittenPath.toString();
     }
 
     /**
@@ -222,7 +299,7 @@ public class UrlQueryUtil {
      */
     public static String decode(String src, Charset charset, boolean isPlusToSpace) {
         if (StringUtils.isBlank(src)) {
-            return CharSequenceUtil.EMPTY;
+            return StringUtils.EMPTY;
         }
 
         // 获取字符串的字节码
@@ -231,7 +308,7 @@ public class UrlQueryUtil {
         // 获取解码后的数据
         byte[] decode = decode(bytes, isPlusToSpace);
         if (decode == null) {
-            return CharSequenceUtil.EMPTY;
+            return StringUtils.EMPTY;
         }
         return charset == null ? new String(decode) : new String(decode, charset);
     }
@@ -323,30 +400,5 @@ public class UrlQueryUtil {
         if (StringUtils.isNotBlank(value)) {
             jsonObject.put(decode(value, charset, Boolean.TRUE), null);
         }
-    }
-
-    /**
-     * 字符串转义，针对字符串中可能存在的特殊字符进行转义
-     *
-     * @param str        需要被转义的字符串
-     * @param customSafe 自定义的需要被转义的字符
-     * @return 一个全新的，经过转义后的字符串
-     */
-    private static String escapeStr(String str, Map<Character, String> customSafe) {
-        if (StringUtils.isBlank(str)) {
-            return CharSequenceUtil.EMPTY;
-        }
-
-        if (CollectionUtil.isEmpty(customSafe)) {
-            return str;
-        }
-
-        StringBuilder sb = new StringBuilder(str.length());
-        for (int i = NumberConstant.INTEGER_ZERO; i < str.length(); ++i) {
-            final char charAt = str.charAt(i);
-            String value = customSafe.get(charAt);
-            sb.append(null != value ? value : charAt);
-        }
-        return sb.toString();
     }
 }
