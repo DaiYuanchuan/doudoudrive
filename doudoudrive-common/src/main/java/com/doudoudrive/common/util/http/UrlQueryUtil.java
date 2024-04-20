@@ -140,12 +140,12 @@ public class UrlQueryUtil {
                 if (content.length() > NumberConstant.INTEGER_ZERO) {
                     content.append(ConstantConfig.SpecialSymbols.AMPERSAND);
                 }
-                content.append(key);
+                content.append(key).append(ConstantConfig.SpecialSymbols.EQUALS);
                 Object value = paramMap.get(key);
                 if (ObjectUtils.isEmpty(value)) {
                     continue;
                 }
-                content.append(ConstantConfig.SpecialSymbols.EQUALS).append(encode ? encode(toStr(value), charset, customSafe) : toStr(value));
+                content.append(encode ? encode(toStr(value), charset, customSafe) : toStr(value));
             }
         }
         return content.toString();
