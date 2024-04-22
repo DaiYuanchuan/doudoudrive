@@ -1,5 +1,6 @@
 package com.doudoudrive.common.util.http;
 
+import com.alibaba.fastjson2.JSON;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -12,10 +13,17 @@ import org.apache.http.client.methods.*;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MimeTypeUtils;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.HttpCookie;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -33,11 +41,11 @@ public class HttpRequest {
     /**
      * 请求内容构建器
      */
-    private RequestBuilder requestBuilder;
+    private final RequestBuilder requestBuilder;
     /**
      * Http连接超时配置
      */
-    private HttpConnection.HttpConnectConfig httpConnectConfig;
+    private final HttpConnection.HttpConnectConfig httpConnectConfig;
 
     /**
      * 构造器
@@ -155,46 +163,6 @@ public class HttpRequest {
      */
     public static HttpRequest getInstance(RequestBuilder requestBuilder) {
         return new HttpRequest(requestBuilder);
-    }
-
-    /**
-     * 一个简单的分析内容类型的方法
-     *
-     * @param content 内容
-     * @return 内容类型
-     */
-    private static String analyzeContentType(String content) {
-        // 检查是否是JSON格式
-        if (content.startsWith(ConstantConfig.SpecialSymbols.LEFT_BRACE) && content.endsWith(ConstantConfig.SpecialSymbols.RIGHT_BRACE)) {
-            return ConstantConfig.HttpRequest.CONTENT_TYPE_JSON;
-        }
-
-        final String leftBound = "<";
-        final String rightBound = ">";
-
-        // 检查是否是XML格式
-        if (content.contains("<?")
-                || content.contains("<!DOCTYPE")
-                || content.startsWith(leftBound)
-                && content.endsWith(rightBound)) {
-            return MimeTypeUtils.APPLICATION_XML_VALUE;
-        }
-
-        // 检查是否是HTML格式
-        if (content.contains("<html")
-                || content.contains("<body")
-                || content.contains("<head")) {
-            return MimeTypeUtils.TEXT_HTML_VALUE;
-        }
-
-        // 检查是否是纯文本格式
-        final String textRegex = "^\\p{Print}+$";
-        if (content.matches(textRegex)) {
-            return MimeTypeUtils.TEXT_PLAIN_VALUE;
-        }
-
-        // 其他情况，默认为null
-        return null;
     }
 
     /**
@@ -428,25 +396,33 @@ public class HttpRequest {
         this.requestBuilder.addParameter(name, value);
         return this;
     }
-    // ---------------------------------------------------------------- Form end
-
-    // ---------------------------------------------------------------- Body start
 
     /**
-     * 设置表单数据
+     * 一个简单的分析内容类型的方法
      *
-     * @param name       名
-     * @param value      值
-     * @param parameters 参数对，奇数为名，偶数为值
-     * @return this
+     * @param content 内容
+     * @return 内容类型
      */
-    public HttpRequest form(String name, String value, String... parameters) {
-        form(name, value);
-
-        for (int i = 0; i < parameters.length; i += 2) {
-            form(parameters[i], parameters[i + 1]);
+    private static String analyzeContentType(String content) {
+        content = content.trim();
+        // 检查是否是JSON格式
+        if (JSON.isValid(content)) {
+            return MimeTypeUtils.APPLICATION_JSON_VALUE;
         }
-        return this;
+
+        // 检查是否是XML格式
+        try (Reader reader = new StringReader(content)) {
+            InputSource source = new InputSource(reader);
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            // 如果不是XML格式，会抛出异常
+            builder.parse(source);
+            return MimeTypeUtils.APPLICATION_XML_VALUE;
+        } catch (Exception ignored) {
+            // 忽略异常
+        }
+
+        // 其他情况，默认为null
+        return null;
     }
 
     /**
@@ -463,6 +439,29 @@ public class HttpRequest {
         formMap.forEach(this::form);
         return this;
     }
+    // ---------------------------------------------------------------- Form end
+
+    // ---------------------------------------------------------------- Body start
+
+    /**
+     * 设置表单数据
+     *
+     * @param name       名
+     * @param value      值
+     * @param parameters 参数对，奇数为名，偶数为值
+     * @return this
+     */
+    public HttpRequest form(String name, String value, String... parameters) {
+        form(name, value);
+
+        // 偶数参数
+        int even = NumberConstant.INTEGER_TWO;
+
+        for (int i = NumberConstant.INTEGER_ZERO; i < parameters.length; i += even) {
+            form(parameters[i], parameters[i + NumberConstant.INTEGER_ONE]);
+        }
+        return this;
+    }
 
     /**
      * 设置内容主体<br>
@@ -477,42 +476,8 @@ public class HttpRequest {
      * @return this
      */
     public HttpRequest body(String body) {
-        return this.body(body, null);
+        return this.body(body, null, true);
     }
-
-    /**
-     * 设置内容主体<br>
-     * 请求体body参数支持两种类型：
-     *
-     * <pre>
-     * 1. 标准参数，例如 a=1&amp;b=2 这种格式
-     * 2. Rest模式，此时body需要传入一个JSON或者XML字符串，会自动绑定其对应的Content-Type
-     * </pre>
-     *
-     * @param body        请求体
-     * @param contentType 请求体类型，{@code null}表示自动判断类型
-     * @return this
-     */
-    public HttpRequest body(String body, String contentType) {
-        if (null != contentType) {
-            // Content-Type自定义设置
-            this.setContentType(contentType);
-        } else {
-            Header header = this.requestBuilder.getLastHeader(HttpHeaders.CONTENT_TYPE);
-            // 未自定义Content-Type时，自动判断
-            contentType = header == null ? analyzeContentType(body) : header.getValue();
-        }
-
-        // Content-Type为空时，使用默认的TEXT_PLAIN
-        if (contentType == null) {
-            this.requestBuilder.setEntity(new StringEntity(body, this.requestBuilder.getCharset()));
-        } else {
-            this.requestBuilder.setEntity(new StringEntity(body, ContentType.create(contentType, this.requestBuilder.getCharset())));
-        }
-        return this;
-    }
-
-    // ---------------------------------------------------------------- Body end
 
     /**
      * 设置内容主体<br>
@@ -527,6 +492,41 @@ public class HttpRequest {
 
     /**
      * 设置内容主体<br>
+     * 请求体body参数支持两种类型：
+     *
+     * <pre>
+     * 1. 标准参数，例如 a=1&amp;b=2 这种格式
+     * 2. Rest模式，此时body需要传入一个JSON或者XML字符串，会自动绑定其对应的Content-Type
+     * </pre>
+     *
+     * @param body         请求体
+     * @param contentType  请求体类型
+     * @param isAutoDetect contentType 为{@code null}时，是否自动探测内容类型
+     * @return this
+     */
+    public HttpRequest body(String body, String contentType, boolean isAutoDetect) {
+        if (null != contentType) {
+            // Content-Type自定义设置
+            this.setContentType(contentType);
+        } else {
+            if (isAutoDetect) {
+                Header header = this.requestBuilder.getLastHeader(HttpHeaders.CONTENT_TYPE);
+                // 未自定义Content-Type时，自动判断
+                contentType = header == null ? analyzeContentType(body) : header.getValue();
+            }
+        }
+
+        // Content-Type为空时，使用默认的TEXT_PLAIN
+        if (contentType == null) {
+            this.requestBuilder.setEntity(new StringEntity(body, this.requestBuilder.getCharset()));
+        } else {
+            this.requestBuilder.setEntity(new StringEntity(body, ContentType.create(contentType, this.requestBuilder.getCharset())));
+        }
+        return this;
+    }
+
+    /**
+     * 设置内容主体<br>
      *
      * @param entity 请求体
      * @return this
@@ -535,6 +535,8 @@ public class HttpRequest {
         this.requestBuilder.setEntity(entity);
         return this;
     }
+
+    // ---------------------------------------------------------------- Body end
 
     /**
      * 执行请求
@@ -549,5 +551,22 @@ public class HttpRequest {
                 .setConnectionRequestTimeout(httpConnectConfig.getConnectionRequestTimeout())
                 .build());
         return new HttpResponse(HttpConnection.getInstance().getHttpClient().execute(this.requestBuilder.build()));
+    }
+
+    /**
+     * 使用 multipart/form-data 表单提交文件
+     *
+     * @param name        表单名称
+     * @param file        文件
+     * @param contentType 上传的内容类型，为null时使用 multipart/form-data
+     * @return this
+     */
+    public HttpRequest body(String name, File file, String contentType) {
+        // 内容类型
+        ContentType type = StringUtils.isBlank(contentType) ? null : ContentType.create(contentType, this.requestBuilder.getCharset());
+        this.requestBuilder.setEntity(MultipartEntityBuilder.create()
+                .addBinaryBody(name, file, type, file.getName())
+                .build());
+        return this;
     }
 }
