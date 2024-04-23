@@ -250,7 +250,7 @@ public class HttpResponse implements Closeable {
      * @return 响应主体内容
      */
     public String body() {
-        return body(StandardCharsets.ISO_8859_1);
+        return body(StandardCharsets.UTF_8);
     }
 
     /**
@@ -273,7 +273,7 @@ public class HttpResponse implements Closeable {
         }
 
         // 读取响应内容
-        return new String(this.body, Optional.ofNullable(charset).orElse(StandardCharsets.ISO_8859_1));
+        return new String(this.body, Optional.ofNullable(charset).orElse(StandardCharsets.UTF_8));
     }
 
     /**
