@@ -1,6 +1,7 @@
 package com.doudoudrive.common.util.http;
 
 import ch.qos.logback.classic.LoggerContext;
+import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,17 +43,11 @@ public class HttpConnection {
      * Http 客户端连接参数相关配置信息
      */
     private static final HttpConnectConfig CONNECT_CONFIG = new HttpConnectConfig();
-
     /**
      * Keep-Alive 头部信息中的超时时间字段
      */
     private static final String HTTP_TIMEOUT = "timeout";
 
-    /**
-     * Http、Https 协议
-     */
-    private static final String HTTP_PROTOCOL = "http";
-    private static final String HTTPS_PROTOCOL = "https";
     /**
      * 定义默认的连接保持策略，确定 HTTP 连接的持久性。
      * 它决定了客户端与服务器之间的连接是否应该保持活动状态以便进行重复使用，以及在何种情况下可以关闭连接
@@ -100,8 +95,8 @@ public class HttpConnection {
             SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(builder.build());
             // 配置同时支持 http 和 https
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                    .register(HTTP_PROTOCOL, PlainConnectionSocketFactory.getSocketFactory())
-                    .register(HTTPS_PROTOCOL, sslConnectionFactory).build();
+                    .register(ConstantConfig.HttpRequest.HTTP_PROTOCOL, PlainConnectionSocketFactory.getSocketFactory())
+                    .register(ConstantConfig.HttpRequest.HTTPS_PROTOCOL, sslConnectionFactory).build();
 
             // 初始化连接管理器，使用自定义的连接工厂
             PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
