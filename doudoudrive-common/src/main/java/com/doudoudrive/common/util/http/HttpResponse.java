@@ -260,6 +260,10 @@ public class HttpResponse implements Closeable {
      * @return 响应主体内容
      */
     public String body(Charset charset) {
+        if (CollectionUtil.isEmpty(this.body)) {
+            return StringUtils.EMPTY;
+        }
+
         if (charset == null) {
             try {
                 // 尝试从响应头中获取字符集
