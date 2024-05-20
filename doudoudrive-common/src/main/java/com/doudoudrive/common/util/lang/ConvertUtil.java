@@ -1,9 +1,15 @@
 package com.doudoudrive.common.util.lang;
 
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cglib.beans.BeanMap;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * <p>对象类型转换工具</p>
@@ -34,7 +40,7 @@ public class ConvertUtil {
 
         try {
             return (T) object;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("object cast exception:", e);
             return null;
         }
@@ -51,5 +57,50 @@ public class ConvertUtil {
             return StringUtils.EMPTY;
         }
         return ENCODER.encodeToString(body);
+    }
+
+    /**
+     * Java Bean转为HashMap，key为属性名，value为属性值
+     *
+     * @param bean Java Bean
+     * @param <T>  Java Bean类型
+     * @return Map
+     */
+    public static <T> Map<String, Object> convertBeanToMap(T bean) {
+        // bean转为Map
+        BeanMap beanMap = BeanMap.create(bean);
+
+        Map<Object, Object> fieldMap = Maps.newHashMapWithExpectedSize(beanMap.size());
+        fieldMap.putAll(beanMap);
+        return fieldMap.entrySet().stream()
+                .filter(entry -> entry.getKey() != null)
+                .collect(Collectors.toMap(
+                        entry -> {
+                            if (entry.getKey() instanceof String) {
+                                return (String) entry.getKey();
+                            }
+
+                            if (entry.getKey() instanceof byte[]) {
+                                return new String((byte[]) entry.getKey(), StandardCharsets.UTF_8);
+                            }
+
+                            return entry.getKey().toString();
+                        },
+                        entry -> Optional.ofNullable(entry.getValue()).orElse(StringUtils.EMPTY)
+                ));
+    }
+
+    /**
+     * Map转为Java Bean，key为属性名，value为属性值
+     *
+     * @param objectMap Map
+     * @param <T>       Java Bean类型
+     * @return Java Bean
+     */
+    public static <T> T convertMapToBean(Class<T> clazz, Map<String, Object> objectMap) throws Exception {
+        T bean = clazz.getDeclaredConstructor().newInstance();
+        BeanMap beanMap = BeanMap.create(bean);
+        beanMap.putAll(objectMap);
+        return bean;
     }
 }
