@@ -54,6 +54,15 @@ public interface ConstantConfig {
          * 删除、错误、失败状态数据.
          */
         String FALSE = "0";
+
+        /**
+         * 是、正确、成功状态数据.
+         */
+        String YES = "yes";
+        /**
+         * 否定、错误、失败状态数据.
+         */
+        String NO = "no";
     }
 
     /**
@@ -114,6 +123,11 @@ public interface ConstantConfig {
         String HOST = "host";
 
         /**
+         * 请求头中的 content-type 字段
+         */
+        String CONTENT_TYPE = "Content-Type";
+
+        /**
          * utf-8编码
          */
         String UTF8 = "utf-8";
@@ -162,6 +176,56 @@ public interface ConstantConfig {
          * 请求头中用于标识当前服务端接收到的请求时间
          */
         String REQUEST_TIME = "requestTime";
+
+        /**
+         * Http 协议
+         */
+        String HTTP_PROTOCOL = "http";
+
+        /**
+         * Https 协议
+         */
+        String HTTPS_PROTOCOL = "https";
+
+        /**
+         * Http GET 请求，获取资源
+         */
+        String GET = "GET";
+
+        /**
+         * Http HEAD 请求，获取资源的元信息
+         */
+        String HEAD = "HEAD";
+
+        /**
+         * Http POST 请求，向资源提交数据
+         */
+        String POST = "POST";
+
+        /**
+         * Http PUT 请求，向服务器端发送数据，从而改变信息
+         */
+        String PUT = "PUT";
+
+        /**
+         * Http PATCH 请求，请求更新部分资源
+         */
+        String PATCH = "PATCH";
+
+        /**
+         * Http DELETE 请求，删除资源
+         */
+        String DELETE = "DELETE";
+
+        /**
+         * Http OPTIONS 请求，列出可对资源实行的方法
+         */
+        String OPTIONS = "OPTIONS";
+
+        /**
+         * Http TRACE 请求，追踪请求 - 响应的传输路径
+         */
+        String TRACE = "TRACE";
     }
 
     /**
@@ -298,6 +362,233 @@ public interface ConstantConfig {
     }
 
     /**
+     * AWS S3签名所需常量
+     */
+    interface AwsSigner {
+
+        /**
+         * AWS签名v4版本
+         */
+        String AWS4 = "AWS4";
+
+        /**
+         * HMAC-SHA256签名算法
+         */
+        String HMAC_SHA256 = "HMAC-SHA256";
+
+        /**
+         * 签名算法的版本。对于AWS签名v4版本来说，该值为 AWS4.
+         */
+        String AWS4_HMAC_SHA256 = AWS4 + "-" + HMAC_SHA256;
+
+        /**
+         * 使用的签名算法。对于AWS签名v4版本来说，该值为 AWS4-HMAC-SHA256.
+         */
+        String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
+
+        /**
+         * 签名密钥使用的范围信息
+         * <your-access-key-id>/<date>/<aws-region>/<aws-service>/aws4_request
+         */
+        String X_AMZ_CREDENTIAL = "X-Amz-Credential";
+
+        /**
+         * (AWS签名v4版本)安全策略的HMAC-SHA256哈希
+         */
+        String X_AMZ_SIGNATURE = "X-Amz-Signature";
+
+        /**
+         * 它是ISO8601格式的日期值，例如20130728T000000Z，该日期必须在创建用于签名计算的签名密钥时使用的日期相同
+         */
+        String X_AMZ_DATE = "X-Amz-Date";
+
+        /**
+         * 预签名 URL 有效期（以秒为单位），此值是一个整数，可以设置的最小值为 1，并且 最大值为 604800（七天）
+         */
+        String X_AMZ_EXPIRES = "X-Amz-Expires";
+
+        /**
+         * 列出用于计算签名的标头，以下标头是 签名计算中需要：
+         * HTTP 头 Host，x-amz-*前缀的标头是 AWS 用于计算签名的标头
+         */
+        String X_AMZ_SIGNED_HEADERS = "X-Amz-SignedHeaders";
+
+        /**
+         * 对请求进行身份验证时，此标头提供了请求有效负载的哈希。
+         * 当分块上传对象时，将该值设置为STREAMING-AWS4-HMAC-SHA256-PAYLOAD以指示签名仅包含标头并且没有有效负载
+         */
+        String X_AMZ_CONTENT_SHA256 = "X-Amz-Content-SHA256";
+
+        /**
+         * 请求体为空时，默认的SHA256哈希值
+         */
+        String EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
+        /**
+         * 区域代码为空时的默认值
+         */
+        String REGION_DEFAULT_VALUE = "us-east-1";
+
+        /**
+         * 服务名称为空时的默认值
+         */
+        String SERVICE_DEFAULT_VALUE = "s3";
+
+        /**
+         * 签名终结者，固定值
+         * 使用密钥和数据调用哈希函数，并将签名计算结果作为密钥，而“aws4_request”作为数据
+         */
+        String TERMINATOR = "aws4_request";
+
+        /**
+         * 授权字符串中：访问凭证字段
+         */
+        String CREDENTIAL = "Credential";
+
+        /**
+         * 授权字符串中：用于签名的请求头字段
+         */
+        String SIGNED_HEADERS = "SignedHeaders";
+
+        /**
+         * 授权字符串中：签名字段
+         */
+        String SIGNATURE = "Signature";
+
+        /**
+         * 创建预签名 URL 时，并不知道有效负载的内容，因为 URL 用于上传任意负载
+         * 所以这里使用 UNSIGNED-PAYLOAD 作为有效负载的哈希值
+         */
+        String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+
+        /**
+         * 指示是否绕过对象存储桶中的管理保留策略
+         * 管理保留策略允许存储桶所有者将对象设置为不可删除状态，防止意外或故意的删除
+         */
+        String X_AMZ_BYPASS_GOVERNANCE_RETENTION = "x-amz-bypass-governance-retention";
+
+        /**
+         * 通常用于请求头中的内容MD5值
+         */
+        String CONTENT_MD5 = "Content-MD5";
+
+        /**
+         * MD5值为空时的默认值
+         */
+        String EMPTY_CONTENT_MD5 = "1B2M2Y8AsgTpgAmY7PhCfg==";
+
+        /**
+         * 获取存储桶所在区域
+         */
+        interface GetBucketLocation {
+            /**
+             * 本地化区域
+             */
+            String LOCATION = "location";
+
+            /**
+             * 默认的区域
+             */
+            String DEFAULT_LOCATION = "us-east-1";
+        }
+
+        /**
+         * 创建分片上传
+         */
+        interface CreateMultipartUpload {
+            /**
+             * 创建分片上传时默认参数
+             */
+            String UPLOADS = "uploads";
+        }
+
+        /**
+         * 上传指定的分片信息
+         */
+        interface UploadPart {
+            /**
+             * 上传Id
+             */
+            String UPLOAD_ID = "uploadId";
+
+            /**
+             * 分片号
+             */
+            String PART_NUMBER = "partNumber";
+
+            /**
+             * 文件内容的Etag值
+             */
+            String ETAG = "ETag";
+        }
+
+        /**
+         * 列出指定上传Id的所有已上传的分片信息
+         */
+        interface ListParts {
+            /**
+             * 上传Id
+             */
+            String UPLOAD_ID = "uploadId";
+
+            /**
+             * 设置要返回的最大分片数量
+             */
+            String MAX_PARTS = "max-parts";
+
+            /**
+             * 分片编号标记，指定列出应在其后开始的部分，可以用来进行分页查询
+             */
+            String PART_NUMBER_MARKER = "part-number-marker";
+        }
+
+        /**
+         * 复制一个已存在的对象
+         */
+        interface CopyObject {
+            /**
+             * 复制
+             */
+            String COPY = "COPY";
+
+            /**
+             * 替换、取代
+             */
+            String REPLACE = "REPLACE";
+
+            /**
+             * 源对象的版本号
+             */
+            String VERSION_ID = "versionId";
+        }
+
+        /**
+         * 上传一个对象、将对象添加到存储桶中
+         */
+        interface PutObject {
+            /**
+             * 文件内容的Etag值
+             */
+            String ETAG = "ETag";
+
+            /**
+             * 如果存储桶启用版本控制，会自动生成唯一的版本 ID
+             */
+            String VERSION_ID = "x-amz-version-id";
+        }
+
+        /**
+         * 获取对象
+         */
+        interface GetObject {
+            /**
+             * 对象的版本号
+             */
+            String VERSION_ID = "versionId";
+        }
+    }
+
+    /**
      * MQ消息发送状态类型枚举
      */
     @Getter
@@ -393,6 +684,16 @@ public interface ConstantConfig {
         String LEFT_BRACKET = "(";
         String RIGHT_BRACKET = ")";
         String ENTER_LINUX = "\n";
+        String SEMICOLON = ";";
+        String SLASH = "/";
+        String BACKSLASH = "\\";
+        String VERTICAL_LINE = "|";
+        String DOUBLE_QUOTATION_MARKS = "\"";
+        String SINGLE_QUOTATION_MARKS = "'";
+        String PERCENT = "%";
+        String DOLLAR = "$";
+        String AT = "@";
+        String EXCLAMATION_MARK = "!";
     }
 
     /**

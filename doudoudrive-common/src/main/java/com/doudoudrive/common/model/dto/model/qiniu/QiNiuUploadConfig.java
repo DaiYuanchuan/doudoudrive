@@ -1,5 +1,6 @@
 package com.doudoudrive.common.model.dto.model.qiniu;
 
+import com.doudoudrive.common.model.dto.model.domain.DomainConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -72,7 +73,7 @@ public class QiNiuUploadConfig implements Serializable {
     /**
      * 七牛云CDN加速域名地址相关配置
      */
-    private QiNiuDomainConfig domain;
+    private DomainConfig domain;
 
     /**
      * 存储区域相关配置

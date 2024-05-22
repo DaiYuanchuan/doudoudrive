@@ -1,4 +1,4 @@
-package com.doudoudrive.common.model.dto.model.qiniu;
+package com.doudoudrive.common.model.dto.model.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,8 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * <p>七牛云CDN加速域名地址相关配置，要有http|https开头</p>
- * <p>2022-05-25 11:55</p>
+ * <p>CDN加速域名地址相关配置，要有http|https开头</p>
+ * <p>2024-04-22 23:08</p>
  *
  * @author Dan
  **/
@@ -18,10 +18,10 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class QiNiuDomainConfig implements Serializable {
+public class DomainConfig implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -3765486436137411517L;
 
     /**
      * 图片小文件
@@ -37,5 +37,4 @@ public class QiNiuDomainConfig implements Serializable {
      * 视频流文件
      */
     private String stream;
-
 }
