@@ -544,13 +544,22 @@ public class HttpRequest {
      * @return 响应
      */
     public HttpResponse execute() throws IOException {
+        return new HttpResponse(doExecute());
+    }
+
+    /**
+     * 执行请求的核心方法
+     *
+     * @return {@link CloseableHttpResponse}
+     */
+    public CloseableHttpResponse doExecute() throws IOException {
         // 设置连接超时配置
         this.requestBuilder.setConfig(RequestConfig.custom()
                 .setSocketTimeout(httpConnectConfig.getSocketTimeout())
                 .setConnectTimeout(httpConnectConfig.getConnectTimeout())
                 .setConnectionRequestTimeout(httpConnectConfig.getConnectionRequestTimeout())
                 .build());
-        return new HttpResponse(HttpConnection.getInstance().getHttpClient().execute(this.requestBuilder.build()));
+        return HttpConnection.getInstance().getHttpClient().execute(this.requestBuilder.build());
     }
 
     /**
