@@ -74,15 +74,22 @@ public class UrlQueryUtil {
         @Serial
         private static final long serialVersionUID = -6432360240387582445L;
 
+        private static final char UPPER_A = 'A';
+        private static final char LOWER_A = 'a';
+        private static final char UPPER_Z = 'Z';
+        private static final char LOWER_Z = 'z';
+        private static final char ZERO = '0';
+        private static final char NINE = '9';
+
         {
             char i;
-            for (i = 'A'; i <= 'Z'; i++) {
+            for (i = UPPER_A; i <= UPPER_Z; i++) {
                 put(i, String.valueOf(i));
             }
-            for (i = 'a'; i <= 'z'; i++) {
+            for (i = LOWER_A; i <= LOWER_Z; i++) {
                 put(i, String.valueOf(i));
             }
-            for (i = '0'; i <= '9'; i++) {
+            for (i = ZERO; i <= NINE; i++) {
                 put(i, String.valueOf(i));
             }
             put('-', "-");
