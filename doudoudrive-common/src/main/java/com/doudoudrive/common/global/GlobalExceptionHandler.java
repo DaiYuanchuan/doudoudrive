@@ -209,7 +209,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = java.sql.SQLIntegrityConstraintViolationException.class)
     public Result<?> sqlIntegrityConstraintViolationExceptionHandler(java.sql.SQLIntegrityConstraintViolationException exception) {
-        exception.printStackTrace();
         // 写入日志文件
         log.error(exception.getMessage());
         return Result.error();
@@ -256,7 +255,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = Throwable.class)
     public Result<?> handleThrowableHandler(Throwable throwable) {
-        throwable.printStackTrace();
         // 写入日志文件
         log.error(throwable.getMessage());
         log.error("", throwable);
