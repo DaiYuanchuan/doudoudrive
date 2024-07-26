@@ -584,13 +584,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <nonFilteredFileExtensions>
                         <nonFilteredFileExtension>xls</nonFilteredFileExtension>
                         <nonFilteredFileExtension>xlsx</nonFilteredFileExtension>
-                        <nonFilteredFileExtension>db</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>xdb</nonFilteredFileExtension>
                         <nonFilteredFileExtension>ftl</nonFilteredFileExtension>
                     </nonFilteredFileExtensions>
                 </configuration>
