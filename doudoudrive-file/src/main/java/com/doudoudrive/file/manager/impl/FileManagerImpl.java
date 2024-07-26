@@ -228,14 +228,8 @@ public class FileManagerImpl implements FileManager {
                     ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(Collections.singletonList(userFile));
-            // 尝试通过token获取用户信息
-            Optional.ofNullable(loginManager.getUserInfoToToken(fileInfo.getToken())).ifPresent(userInfo -> {
-                // 更新已用容量
-                String usedCapacity = usedDiskCapacity.add(new BigDecimal(ossFile.getSize())).stripTrailingZeros().toPlainString();
-                userInfo.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.getParam(), usedCapacity);
-                // 尝试更新用户缓存信息
-                loginManager.attemptUpdateUserSession(fileInfo.getToken(), userInfo);
-            });
+            // 通过token尝试更新用户缓存信息
+            loginManager.attemptUpdateUserSession(fileInfo.getToken(), userFile.getUserId());
             return userFile;
         } catch (Exception e) {
             // 发送MQ消息，异步回滚文件和用户磁盘容量数据
