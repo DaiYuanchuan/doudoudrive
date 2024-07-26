@@ -99,7 +99,7 @@
         <!-- xnio-api依赖包版本 -->
         <xnio-api.version>3.8.8.Final</xnio-api.version>
         <!-- jackson-databind 依赖包版本 -->
-        <jackson-databind.version>2.17.0</jackson-databind.version>
+        <jackson-databind.version>2.17.1</jackson-databind.version>
         <!-- spring-data-elasticsearch依赖包版本 -->
         <spring-data-elasticsearch.version>4.4.3</spring-data-elasticsearch.version>
         <!-- nacos客户端依赖包版本 -->
@@ -194,6 +194,16 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson-databind.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
             <version>${jackson-databind.version}</version>
         </dependency>
         <!-- 引入undertow -->
