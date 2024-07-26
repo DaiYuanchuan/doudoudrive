@@ -561,24 +561,6 @@ public class FileController {
             return;
         }
 
-        // 原子性服务增加用户已用流量属性，判断更新结果
-        Integer increase = diskUserAttrService.increase(userinfo.getUserInfo().getBusinessId(), ConstantConfig.UserAttrEnum.USED_TRAFFIC, fileInfo.getFileSize(), total);
-        if (increase <= NumberConstant.INTEGER_ZERO) {
-            if (NumberConstant.INTEGER_ZERO.equals(increase)) {
-                // 不等于 -1 时需要更新用户缓存信息，获取最新的已用数据
-                BigDecimal usedTrafficValue = diskUserAttrService.getDiskUserAttrValue(userinfo.getUserInfo().getBusinessId(), ConstantConfig.UserAttrEnum.USED_TRAFFIC);
-                userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficValue.add(fileSize).stripTrailingZeros().toPlainString());
-                loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
-            }
-            // 更新失败
-            response.setStatus(HttpStatus.FORBIDDEN.value());
-            return;
-        }
-
-        // 服务更新成功时需要更新用户缓存信息
-        userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficBigDecimal.add(fileSize).stripTrailingZeros().toPlainString());
-        loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
-
         // 响应成功的状态码
         response.setStatus(HttpStatus.NO_CONTENT.value());
     }
