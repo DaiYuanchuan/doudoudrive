@@ -81,7 +81,7 @@
         <!-- hutool工具包 版本号 -->
         <hutool.version>5.8.27</hutool.version>
         <!-- facebook开源压缩算法zstd，用以实现极致的压缩 -->
-        <zstd.version>1.5.6-2</zstd.version>
+        <zstd.version>1.5.6-3</zstd.version>
         <!-- protostuff序列化工具 -->
         <protostuff.version>1.8.0</protostuff.version>
         <!-- fastjson 版本号 -->
