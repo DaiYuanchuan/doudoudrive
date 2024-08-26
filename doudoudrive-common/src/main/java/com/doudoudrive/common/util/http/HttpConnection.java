@@ -16,6 +16,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -92,7 +93,7 @@ public class HttpConnection {
                     .getLogger("org.apache.http").setLevel(ch.qos.logback.classic.Level.ERROR);
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(builder.build());
+            SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(builder.build(), NoopHostnameVerifier.INSTANCE);
             // 配置同时支持 http 和 https
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                     .register(ConstantConfig.HttpRequest.HTTP_PROTOCOL, PlainConnectionSocketFactory.getSocketFactory())
