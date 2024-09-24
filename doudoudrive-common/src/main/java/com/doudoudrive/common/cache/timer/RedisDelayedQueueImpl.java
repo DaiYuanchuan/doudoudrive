@@ -156,9 +156,8 @@ public class RedisDelayedQueueImpl implements RedisDelayedQueue, CommandLineRunn
                     byte[] bytes = CompressionUtil.decompressBytes(body);
                     // 反序列化为延迟队列的消息体
                     Optional.ofNullable(SERIALIZER.deserialize(bytes, DelayQueueMsg.class)).ifPresent(delayQueueMsg -> {
-                        // 获取延迟时间，加入时间轮
-                        long delay = delayQueueMsg.getExpireTime() - System.currentTimeMillis();
-                        timeWheelManager.newTimeout(timeout -> pushTask(delayQueueMsg.getTopic()), delay, TimeUnit.MILLISECONDS);
+                        // 执行任务掉调度
+                        scheduleTask(delayQueueMsg.getTopic(), delayQueueMsg.getExpireTime());
                     });
                 });
             }
@@ -195,7 +194,7 @@ public class RedisDelayedQueueImpl implements RedisDelayedQueue, CommandLineRunn
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         // 初始化延迟队列任务
         for (RedisDelayedQueueEnum delayedQueue : RedisDelayedQueueEnum.values()) {
             pushTask(delayedQueue.getTopic());
@@ -210,6 +209,33 @@ public class RedisDelayedQueueImpl implements RedisDelayedQueue, CommandLineRunn
     private void pushTask(String topic) {
         String timeout = String.format(REDIS_DELAY_QUEUE_TIMEOUT, topic);
         String queueName = String.format(REDIS_DELAY_QUEUE, topic);
-        redisTemplateClient.eval(PUSH_TASK, List.of(topic, timeout, queueName), null, System.currentTimeMillis(), 100);
+        // push task name
+        List<String> pushQueueName = List.of(topic, timeout, queueName);
+
+        try {
+            Object result = redisTemplateClient.eval(PUSH_TASK, pushQueueName, String.class, System.currentTimeMillis(), 100);
+            if (result != null) {
+                scheduleTask(topic, Long.parseLong(result.toString()));
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            long startTime = System.currentTimeMillis() + NumberConstant.LONG_FIVE * NumberConstant.LONG_ONE_THOUSAND;
+            scheduleTask(topic, startTime);
+        }
+    }
+
+    /**
+     * 延迟任务调度
+     *
+     * @param topic     队列名称
+     * @param startTime 开始时间
+     */
+    private void scheduleTask(final String topic, final Long startTime) {
+        long delay = startTime - System.currentTimeMillis();
+        if (delay > NumberConstant.INTEGER_TEN) {
+            timeWheelManager.newTimeout(timeout -> pushTask(topic), delay, TimeUnit.MILLISECONDS);
+        } else {
+            pushTask(topic);
+        }
     }
 }
