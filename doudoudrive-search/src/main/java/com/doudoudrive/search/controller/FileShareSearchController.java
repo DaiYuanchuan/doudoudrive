@@ -7,7 +7,7 @@ import com.doudoudrive.common.model.dto.request.DeleteElasticsearchFileShareRequ
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchFileShareIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchShareUserIdRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileShareRequestDTO;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileShareIdResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchShareUserIdResponseDTO;
 import com.doudoudrive.common.util.http.Result;
@@ -75,14 +75,14 @@ public class FileShareSearchController {
     @ResponseBody
     @OpLog(title = "删除文件分享信息", businessType = "ES文件分享查询服务")
     @PostMapping(value = "/search/file-share/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody @Valid DeleteElasticsearchFileShareRequestDTO cancelShareRequest,
+    public Result<DeleteElasticsearchResponseDTO> cancelShare(@RequestBody @Valid DeleteElasticsearchFileShareRequestDTO cancelShareRequest,
                                                                        HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
         // 删除es中的数据
         ByQueryResponse deleteResponse = fileShareSearchManager.cancelShare(cancelShareRequest.getUserId(), cancelShareRequest.getShareId());
-        return Result.ok(DeleteElasticsearchFileShareResponseDTO.builder()
+        return Result.ok(DeleteElasticsearchResponseDTO.builder()
                 .deleted(deleteResponse.getDeleted())
                 .took(deleteResponse.getTook())
                 .build());

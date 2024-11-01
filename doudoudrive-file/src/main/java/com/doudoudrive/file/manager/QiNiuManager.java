@@ -1,6 +1,6 @@
 package com.doudoudrive.file.manager;
 
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
 import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 
 import java.util.List;

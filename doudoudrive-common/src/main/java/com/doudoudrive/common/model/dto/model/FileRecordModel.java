@@ -21,7 +21,7 @@ import java.io.Serializable;
 public class FileRecordModel implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3437260293171981181L;
 
     /**
      * 业务标识
@@ -42,5 +42,15 @@ public class FileRecordModel implements Serializable {
      * 文件的ETag(资源的唯一标识)
      */
     private String fileEtag;
+
+    /**
+     * 动作
+     */
+    private String action;
+
+    /**
+     * 动作类型
+     */
+    private String actionType;
 
 }

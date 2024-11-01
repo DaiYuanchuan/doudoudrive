@@ -3,13 +3,13 @@ package com.doudoudrive.file.model.convert;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchDiskFileRequestDTO;
+import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileRecordRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
-import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.util.lang.MimeTypes;
 import com.doudoudrive.common.util.lang.SequenceUtil;
@@ -100,7 +100,7 @@ public interface DiskFileConvert {
     SaveElasticsearchDiskFileRequestDTO diskFileConvertSaveElasticsearchDiskFileRequest(DiskFile diskFile);
 
     /**
-     * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 FileRecord(文件临时操作记录)
+     * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 SaveElasticsearchFileRecordRequestDTO(保存es文件临时操作记录信息时的请求数据模型)
      *
      * @param createFileAuthModel 创建文件时的鉴权参数模型
      * @param fileId              文件标识
@@ -108,7 +108,7 @@ public interface DiskFileConvert {
      * @param actionType          动作对应的动作类型
      * @return 文件临时操作记录
      */
-    FileRecord createFileAuthModelConvertFileRecord(CreateFileAuthModel createFileAuthModel, String fileId, String action, String actionType);
+    SaveElasticsearchFileRecordRequestDTO createFileAuthModelConvertFileRecord(CreateFileAuthModel createFileAuthModel, String fileId, String action, String actionType);
 
     /**
      * 将 CreateFileAuthModel(创建文件时的鉴权参数模型) 类型转换为 OssFile(OSS文件对象存储实体类)

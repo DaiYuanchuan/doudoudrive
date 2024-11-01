@@ -1,6 +1,6 @@
 package com.doudoudrive.common.model.convert;
 
-import com.doudoudrive.common.model.dto.model.SysUserAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.SysUserAuthModel;
 import com.doudoudrive.common.model.pojo.SysRoleAuth;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;

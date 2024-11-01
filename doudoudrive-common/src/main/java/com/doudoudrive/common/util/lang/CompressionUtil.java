@@ -45,9 +45,9 @@ public class CompressionUtil {
         if (CollectionUtil.isEmpty(bytes)) {
             return bytes;
         }
-        int size = (int) Zstd.decompressedSize(bytes);
+        int size = (int) Zstd.getFrameContentSize(bytes);
         // 可能使用的不是当前压缩算法，原样返回
-        if (size == NumberConstant.INTEGER_ZERO) {
+        if (size <= NumberConstant.INTEGER_ZERO) {
             return bytes;
         }
         byte[] ob = new byte[size];

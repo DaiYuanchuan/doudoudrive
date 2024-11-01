@@ -29,6 +29,10 @@ public class XxlJobLogAspect {
         try {
             TracerContextFactory.set(new LogLabelModel());
             return jp.proceed();
+        } catch (Throwable throwable) {
+            // 打印异常日志
+            log.error("task execution error:{}", throwable.getMessage(), throwable);
+            throw throwable;
         } finally {
             TracerContextFactory.clear();
         }

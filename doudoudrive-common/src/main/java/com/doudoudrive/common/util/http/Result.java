@@ -3,6 +3,7 @@ package com.doudoudrive.common.util.http;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
@@ -18,6 +19,7 @@ import java.util.Optional;
  *
  * @author Dan
  **/
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Result<T> implements Serializable {
@@ -122,26 +124,14 @@ public class Result<T> implements Serializable {
         return new Result<>(statusCodeEnum, data);
     }
 
-    public Integer getCode() {
-        return code;
-    }
-
     public Result<T> code(Integer code) {
         this.code = code;
         return this;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public Result<T> message(String message) {
         this.message = message;
         return this;
-    }
-
-    public T getData() {
-        return data;
     }
 
     public Result<T> data(T data) {

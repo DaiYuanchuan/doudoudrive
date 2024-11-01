@@ -1,14 +1,22 @@
 package com.doudoudrive.file.manager.impl;
 
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.model.pojo.FileRecord;
-import com.doudoudrive.commonservice.service.FileRecordService;
+import com.doudoudrive.common.constant.NumberConstant;
+import com.doudoudrive.common.model.dto.request.BatchSaveElasticsearchFileRecordRequestDTO;
+import com.doudoudrive.common.model.dto.request.DeleteElasticsearchFileRecordRequestDTO;
+import com.doudoudrive.common.model.dto.request.QueryElasticsearchFileRecordRequestDTO;
+import com.doudoudrive.common.model.dto.request.SaveElasticsearchFileRecordRequestDTO;
+import com.doudoudrive.common.model.dto.response.QueryElasticsearchFileRecordResponseDTO;
+import com.doudoudrive.common.util.http.Result;
+import com.doudoudrive.common.util.lang.CollectionUtil;
+import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.FileRecordManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,31 +30,35 @@ import java.util.List;
 @Service("fileRecordManager")
 public class FileRecordManagerImpl implements FileRecordManager {
 
-    private FileRecordService fileRecordService;
+    private DiskFileSearchFeignClient diskFileSearchFeignClient;
 
     @Autowired
-    public void setFileRecordService(FileRecordService fileRecordService) {
-        this.fileRecordService = fileRecordService;
+    public void setDiskFileSearchFeignClient(DiskFileSearchFeignClient diskFileSearchFeignClient) {
+        this.diskFileSearchFeignClient = diskFileSearchFeignClient;
     }
 
     /**
      * 新增文件操作记录
      *
-     * @param fileRecord 需要新增的文件操作记录实体
+     * @param fileRecordInfo 需要新增的文件操作记录实体
      */
     @Override
-    public void insert(FileRecord fileRecord) {
-        fileRecordService.insert(fileRecord);
+    public void insert(SaveElasticsearchFileRecordRequestDTO fileRecordInfo) {
+        this.insertBatch(Collections.singletonList(fileRecordInfo));
     }
 
     /**
      * 批量新增文件操作记录
      *
-     * @param list 需要新增的文件操作记录集合
+     * @param fileRecordInfo 需要新增的文件操作记录集合
      */
     @Override
-    public void insertBatch(List<FileRecord> list) {
-        fileRecordService.insertBatch(list);
+    public void insertBatch(List<SaveElasticsearchFileRecordRequestDTO> fileRecordInfo) {
+        // 保存文件操作记录信息
+        CollectionUtil.collectionCutting(fileRecordInfo, NumberConstant.LONG_ONE_THOUSAND)
+                .forEach(fileRecord -> diskFileSearchFeignClient.saveFileRecord(BatchSaveElasticsearchFileRecordRequestDTO.builder()
+                        .fileRecordInfo(fileRecord)
+                        .build()));
     }
 
     /**
@@ -60,8 +72,8 @@ public class FileRecordManagerImpl implements FileRecordManager {
     @Override
     public Boolean isFileRecordExist(String userId, ConstantConfig.FileRecordAction.ActionEnum actionEnum, ConstantConfig.FileRecordAction.ActionTypeEnum actionType) {
         // 获取指定状态的文件操作记录数据
-        return fileRecordService.isFileRecordExist(userId, actionEnum == null ? null : actionEnum.getStatus(),
-                actionType == null ? null : actionType.getStatus());
+        return CollectionUtil.isNotEmpty(this.getFileRecordByAction(userId, null,
+                actionEnum == null ? null : actionEnum.getStatus(), actionType == null ? null : actionType.getStatus()));
     }
 
     /**
@@ -76,18 +88,13 @@ public class FileRecordManagerImpl implements FileRecordManager {
     public void deleteAction(String userId, List<String> etag,
                              ConstantConfig.FileRecordAction.ActionEnum actionEnum,
                              ConstantConfig.FileRecordAction.ActionTypeEnum actionType) {
-        fileRecordService.deleteAction(userId, etag, actionEnum == null ? null : actionEnum.getStatus(),
-                actionType == null ? null : actionType.getStatus());
-    }
-
-    /**
-     * 删除文件操作记录数据
-     *
-     * @param businessId 根据业务id(businessId)删除数据
-     */
-    @Override
-    public void delete(String businessId) {
-        fileRecordService.delete(businessId);
+        // 删除文件操作记录
+        diskFileSearchFeignClient.deleteFileRecord(DeleteElasticsearchFileRecordRequestDTO.builder()
+                .userId(userId)
+                .action(actionEnum == null ? null : actionEnum.getStatus())
+                .actionType(actionType == null ? null : actionType.getStatus())
+                .etag(etag)
+                .build());
     }
 
     /**
@@ -100,22 +107,16 @@ public class FileRecordManagerImpl implements FileRecordManager {
      * @return 返回指定状态的文件操作记录数据
      */
     @Override
-    public FileRecord getFileRecordByAction(String userId, String etag, String action, String actionType) {
-        return fileRecordService.getFileRecordByAction(userId, etag, action, actionType);
-    }
-
-    /**
-     * 更新 指定动作类型 的文件操作记录的 动作类型
-     *
-     * @param businessId     文件操作记录系统内唯一标识
-     * @param fromAction     原动作
-     * @param fromActionType 原动作对应的动作类型
-     * @param toAction       新动作
-     * @param toActionType   新动作对应的动作类型
-     * @return 返回更新的条数
-     */
-    @Override
-    public Integer updateFileRecordByAction(String businessId, String fromAction, String fromActionType, String toAction, String toActionType) {
-        return fileRecordService.updateFileRecordByAction(businessId, fromAction, fromActionType, toAction, toActionType);
+    public List<QueryElasticsearchFileRecordResponseDTO> getFileRecordByAction(String userId, String etag, String action, String actionType) {
+        Result<List<QueryElasticsearchFileRecordResponseDTO>> result = diskFileSearchFeignClient.fileRecordSearch(QueryElasticsearchFileRecordRequestDTO.builder()
+                .userId(userId)
+                .action(action)
+                .actionType(actionType)
+                .etag(etag)
+                .build());
+        if (Result.isNotSuccess(result)) {
+            return null;
+        }
+        return result.getData();
     }
 }

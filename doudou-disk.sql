@@ -17,6 +17,7 @@ CREATE TABLE `cloud-user`.`disk_user`  (
  `user_tel` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户手机号',
  `user_pwd` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户密码',
  `user_salt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用于登录密码校验的盐值',
+ `secret_key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '原始用户名密码的MD5值，取值为:MD5({username}#{pwd})，用于回调、鉴权时的加密用',
  `is_available` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '当前账号是否可用(0:false,1:true)',
  `user_reason` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前账号不可用原因',
  `user_ban_time` int(10) NOT NULL DEFAULT 0 COMMENT '账号被封禁的时间(单位:秒)(-1:永久)最大2144448000',
@@ -314,25 +315,33 @@ CREATE TABLE `cloud-log`.`log_op` (
   `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模块名称',
   `class_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '执行操作的类名称',
   `method_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '执行操作的方法名称',
+  `request_uri` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问的URL除去host部分的路径',
   `parameter` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求时的url参数',
-  `spider` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '爬虫的类型(如果有)',
-  `os` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '操作系统类型',
-  `platform` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '操作平台类型',
+  `method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '发出此请求的HTTP方法的名称(如 GET|POST|PUT)',
+  `request_size` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '0' COMMENT '请求大小，单位字节',
+  `request_time` datetime(0) NULL DEFAULT NULL COMMENT '当前请求时间',
+  `content_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求的资源类型',
+  `referer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求头中的referer信息',
   `browser` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '浏览器内核类型',
   `browser_version` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '浏览器内核版本',
   `browser_engine` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '浏览器解析引擎的类型',
   `browser_engine_version` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '浏览器解析引擎的版本',
-  `method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '发出此请求的HTTP方法的名称(如 GET|POST|PUT)',
   `user_agent` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '浏览器的UA标识',
   `is_mobile` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '是否为移动平台(0:false,1:true)',
-  `request_uri` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问的URL除去host部分的路径',
-  `referer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求头中的referer信息',
+  `os` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '操作系统类型',
+  `platform` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '操作平台类型',
+  `spider` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '爬虫的类型(如果有)',
   `error_msg` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问出现错误时获取到的异常信息',
   `error_cause` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '访问出现错误时获取到的异常原因',
   `is_success` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '访问的状态(0:false,1:true)',
-  `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '访问时间',
-  `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `response_time` datetime(0) NULL DEFAULT NULL COMMENT '当前响应时间',
+  `response_size` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '0' COMMENT '响应大小，单位字节',
+  `response_code` int(5) DEFAULT 0 COMMENT '响应状态码',
+  `cost_time` bigint(20) DEFAULT 0 COMMENT '请求耗时',
   `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '当前操作的用户名',
+  `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户系统内唯一标识',
+  `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '数据创建时间',
+  `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`auto_id`) USING BTREE,
   UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识索引',
   UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
@@ -344,7 +353,8 @@ CREATE TABLE `cloud-log`.`log_op` (
   INDEX `spider`(`spider`) USING BTREE COMMENT '爬虫类型索引',
   INDEX `request_uri`(`request_uri`) USING BTREE COMMENT '访问的URL除去host部分的路径索引',
   INDEX `create_time`(`create_time`) USING BTREE COMMENT '访问时间索引',
-  INDEX `username`(`username`) USING BTREE COMMENT '用户名索引'
+  INDEX `username`(`username`) USING BTREE COMMENT '用户名索引',
+  INDEX `user_id`(`user_id`) USING BTREE COMMENT '用户系统内唯一标识索引'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8 COLLATE = utf8_bin COMMENT = 'API操作日志' ROW_FORMAT = Dynamic;
 
 -- 短信、邮件发送记录表
@@ -381,12 +391,15 @@ CREATE TABLE `cloud-log`.`rocketmq_consumer_record` (
  `queue_id` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ消费队列id',
  `queue_offset` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'MQ逻辑队列偏移',
  `send_time` datetime(0) NOT NULL COMMENT '消息发送时间',
+ `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '发送状态(1:发送成功；2:刷新磁盘超时；3:刷新从属超时；4:从属服务器不可用)',
+ `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '消息的消费状态(1:待消费；2:消费中；3:完成消费)',
+ `body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '消息体内容',
  `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
  `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
  PRIMARY KEY (`auto_id`) USING BTREE,
  UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
  UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
- UNIQUE INDEX `uk_msg_id`(`msg_id`) USING BTREE COMMENT 'MQ消息唯一标识'
+ INDEX `idx_msg_id`(`msg_id`) USING BTREE COMMENT 'MQ消息标识'
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'RocketMQ消费记录' ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS `cloud-log`.`callback_record`;
@@ -397,7 +410,7 @@ CREATE TABLE `cloud-log`.`callback_record` (
  `request_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求的参数',
  `http_status` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '请求的http状态码',
  `response_body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求的响应体',
- `cost_time` int(5) UNSIGNED NULL DEFAULT 0 COMMENT '请求耗时',
+ `cost_time` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '请求耗时',
  `retry` int(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '重试次数，最多重试3次',
  `send_time` datetime(0) NULL COMMENT '请求回调时间',
  `send_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '请求回调状态(1:等待；2:执行中；3:回调成功；4:回调失败)',
@@ -409,70 +422,70 @@ CREATE TABLE `cloud-log`.`callback_record` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '外部系统回调记录' ROW_FORMAT = Dynamic;
 
 -- 日志表依据 创建时间 分表
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202301` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202302` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202303` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202304` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202305` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202306` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202307` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202308` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202309` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202310` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202311` LIKE `cloud-log`.`log_login`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202312` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202401` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202402` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202403` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202404` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202405` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202406` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202407` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202408` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202409` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202410` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202411` LIKE `cloud-log`.`log_login`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_login_202412` LIKE `cloud-log`.`log_login`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202301` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202302` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202303` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202304` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202305` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202306` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202307` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202308` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202309` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202310` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202311` LIKE `cloud-log`.`log_op`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202312` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202401` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202402` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202403` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202404` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202405` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202406` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202407` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202408` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202409` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202410` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202411` LIKE `cloud-log`.`log_op`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`log_op_202412` LIKE `cloud-log`.`log_op`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202301` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202302` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202303` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202304` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202305` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202306` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202307` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202308` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202309` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202310` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202311` LIKE `cloud-log`.`sms_send_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202312` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202401` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202402` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202403` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202404` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202405` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202406` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202407` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202408` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202409` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202410` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202411` LIKE `cloud-log`.`sms_send_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`sms_send_record_202412` LIKE `cloud-log`.`sms_send_record`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202301` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202302` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202303` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202304` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202305` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202306` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202307` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202308` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202309` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202310` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202311` LIKE `cloud-log`.`rocketmq_consumer_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202312` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202401` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202402` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202403` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202404` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202405` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202406` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202407` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202408` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202409` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202410` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202411` LIKE `cloud-log`.`rocketmq_consumer_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`rocketmq_consumer_record_202412` LIKE `cloud-log`.`rocketmq_consumer_record`;
 
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202301` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202302` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202303` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202304` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202305` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202306` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202307` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202308` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202309` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202310` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202311` LIKE `cloud-log`.`callback_record`;
-CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202312` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202401` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202402` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202403` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202404` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202405` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202406` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202407` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202408` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202409` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202410` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202411` LIKE `cloud-log`.`callback_record`;
+CREATE TABLE IF NOT EXISTS `cloud-log`.`callback_record_202412` LIKE `cloud-log`.`callback_record`;
 
 -- 删除原数据表
 DROP TABLE IF EXISTS `cloud-log`.`log_login`;
@@ -745,25 +758,6 @@ CREATE TABLE `cloud-file`.`disk_file`  (
  INDEX `idx_file_parent_id`(`file_parent_id`) USING BTREE,
  INDEX `idx_file_etag`(`file_etag`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户文件模块' ROW_FORMAT = Dynamic;
-
--- 文件操作记录模块
-DROP TABLE IF EXISTS `cloud-file`.`file_record`;
-CREATE TABLE `cloud-file`.`file_record`(
- `auto_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增长标识',
- `business_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '业务标识',
- `user_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户系统内唯一标识',
- `file_id` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件标识',
- `file_etag` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '文件的ETag(资源的唯一标识)',
- `action` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作(0:文件状态；1:文件内容状态；2:文件复制；3:文件删除)',
- `action_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '1' COMMENT '动作类型(action为0:{0:文件被删除}；action为1:{0:待审核；1:待删除}；action为2:{0:任务待处理；1:任务处理中}；action为3:{0:任务待处理；1:任务处理中})',
- `create_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
- `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
- PRIMARY KEY (`auto_id`) USING BTREE,
- UNIQUE INDEX `pk_auto_id`(`auto_id`) USING BTREE COMMENT '自增长标识',
- UNIQUE INDEX `uk_business_id`(`business_id`) USING BTREE COMMENT '系统内唯一标识',
- INDEX `idx_action`(`action`, `action_type`) USING BTREE COMMENT '动作字段组合索引',
- INDEX `idx_file_etag`(`file_etag`) USING BTREE COMMENT '文件的ETag'
-) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件操作记录' ROW_FORMAT = Dynamic;
 
 -- OSS文件对象存储表 根据 etag 平均分300个表
 CREATE TABLE IF NOT EXISTS `cloud-file`.`oss_file_01` LIKE `cloud-file`.`oss_file`;

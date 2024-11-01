@@ -1,7 +1,10 @@
 package com.doudoudrive.file.manager;
 
-import cn.hutool.crypto.symmetric.SymmetricCrypto;
-import com.doudoudrive.common.model.dto.model.*;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.FileReviewConfig;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.QueryElasticsearchDiskFileRequestDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
@@ -164,30 +167,6 @@ public interface FileManager {
      * @param queryParam 指定的查询参数，包含文件名、是否为文件夹
      */
     void verifyRepeat(String parentId, String userId, List<DiskFile> queryParam);
-
-    /**
-     * 文件鉴权参数加密
-     *
-     * @param object 需要鉴权的参数对象
-     * @return 加密后的签名
-     */
-    String encrypt(Object object);
-
-    /**
-     * 文件鉴权签名解密
-     *
-     * @param sign  签名
-     * @param clazz 签名解密后需要转换的对象类
-     * @return 解密后的对象串
-     */
-    <T> T decrypt(String sign, Class<T> clazz);
-
-    /**
-     * 获取对称加密SymmetricCrypto对象
-     *
-     * @return SymmetricCrypto对象
-     */
-    SymmetricCrypto getSymmetricCrypto();
 
     /**
      * 加密游标数据

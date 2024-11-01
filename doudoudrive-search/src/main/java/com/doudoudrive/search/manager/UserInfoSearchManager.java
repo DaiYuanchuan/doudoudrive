@@ -60,4 +60,12 @@ public interface UserInfoSearchManager {
      */
     UserInfoKeyExistsSearchResponseDTO userInfoKeyExistsSearch(String username, String userEmail, String userTel);
 
+    /**
+     * 根据用户系统内唯一标识查询指定用户信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @return 用户实体信息ES数据模型，无法查询到时返回null
+     */
+    UserInfoDTO userIdQuery(String userId);
+
 }

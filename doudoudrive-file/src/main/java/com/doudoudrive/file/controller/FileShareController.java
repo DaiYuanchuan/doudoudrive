@@ -7,7 +7,7 @@ import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.model.DiskUserModel;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchFileShareResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
@@ -97,6 +97,14 @@ public class FileShareController {
             return Result.build(StatusCodeEnum.FILE_NOT_FOUND);
         }
 
+        // 过滤所有被禁止访问的文件
+        List<DiskFile> content = shareFileList.stream().filter(file -> !file.getForbidden()).toList();
+        if (CollectionUtil.isEmpty(content)) {
+            // 文件暂不支持分享
+            return Result.build(StatusCodeEnum.FILE_SHARE_FORBIDDEN);
+        }
+
+
         // 创建分享记录，返回分享记录标识
         return Result.ok(fileShareManager.createShare(userinfo.getBusinessId(), createFileShareRequest, shareFileList));
     }
@@ -106,8 +114,8 @@ public class FileShareController {
     @OpLog(title = "文件分享", businessType = "删除")
     @RequiresPermissions(value = AuthorizationCodeConstant.FILE_SHARE)
     @PostMapping(value = "/cancel", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody @Valid CancelFileShareRequestDTO cancelShareRequest,
-                                                                       HttpServletRequest request, HttpServletResponse response) {
+    public Result<DeleteElasticsearchResponseDTO> cancelShare(@RequestBody @Valid CancelFileShareRequestDTO cancelShareRequest,
+                                                              HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 

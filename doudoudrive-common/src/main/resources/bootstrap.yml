@@ -4,7 +4,7 @@ spring:
       # 服务注册与发现配置
       discovery:
         namespace: ${ENV_NAMESPACE:c0c51892-3ce5-482c-bed6-9d77e553516a}
-        server-addr: ${SERVER_ADDR:https://nacos.novelweb.cn}
+        server-addr: ${SERVER_ADDR:http://192.168.31.96:8848}
         ip: ${ENV_IP:}
         port: ${ENV_PORT:-1}
       config:
@@ -24,7 +24,7 @@ spring:
 # RocketMQ 相关配置
 rocketmq:
   # 指定 nameServer
-  name-server: ${ROCKETMQ_NAMESERVER:192.168.31.200:9876;192.168.31.200:9877;192.168.31.200:9878}
+  name-server: ${ROCKETMQ_NAMESERVER:192.168.31.70:9876}
   # Producer 生产者
   producer:
     # 指定发送者组名

@@ -15,6 +15,9 @@
         <result property="queueId" column="queue_id"/>
         <result property="queueOffset" column="queue_offset"/>
         <result property="sendTime" column="send_time"/>
+        <result property="sendStatus" column="send_status"/>
+        <result property="status" column="status"/>
+        <result property="body" column="body"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
@@ -23,7 +26,8 @@
     <sql id="rocketmqConsumerRecord">
         `auto_id`
         , `business_id`, `msg_id`, `offset_msg_id`, `retry_count`, `topic`, `tag`,
-        `broker_name`, `queue_id`, `queue_offset`, `send_time`, `create_time`, `update_time`
+        `broker_name`, `queue_id`, `queue_offset`, `send_time`, `send_status`, `status`,
+        `body`, `create_time`, `update_time`
     </sql>
 
     <!-- 新增RocketMQ消费记录 -->
@@ -62,6 +66,15 @@
             <if test="null != record.sendTime">
                 `send_time`,
             </if>
+            <if test="null != record.sendStatus and '' != record.sendStatus">
+                `send_status`,
+            </if>
+            <if test="null != record.status and '' != record.status">
+                `status`,
+            </if>
+            <if test="null != record.body and '' != record.body">
+                `body`,
+            </if>
         </trim>
         )
         VALUES
@@ -97,11 +110,20 @@
             <if test="null != record.sendTime">
                 #{record.sendTime},
             </if>
+            <if test="null != record.sendStatus and '' != record.sendStatus">
+                #{record.sendStatus},
+            </if>
+            <if test="null != record.status and '' != record.status">
+                #{record.status},
+            </if>
+            <if test="null != record.body and '' != record.body">
+                #{record.body},
+            </if>
         </trim>
         )
     </insert>
 
-    <!-- 根据业务id(businessId)删除RocketMQ消费记录 -->
+    <!-- 根据MQ消息唯一标识删除RocketMQ消费记录 -->
     <delete id="delete" parameterType="java.lang.String" flushCache="true">
         DELETE FROM `rocketmq_consumer_record_${tableSuffix}`
         <where>
@@ -140,9 +162,119 @@
             <if test="null != rocketmqConsumerRecord.sendTime">
                 `send_time` = #{rocketmqConsumerRecord.sendTime},
             </if>
+            <if test="null != rocketmqConsumerRecord.sendStatus and '' != rocketmqConsumerRecord.sendStatus">
+                `send_status` = #{rocketmqConsumerRecord.sendStatus},
+            </if>
+            <if test="null != rocketmqConsumerRecord.status and '' != rocketmqConsumerRecord.status">
+                `status` = #{rocketmqConsumerRecord.status},
+            </if>
+            <if test="null != rocketmqConsumerRecord.body and '' != rocketmqConsumerRecord.body">
+                `body` = #{rocketmqConsumerRecord.body},
+            </if>
         </trim>
         <where>
             `business_id` = #{rocketmqConsumerRecord.businessId}
+        </where>
+    </update>
+
+    <!-- 根据业务id(businessId)批量修改RocketMQ消费记录 -->
+    <update id="updateBatch" parameterType="java.util.List" flushCache="true">
+        UPDATE `rocketmq_consumer_record_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="`msg_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.msgId and '' != item.msgId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.msgId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`offset_msg_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.offsetMsgId and '' != item.offsetMsgId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.offsetMsgId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`retry_count` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.retryCount and 0 != item.retryCount">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.retryCount}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`topic` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.topic and '' != item.topic">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.topic}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`tag` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.tag and '' != item.tag">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.tag}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`broker_name` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.brokerName and '' != item.brokerName">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.brokerName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`queue_id` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.queueId and '' != item.queueId">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.queueId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`queue_offset` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.queueOffset and '' != item.queueOffset">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.queueOffset}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`send_time` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.sendTime">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.sendTime}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`send_status` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.sendStatus and '' != item.sendStatus">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.sendStatus}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="`status` = case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="null != item.status and '' != item.status">
+                        WHEN `business_id` = #{item.businessId} THEN #{item.status}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        <where>
+            `business_id` IN
+            <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+                #{item.businessId}
+            </foreach>
+        </where>
+    </update>
+
+    <!-- 根据msgId更改RocketMQ消费者记录状态为: 已消费 -->
+    <update id="updateConsumerStatus" flushCache="true">
+        UPDATE `rocketmq_consumer_record_${tableSuffix}`
+        <trim prefix="SET" suffixOverrides=",">
+            `status` = #{status}
+        </trim>
+        <where>
+            `business_id` = #{businessId}
         </where>
     </update>
 
@@ -152,9 +284,23 @@
         SELECT
         <include refid="rocketmqConsumerRecord"/>
         FROM `rocketmq_consumer_record_${tableSuffix}`
-        <where>
-            `msg_id` = #{msgId};
-        </where>
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            <if test="null != businessId and '' != businessId">
+                `business_id` = #{businessId} AND
+            </if>
+        </trim>
+    </select>
+
+    <!-- 根据状态信息批量查询RocketMQ消费记录数据，用于定时任务的重发消息 -->
+    <select id="listResendMessage" resultType="com.doudoudrive.common.model.pojo.RocketmqConsumerRecord"
+            resultMap="rocketmqConsumerRecordResultMap">
+        SELECT
+        <include refid="rocketmqConsumerRecord"/>
+        FROM `rocketmq_consumer_record_${tableSuffix}`
+        <trim prefix="WHERE" prefixOverrides="AND" suffixOverrides="AND">
+            `status` = '1' AND `send_status` != '1' AND `retry_count` &lt; 3
+        </trim>
+        LIMIT 10000
     </select>
 
 </mapper>

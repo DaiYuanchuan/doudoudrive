@@ -26,6 +26,7 @@ public enum StatusCodeEnum {
     EMAIL_FORMAT_ERROR(400, "邮箱格式不正确，请重新输入"),
     SHARE_PWD_LENGTH_INVALID(400, "请输入6位数字或字母"),
     SHARE_ID_INVALID(400, "你打开的链接有误，请重试"),
+    ENUM_TYPE_ERROR(400, "枚举类型错误"),
 
     /**
      * 应用请求访问类:4xx
@@ -90,6 +91,8 @@ public enum StatusCodeEnum {
     SHARE_PWD_ERROR(714, "请输入正确的提取码"),
     FILE_SHARE_FAILED(715, "分享链接创建失败"),
     FILE_SHARE_BLOCKED(716, "链接违反互联网法律法规，已禁止访问"),
+    FILE_MOVE_FAILED(717, "文件移动失败"),
+    FILE_SHARE_FORBIDDEN(718, "文件涉嫌违规暂不支持分享"),
 
     /**
      * 接口类:8xx

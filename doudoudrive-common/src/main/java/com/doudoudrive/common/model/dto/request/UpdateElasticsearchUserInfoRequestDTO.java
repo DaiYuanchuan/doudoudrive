@@ -65,6 +65,12 @@ public class UpdateElasticsearchUserInfoRequestDTO {
     private String userSalt;
 
     /**
+     * 原始用户名密码的MD5值，取值为:MD5({username}#{pwd})，用于回调、鉴权时的加密用
+     */
+    @Size(max = 50, message = "密钥信息长度错误")
+    private String secretKey;
+
+    /**
      * 当前账号是否可用(0:false,1:true)
      */
     private Boolean available;

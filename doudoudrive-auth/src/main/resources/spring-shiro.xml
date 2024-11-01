@@ -133,7 +133,7 @@
     <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
     <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
         <property name="name" value="token"/>
-        <property name="httpOnly" value="true"/>
+        <property name="httpOnly" value="false"/>
         <property name="maxAge" value="-1"/>
     </bean>
 

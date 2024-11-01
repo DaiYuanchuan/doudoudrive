@@ -49,6 +49,13 @@
         </dependency>
         <!-- xxl-job定时任务调度框架 end -->
 
+        <!-- kafka start -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-kafka</artifactId>
+        </dependency>
+        <!-- kafka end -->
+
     </dependencies>
 
     <!-- 依赖的插件配置 -->

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -38,6 +39,61 @@ public class OpLogInfo implements Serializable {
     private String location;
 
     /**
+     * 访问的URL获取除去host部分的路径
+     */
+    private String requestUri;
+
+    /**
+     * 模块名称
+     */
+    private String title;
+
+    /**
+     * 业务类型
+     */
+    private String businessType;
+
+    /**
+     * 发出此请求的HTTP方法的名称(如 GET|POST|PUT)
+     */
+    private String method;
+
+    /**
+     * HTTP请求对象
+     */
+    private HttpServletRequest request;
+
+    /**
+     * 执行操作的类名称
+     */
+    private String className;
+
+    /**
+     * 执行操作的方法名称
+     */
+    private String methodName;
+
+    /**
+     * url参数
+     */
+    private String parameter;
+
+    /**
+     * 请求大小，单位字节
+     */
+    private String requestSize;
+
+    /**
+     * 当前请求时间
+     */
+    private LocalDateTime requestTime;
+
+    /**
+     * 请求的资源类型
+     */
+    private String contentType;
+
+    /**
      * 浏览器内核类型
      */
     private String browser;
@@ -56,6 +112,11 @@ public class OpLogInfo implements Serializable {
      * 浏览器的解析引擎版本
      */
     private String browserEngineVersion;
+
+    /**
+     * 浏览器UA标识
+     */
+    private String userAgent;
 
     /**
      * 是否为移动平台
@@ -78,11 +139,6 @@ public class OpLogInfo implements Serializable {
     private String spider;
 
     /**
-     * 访问的URL获取除去host部分的路径
-     */
-    private String requestUri;
-
-    /**
      * 访问出现错误时获取到的异常原因
      */
     private String errorCause;
@@ -93,29 +149,9 @@ public class OpLogInfo implements Serializable {
     private String errorMsg;
 
     /**
-     * 模块名称
-     */
-    private String title;
-
-    /**
      * 访问的状态(0:正常,1:不正常)
      */
     private Boolean success;
-
-    /**
-     * 浏览器UA标识
-     */
-    private String userAgent;
-
-    /**
-     * 发出此请求的HTTP方法的名称(如 GET|POST|PUT)
-     */
-    private String method;
-
-    /**
-     * HTTP请求对象
-     */
-    private HttpServletRequest request;
 
     /**
      * 访问的时间
@@ -123,23 +159,23 @@ public class OpLogInfo implements Serializable {
     private Date createTime;
 
     /**
-     * 业务类型
+     * 当前响应时间
      */
-    private String businessType;
+    private LocalDateTime responseTime;
 
     /**
-     * 执行操作的类名称
+     * 响应大小，单位字节
      */
-    private String className;
+    private String responseSize;
 
     /**
-     * 执行操作的方法名称
+     * 响应状态码
      */
-    private String methodName;
+    private Integer responseCode;
 
     /**
-     * url参数
+     * 请求耗时，单位毫秒
      */
-    private String parameter;
+    private Long costTime;
 
 }

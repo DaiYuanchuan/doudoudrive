@@ -2,7 +2,6 @@ package com.doudoudrive.common.util.lang;
 
 import com.doudoudrive.common.constant.NumberConstant;
 import com.google.common.collect.Lists;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 import java.io.File;
@@ -26,8 +25,8 @@ public class CollectionUtil extends CollectionUtils {
      * @param collection 集合
      * @return 是否为非空
      */
-    public static boolean isNotEmpty(@Nullable Collection<?> collection) {
-        return !isEmpty(collection);
+    public static boolean isNotEmpty(Collection<?> collection) {
+        return (collection != null && !collection.isEmpty());
     }
 
     /**
@@ -36,8 +35,8 @@ public class CollectionUtil extends CollectionUtils {
      * @param map map数据
      * @return 是否为非空
      */
-    public static boolean isNotEmpty(@Nullable Map<?, ?> map) {
-        return !isEmpty(map);
+    public static boolean isNotEmpty(Map<?, ?> map) {
+        return (map != null && !map.isEmpty());
     }
 
     /**

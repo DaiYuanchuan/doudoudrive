@@ -1,6 +1,7 @@
 package com.doudoudrive.search.config;
 
 import com.doudoudrive.search.model.elasticsearch.DiskFileDTO;
+import com.doudoudrive.search.model.elasticsearch.FileRecordDTO;
 import com.doudoudrive.search.model.elasticsearch.FileShareDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ public class StartupConfiguration implements CommandLineRunner {
         CLASS_INIT_LIST.add(UserInfoDTO.class);
         CLASS_INIT_LIST.add(DiskFileDTO.class);
         CLASS_INIT_LIST.add(FileShareDTO.class);
+        CLASS_INIT_LIST.add(FileRecordDTO.class);
     }
 
     @Override

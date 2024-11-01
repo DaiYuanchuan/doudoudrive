@@ -68,7 +68,7 @@ public class DiskFileDTO implements Serializable {
     /**
      * 文件大小(字节)
      */
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Long)
     private String fileSize;
 
     /**
@@ -104,7 +104,7 @@ public class DiskFileDTO implements Serializable {
     /**
      * 文件当前状态(0:已删除；1:正常)
      */
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Keyword)
     private String status;
 
     /**

@@ -16,7 +16,7 @@ import com.doudoudrive.common.model.dto.request.SaveUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.VerifyCodeRequestDTO;
 import com.doudoudrive.common.model.dto.response.UserLoginResponseDTO;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskUser;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.userinfo.client.SmsFeignClient;
@@ -26,6 +26,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -151,14 +152,14 @@ public class UserInfoController {
         }
 
         // 获取当前用户信息
-        Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(requestDTO.getUsername());
+        Result<UserinfoSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(requestDTO.getUsername());
         if (Result.isNotSuccess(usernameSearchResult)) {
             return Result.build(StatusCodeEnum.USER_NO_EXIST);
         }
 
         // 修改用户信息
-        userInfoManager.resetPassword(usernameSearchResult.getData().getBusinessId(), requestDTO.getPassword());
-
+        userInfoManager.resetPassword(usernameSearchResult.getData().getBusinessId(),
+                usernameSearchResult.getData().getUserName(), requestDTO.getPassword());
         return Result.ok();
     }
 
@@ -236,6 +237,9 @@ public class UserInfoController {
                 return Result.build(StatusCodeEnum.ORIGINAL_PASSWORD_ERROR);
             }
             find.setUserPwd(requestDTO.getPassword());
+            // 原始用户名密码的MD5值
+            byte[] secretKey = (userinfo.getUserName() + ConstantConfig.SpecialSymbols.COMMENT_SIGN + requestDTO.getPassword()).getBytes();
+            find.setSecretKey(DigestUtils.md5DigestAsHex(secretKey));
             isPerform = Boolean.TRUE;
         }
 

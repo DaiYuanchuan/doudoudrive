@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -160,5 +161,45 @@ public class LogOp implements Serializable {
      * 当前操作的用户名
      */
     private String username;
+
+    /**
+     * 请求大小，单位字节
+     */
+    private String requestSize;
+
+    /**
+     * 当前请求时间
+     */
+    private LocalDateTime requestTime;
+
+    /**
+     * 当前响应时间
+     */
+    private LocalDateTime responseTime;
+
+    /**
+     * 响应大小，单位字节
+     */
+    private String responseSize;
+
+    /**
+     * 响应状态码
+     */
+    private Integer responseCode;
+
+    /**
+     * 请求的资源类型
+     */
+    private String contentType;
+
+    /**
+     * 当前进行操作的用户唯一标识
+     */
+    private String userId;
+
+    /**
+     * 请求耗时，单位毫秒
+     */
+    private Long costTime;
 
 }

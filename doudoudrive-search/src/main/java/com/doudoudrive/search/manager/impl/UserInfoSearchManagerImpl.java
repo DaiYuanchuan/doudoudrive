@@ -10,6 +10,7 @@ import com.doudoudrive.search.model.dto.response.UserInfoKeyExistsSearchResponse
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -40,11 +41,11 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
     }
 
     /**
-     * 用户名、邮箱、密码对应字段的字符串
+     * 用户名、邮箱、电话对应字段的字符串
      */
-    private static final String USER_NAME = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserName));
-    private static final String USER_EMAIL = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserEmail));
-    private static final String USER_TEL = String.format(ConstantConfig.Elasticsearch.KEYWORD, ReflectUtil.property(UserInfoDTO::getUserTel));
+    private static final String USER_NAME = ReflectUtil.property(UserInfoDTO::getUserName);
+    private static final String USER_EMAIL = ReflectUtil.property(UserInfoDTO::getUserEmail);
+    private static final String USER_TEL = ReflectUtil.property(UserInfoDTO::getUserTel);
 
     /**
      * 保存用户信息，es中保存用户信息
@@ -166,5 +167,26 @@ public class UserInfoSearchManagerImpl implements UserInfoSearchManager {
             }
         }
         return responseDTO;
+    }
+
+    /**
+     * 根据用户系统内唯一标识查询指定用户信息
+     *
+     * @param userId 用户系统内唯一标识
+     * @return 用户实体信息ES数据模型，无法查询到时返回null
+     */
+    @Override
+    public UserInfoDTO userIdQuery(String userId) {
+        // 查询信息构建
+        IdsQueryBuilder builder = QueryBuilders.idsQuery();
+        builder.addIds(userId);
+
+        // 查询请求构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder()
+                .withQuery(builder);
+
+        // 执行搜素请求
+        SearchHits<UserInfoDTO> query = restTemplate.search(queryBuilder.build(), UserInfoDTO.class);
+        return query.isEmpty() ? null : query.getSearchHits().get(NumberConstant.INTEGER_ZERO).getContent();
     }
 }

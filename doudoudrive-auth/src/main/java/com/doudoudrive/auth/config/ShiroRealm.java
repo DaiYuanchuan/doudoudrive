@@ -7,10 +7,10 @@ import com.doudoudrive.auth.model.dto.MockToken;
 import com.doudoudrive.common.constant.ConstantConfig;
 import com.doudoudrive.common.model.convert.DiskUserInfoConvert;
 import com.doudoudrive.common.model.dto.model.LoginType;
-import com.doudoudrive.common.model.dto.model.SysUserAuthModel;
 import com.doudoudrive.common.model.dto.model.SysUserRoleModel;
 import com.doudoudrive.common.model.dto.model.UserSimpleModel;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.model.auth.SysUserAuthModel;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.SpringBeanFactoryUtils;
@@ -40,26 +40,13 @@ import java.util.Optional;
 @Component(value = "ShiroRealm")
 public class ShiroRealm extends AuthorizingRealm {
 
-    /**
-     * 用户搜索服务注入
-     */
     private UserInfoSearchFeignClient userInfoSearchFeignClient;
-
-    /**
-     * 登录服务注入
-     */
-    private LoginManager loginManager;
-
+    private LoginManager loginManager = null;
     private DiskUserInfoConvert diskUserInfoConvert;
 
     @Autowired
     public void setUserInfoSearchFeignClient(UserInfoSearchFeignClient userInfoSearchFeignClient) {
         this.userInfoSearchFeignClient = userInfoSearchFeignClient;
-    }
-
-    @Autowired
-    public void setLoginManager(LoginManager loginManager) {
-        this.loginManager = loginManager;
     }
 
     @Autowired(required = false)
@@ -132,13 +119,9 @@ public class ShiroRealm extends AuthorizingRealm {
         UsernamePasswordToken upToken = (UsernamePasswordToken) authenticationToken;
 
         MockToken tk = (MockToken) authenticationToken;
-        // 如果是免密登录直接返回
-        if (tk.getType().equals(LoginType.NO_PASSWORD)) {
-            return new SimpleAuthenticationInfo(upToken.getUsername(), upToken.getUsername(), getName());
-        }
 
         // 通过登陆的 用户名 、 用户邮箱 、 手机号 查找对应的用户信息
-        Result<UsernameSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(upToken.getUsername());
+        Result<UserinfoSearchResponseDTO> usernameSearchResult = userInfoSearchFeignClient.usernameSearch(upToken.getUsername());
         if (Result.isNotSuccess(usernameSearchResult)) {
             // 抛出用户名不存在的异常
             throw new UnknownAccountException();
@@ -149,6 +132,11 @@ public class ShiroRealm extends AuthorizingRealm {
             UserSimpleModel userSimpleModel = diskUserInfoConvert.usernameSearchResponseConvertUserSimpleModel(usernameSearchResult.getData());
             // 抛出禁用帐户异常
             throw new DisabledAccountException(JSON.toJSONString(userSimpleModel));
+        }
+
+        // 如果是免密登录直接返回
+        if (tk.getType().equals(LoginType.NO_PASSWORD)) {
+            return new SimpleAuthenticationInfo(upToken.getUsername(), upToken.getUsername(), getName());
         }
 
         // 这里的盐值可以自定义

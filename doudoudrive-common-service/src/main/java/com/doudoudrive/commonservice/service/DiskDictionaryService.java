@@ -1,5 +1,6 @@
 package com.doudoudrive.commonservice.service;
 
+import cn.hutool.crypto.symmetric.SymmetricCrypto;
 import com.doudoudrive.common.model.dto.response.PageResponse;
 import com.doudoudrive.common.model.pojo.DiskDictionary;
 
@@ -143,4 +144,28 @@ public interface DiskDictionaryService {
      * @return 返回搜索结果的总数
      */
     Long countSearch(DiskDictionary diskDictionary, String startTime, String endTime);
+
+    /**
+     * 鉴权参数加密
+     *
+     * @param object 需要鉴权的参数对象
+     * @return 加密后的签名
+     */
+    String encrypt(Object object);
+
+    /**
+     * 鉴权参数解密
+     *
+     * @param sign  签名
+     * @param clazz 签名解密后需要转换的对象类
+     * @return 解密后的对象串，如果解密失败则返回null
+     */
+    <T> T decrypt(String sign, Class<T> clazz);
+
+    /**
+     * 获取对称加密SymmetricCrypto对象
+     *
+     * @return SymmetricCrypto对象
+     */
+    SymmetricCrypto getSymmetricCrypto();
 }

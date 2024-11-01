@@ -7,7 +7,7 @@ import com.doudoudrive.common.global.StatusCodeEnum;
 import com.doudoudrive.common.model.dto.request.DeleteElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateElasticsearchUserInfoRequestDTO;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.common.util.http.Result;
 import com.doudoudrive.search.manager.UserInfoSearchManager;
 import com.doudoudrive.search.model.convert.UserInfoModelConvert;
@@ -99,7 +99,7 @@ public class UserInfoSearchController {
     @SneakyThrows
     @OpLog(title = "登录用户名查询", businessType = "ES用户信息查询服务")
     @GetMapping(value = "/username-search", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    public Result<UsernameSearchResponseDTO> usernameSearch(String username, HttpServletRequest request, HttpServletResponse response) {
+    public Result<UserinfoSearchResponseDTO> usernameSearch(String username, HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
 
@@ -135,5 +135,25 @@ public class UserInfoSearchController {
             return Result.build(searchResponseDTO.getDescribe());
         }
         return Result.ok();
+    }
+
+    @SneakyThrows
+    @OpLog(title = "用户Id查询", businessType = "ES用户信息查询服务")
+    @GetMapping(produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    public Result<UserinfoSearchResponseDTO> userIdQuery(String userId, HttpServletRequest request, HttpServletResponse response) {
+        request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
+        response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 参数校验
+        if (StringUtils.isBlank(userId)) {
+            return Result.build(StatusCodeEnum.PARAM_INVALID);
+        }
+
+        // 根据用户系统内唯一标识查询指定用户信息
+        UserInfoDTO userInfoDTO = userInfoSearchManager.userIdQuery(userId);
+        if (userInfoDTO == null) {
+            return Result.build(StatusCodeEnum.USER_NO_EXIST);
+        }
+        return Result.ok(userInfoModelConvert.usernameSearchResponseConvert(userInfoDTO));
     }
 }

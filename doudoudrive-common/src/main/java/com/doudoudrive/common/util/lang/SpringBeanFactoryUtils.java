@@ -1,5 +1,6 @@
 package com.doudoudrive.common.util.lang;
 
+import lombok.Getter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -35,6 +36,7 @@ public class SpringBeanFactoryUtils implements BeanFactoryPostProcessor, Applica
     /**
      * Spring应用上下文环境
      */
+    @Getter
     private static ApplicationContext applicationContext;
 
     @Override
@@ -51,15 +53,6 @@ public class SpringBeanFactoryUtils implements BeanFactoryPostProcessor, Applica
         if (SpringBeanFactoryUtils.applicationContext == null) {
             SpringBeanFactoryUtils.applicationContext = applicationContext;
         }
-    }
-
-    /**
-     * 获取{@link ApplicationContext}
-     *
-     * @return {@link ApplicationContext}
-     */
-    public static ApplicationContext getApplicationContext() {
-        return applicationContext;
     }
 
     /**

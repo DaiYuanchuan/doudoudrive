@@ -84,11 +84,10 @@ public class FileEventListenerImpl implements FileEventListener {
         callbackRecordService.insert(callbackRecord);
 
         // 使用one-way模式发送消息，外部回调任务处理
-        String destination = ConstantConfig.Topic.DELAY_MESSAGE_QUEUE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.EXTERNAL_CALLBACK_TASK;
-        // 往MQ中发送的回调记录只需要业务id即可
-        rocketmqTemplate.sendOneWay(destination, MessageBuilder.build(CallbackRecord.builder()
+        MessageBuilder.sendOneWay(ConstantConfig.Topic.DELAY_MESSAGE_QUEUE_SERVICE, ConstantConfig.Tag.EXTERNAL_CALLBACK_TASK, CallbackRecord.builder()
+                // 往MQ中发送的回调记录只需要业务id即可
                 .businessId(callbackRecord.getBusinessId())
-                .build()));
+                .build(), rocketmqTemplate);
     }
 
     @Override

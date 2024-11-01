@@ -7,7 +7,11 @@ import com.doudoudrive.common.annotation.OpLog;
 import com.doudoudrive.common.constant.*;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.*;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.FileNestedModel;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.CreateFileConsumerRequestDTO;
 import com.doudoudrive.common.model.dto.request.DeleteFileConsumerRequestDTO;
@@ -23,6 +27,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskUserAttrService;
 import com.doudoudrive.commonservice.service.DiskUserService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.manager.*;
 import com.doudoudrive.file.model.convert.DiskFileConvert;
 import com.doudoudrive.file.model.dto.request.*;
@@ -31,8 +36,6 @@ import com.doudoudrive.file.model.dto.response.FileUploadTokenResponseDTO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,34 +69,18 @@ import java.util.Set;
 public class FileController {
 
     private LoginManager loginManager;
-
     private FileManager fileManager;
-
     private FileEventListener fileEventListener;
-
     private FileShareManager fileShareManager;
-
     private DiskFileConvert diskFileConvert;
-
     private DiskUserAttrService diskUserAttrService;
-
     private QiNiuManager qiNiuManager;
-
-    /**
-     * 数据字典模块服务
-     */
     private DiskDictionaryService diskDictionaryService;
-
-    /**
-     * RocketMQ消息模型
-     */
     private RocketMQTemplate rocketmqTemplate;
-
     private DiskUserService diskUserService;
-
     private OssFileManager ossFileManager;
-
     private DiskUserAttrManager diskUserAttrManager;
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
 
     @Autowired
     public void setLoginManager(LoginManager loginManager) {
@@ -153,6 +140,11 @@ public class FileController {
     @Autowired
     public void setDiskUserAttrManager(DiskUserAttrManager diskUserAttrManager) {
         this.diskUserAttrManager = diskUserAttrManager;
+    }
+
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
     }
 
     @SneakyThrows
@@ -315,8 +307,10 @@ public class FileController {
             String fileId = SequenceUtil.nextId(SequenceModuleEnum.DISK_FILE);
 
             // 创建文件
-            DiskFile diskFile = fileManager.createFile(diskFileConvert.ossFileConvertCreateFileAuthModel(ossFile, userInfo.getBusinessId(),
-                    tokenRequest.getName(), tokenRequest.getFileParentId()), fileId, totalDiskCapacity, usedDiskCapacity);
+            CreateFileAuthModel fileAuthModel = diskFileConvert.ossFileConvertCreateFileAuthModel(ossFile, userInfo.getBusinessId(),
+                    tokenRequest.getName(), tokenRequest.getFileParentId());
+            fileAuthModel.setToken(userToken);
+            DiskFile diskFile = fileManager.createFile(fileAuthModel, fileId, totalDiskCapacity, usedDiskCapacity);
             // 类型转换
             DiskFileModel fileModel = diskFileConvert.diskFileConvertDiskFileModel(diskFile);
             if (fileModel == null) {
@@ -415,17 +409,14 @@ public class FileController {
                 .toList();
 
         if (CollectionUtil.isNotEmpty(fileFolderList)) {
-            // 使用sync模式发送消息，保证消息发送成功，用于删除子文件夹下的所有文件
-            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE;
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
+            // 构建文件删除的消费者请求消息
+            DeleteFileConsumerRequestDTO delFileConsumerRequest = DeleteFileConsumerRequestDTO.builder()
                     .userId(userinfo.getBusinessId())
                     .businessId(fileFolderList)
-                    .build()));
-            // 判断消息是否发送成功
-            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                // 消息发送失败，抛出异常
-                BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-            }
+                    .build();
+            // 使用RocketMQ同步模式发送消息
+            MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.DELETE_FILE, delFileConsumerRequest,
+                    rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
         }
         return Result.ok();
     }
@@ -439,6 +430,11 @@ public class FileController {
                                HttpServletRequest request, HttpServletResponse response) {
         request.setCharacterEncoding(ConstantConfig.HttpRequest.UTF8);
         response.setContentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8);
+
+        // 需要移动的文件中不能包含目标文件夹
+        if (requestDTO.getBusinessId().contains(requestDTO.getTargetFolderId())) {
+            return Result.build(StatusCodeEnum.FILE_MOVE_FAILED);
+        }
 
         // 从缓存中获取当前登录的用户信息
         DiskUserModel userinfo = loginManager.getUserInfoToSessionException();
@@ -497,7 +493,7 @@ public class FileController {
         }
 
         // 解密签名字符串
-        FileAuthModel fileAuth = fileManager.decrypt(sign, FileAuthModel.class);
+        FileAuthModel fileAuth = diskDictionaryService.decrypt(sign, FileAuthModel.class);
         if (fileAuth == null || StringUtils.isBlank(fileAuth.getUserId()) || StringUtils.isBlank(fileAuth.getFileId())) {
             // 签名解密失败
             response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -564,24 +560,6 @@ public class FileController {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }
-
-        // 原子性服务增加用户已用流量属性，判断更新结果
-        Integer increase = diskUserAttrService.increase(userinfo.getUserInfo().getBusinessId(), ConstantConfig.UserAttrEnum.USED_TRAFFIC, fileInfo.getFileSize(), total);
-        if (increase <= NumberConstant.INTEGER_ZERO) {
-            if (NumberConstant.INTEGER_ZERO.equals(increase)) {
-                // 不等于 -1 时需要更新用户缓存信息，获取最新的已用数据
-                BigDecimal usedTrafficValue = diskUserAttrService.getDiskUserAttrValue(userinfo.getUserInfo().getBusinessId(), ConstantConfig.UserAttrEnum.USED_TRAFFIC);
-                userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficValue.add(fileSize).stripTrailingZeros().toPlainString());
-                loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
-            }
-            // 更新失败
-            response.setStatus(HttpStatus.FORBIDDEN.value());
-            return;
-        }
-
-        // 服务更新成功时需要更新用户缓存信息
-        userAttr.put(ConstantConfig.UserAttrEnum.USED_TRAFFIC.getParam(), usedTrafficBigDecimal.add(fileSize).stripTrailingZeros().toPlainString());
-        loginManager.attemptUpdateUserSession(userinfo.getToken(), userinfo.getUserInfo());
 
         // 响应成功的状态码
         response.setStatus(HttpStatus.NO_CONTENT.value());

@@ -19,7 +19,12 @@ public enum RedisLockEnum {
     /**
      * oss文件对象存储信息加锁，防止短时间内重复插入
      */
-    OSS_FILE_INSERT("OSS_FILE_INSERT");
+    OSS_FILE_INSERT("OSS_FILE_INSERT"),
+
+    /**
+     * MQ消费记录加锁，防止短时间内重复插入
+     */
+    MQ_CONSUMER_RECORD("MQ_CONSUMER_RECORD:");
 
     private final String lockName;
 

@@ -2,12 +2,8 @@ package com.doudoudrive.file.manager.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.symmetric.SymmetricAlgorithm;
-import cn.hutool.crypto.symmetric.SymmetricCrypto;
-import com.alibaba.fastjson.JSON;
 import com.doudoudrive.auth.manager.LoginManager;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
@@ -16,13 +12,16 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.constant.SequenceModuleEnum;
 import com.doudoudrive.common.global.BusinessExceptionUtil;
 import com.doudoudrive.common.global.StatusCodeEnum;
-import com.doudoudrive.common.model.dto.model.*;
+import com.doudoudrive.common.model.dto.model.DiskFileModel;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.FileReviewConfig;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.FileAuthModel;
 import com.doudoudrive.common.model.dto.model.qiniu.QiNiuUploadConfig;
 import com.doudoudrive.common.model.dto.request.*;
-import com.doudoudrive.common.model.dto.response.DeleteElasticsearchDiskFileResponseDTO;
+import com.doudoudrive.common.model.dto.response.DeleteElasticsearchResponseDTO;
 import com.doudoudrive.common.model.dto.response.QueryElasticsearchDiskFileResponseDTO;
 import com.doudoudrive.common.model.pojo.DiskFile;
-import com.doudoudrive.common.model.pojo.FileRecord;
 import com.doudoudrive.common.model.pojo.OssFile;
 import com.doudoudrive.common.rocketmq.MessageBuilder;
 import com.doudoudrive.common.util.date.DateUtils;
@@ -33,6 +32,7 @@ import com.doudoudrive.common.util.lang.SequenceUtil;
 import com.doudoudrive.commonservice.constant.TransactionManagerConstant;
 import com.doudoudrive.commonservice.service.DiskDictionaryService;
 import com.doudoudrive.commonservice.service.DiskFileService;
+import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
 import com.doudoudrive.file.client.DiskFileSearchFeignClient;
 import com.doudoudrive.file.manager.DiskUserAttrManager;
 import com.doudoudrive.file.manager.FileManager;
@@ -44,11 +44,8 @@ import com.doudoudrive.file.model.dto.request.CreateFileRollbackConsumerRequestD
 import com.doudoudrive.file.model.dto.response.FileSearchResponseDTO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import io.netty.util.concurrent.FastThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -74,32 +71,17 @@ import java.util.stream.Collectors;
 public class FileManagerImpl implements FileManager {
 
     private CacheManagerConfig cacheManagerConfig;
-
     private DiskFileService diskFileService;
-
     private OssFileManager ossFileManager;
-
     private DiskFileConvert diskFileConvert;
-
     private DiskFileSearchFeignClient diskFileSearchFeignClient;
-
-    /**
-     * 数据字典模块服务
-     */
     private DiskDictionaryService diskDictionaryService;
-
     private LoginManager loginManager;
-
     private FileRecordManager fileRecordManager;
-
-    /**
-     * RocketMQ消息模型
-     */
     private RocketMQTemplate rocketmqTemplate;
-
     private FileRecordConvert fileRecordConvert;
-
     private DiskUserAttrManager diskUserAttrManager;
+    private RocketmqConsumerRecordService rocketmqConsumerRecordService;
 
     @Autowired
     public void setCacheManagerConfig(CacheManagerConfig cacheManagerConfig) {
@@ -156,6 +138,11 @@ public class FileManagerImpl implements FileManager {
         this.diskUserAttrManager = diskUserAttrManager;
     }
 
+    @Autowired
+    public void setRocketmqConsumerRecordService(RocketmqConsumerRecordService rocketmqConsumerRecordService) {
+        this.rocketmqConsumerRecordService = rocketmqConsumerRecordService;
+    }
+
     /**
      * 重置文件名时需要使用到的日期格式
      */
@@ -175,11 +162,6 @@ public class FileManagerImpl implements FileManager {
      * 文件名字段长度
      */
     private static final Integer FILE_NAME_LENGTH = NumberConstant.INTEGER_EIGHT * NumberConstant.INTEGER_TEN;
-
-    /**
-     * 对称加密对象本地缓存线程
-     */
-    private static final FastThreadLocal<SymmetricCrypto> SYMMETRIC_CRYPTO_CACHE = new FastThreadLocal<>();
 
     /**
      * 创建文件夹
@@ -246,31 +228,20 @@ public class FileManagerImpl implements FileManager {
                     ConstantConfig.FileRecordAction.ActionEnum.FILE, ConstantConfig.FileRecordAction.ActionTypeEnum.BE_DELETED);
             // 用户文件信息先入库，然后入es
             this.saveElasticsearchDiskFile(Collections.singletonList(userFile));
-            // 尝试通过token获取用户信息
-            Optional.ofNullable(loginManager.getUserInfoToToken(fileInfo.getToken())).ifPresent(userInfo -> {
-                // 更新已用容量
-                String usedCapacity = usedDiskCapacity.add(new BigDecimal(ossFile.getSize())).stripTrailingZeros().toPlainString();
-                userInfo.getUserAttr().put(ConstantConfig.UserAttrEnum.USED_DISK_CAPACITY.getParam(), usedCapacity);
-                // 尝试更新用户缓存信息
-                loginManager.attemptUpdateUserSession(fileInfo.getToken(), userInfo);
-            });
+            // 通过token尝试更新用户缓存信息
+            loginManager.attemptUpdateUserSession(fileInfo.getToken(), userFile.getUserId());
             return userFile;
         } catch (Exception e) {
             // 发送MQ消息，异步回滚文件和用户磁盘容量数据
-            String destination = ConstantConfig.Topic.FILE_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.CREATE_FILE_ROLLBACK;
-            // 使用sync模式发送消息，保证消息发送成功
-            SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(CreateFileRollbackConsumerRequestDTO.builder()
+            CreateFileRollbackConsumerRequestDTO copyFileConsumerRequest = CreateFileRollbackConsumerRequestDTO.builder()
                     .userId(userFile.getUserId())
                     .fileId(userFile.getBusinessId())
                     .size(ossFile.getSize())
                     .retryCount(NumberConstant.INTEGER_ZERO)
-                    .build()));
-            // 判断消息是否发送成功
-            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                log.error("send to mq, destination:{}, msgId:{}, sendStatus:{}, errorMsg:{}, sendResult:{}, fileId:{}",
-                        destination, sendResult.getMsgId(), sendResult.getSendStatus(), e.getMessage(), sendResult, userFile.getBusinessId());
-            }
-            log.error(e.getMessage(), e);
+                    .build();
+            // 使用RocketMQ同步模式发送消息
+            MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SERVICE, ConstantConfig.Tag.CREATE_FILE_ROLLBACK, copyFileConsumerRequest,
+                    rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
             return null;
         }
     }
@@ -346,7 +317,7 @@ public class FileManagerImpl implements FileManager {
         List<String> allFileIdList = new ArrayList<>();
 
         // 构建文件操作记录信息
-        List<FileRecord> fileRecordList = new ArrayList<>();
+        List<SaveElasticsearchFileRecordRequestDTO> fileRecordList = new ArrayList<>();
 
         // 当前删除的文件大小总量
         BigDecimal totalSize = BigDecimal.ZERO;
@@ -379,24 +350,21 @@ public class FileManagerImpl implements FileManager {
         for (List<String> allFileId : CollectionUtil.collectionCutting(allFileIdList, NumberConstant.LONG_ONE_THOUSAND)) {
             try {
                 // 删除es中保存的用户文件信息
-                Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticResponse = diskFileSearchFeignClient.deleteElasticsearchDiskFile(DeleteElasticsearchDiskFileRequestDTO.builder()
+                Result<DeleteElasticsearchResponseDTO> deleteElasticResponse = diskFileSearchFeignClient.deleteElasticsearchDiskFile(DeleteElasticsearchDiskFileRequestDTO.builder()
                         .businessId(allFileId)
                         .build());
                 if (Result.isNotSuccess(deleteElasticResponse)) {
                     BusinessExceptionUtil.throwBusinessException(deleteElasticResponse);
                 }
             } catch (Exception e) {
-                // 出现异常时，使用sync模式发送MQ消息，保证数据会被删除
-                String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.DELETE_FILE_ES;
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(DeleteFileConsumerRequestDTO.builder()
+                // 构建文件删除的消费者消息
+                DeleteFileConsumerRequestDTO delFileConsumerRequest = DeleteFileConsumerRequestDTO.builder()
                         .userId(userId)
                         .businessId(allFileId)
-                        .build()));
-                // 判断消息是否发送成功
-                if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                    // 消息发送失败，抛出异常
-                    BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-                }
+                        .build();
+                // 使用RocketMQ同步模式发送消息
+                MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SEARCH_SERVICE, ConstantConfig.Tag.DELETE_FILE_ES, delFileConsumerRequest,
+                        rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
             }
         }
     }
@@ -682,55 +650,6 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
-     * 文件鉴权参数加密
-     *
-     * @param object 需要鉴权的参数对象
-     * @return 加密后的签名
-     */
-    @Override
-    public String encrypt(Object object) {
-        // 获取对称加密SymmetricCrypto对象
-        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
-        return symmetricCrypto.encryptBase64(JSON.toJSONString(object));
-    }
-
-    /**
-     * 文件访问签名解密
-     *
-     * @param sign  签名
-     * @param clazz 签名解密后需要转换的对象类
-     * @return 解密后的对象串
-     */
-    @Override
-    public <T> T decrypt(String sign, Class<T> clazz) {
-        try {
-            // 获取解密后的内容
-            return JSON.parseObject(this.decrypt(sign), clazz);
-        } catch (Exception e) {
-            // 出现异常响应null值
-            return null;
-        }
-    }
-
-    /**
-     * 获取对称加密SymmetricCrypto对象
-     *
-     * @return SymmetricCrypto对象
-     */
-    @Override
-    public SymmetricCrypto getSymmetricCrypto() {
-        // 获取本地缓存对象
-        SymmetricCrypto symmetricCrypto = SYMMETRIC_CRYPTO_CACHE.get();
-        if (symmetricCrypto == null) {
-            // 获取全局对称加密密钥
-            String cipher = diskDictionaryService.getDictionary(DictionaryConstant.CIPHER, String.class);
-            symmetricCrypto = new SymmetricCrypto(SymmetricAlgorithm.AES, cipher.getBytes(StandardCharsets.UTF_8));
-            SYMMETRIC_CRYPTO_CACHE.set(symmetricCrypto);
-        }
-        return symmetricCrypto;
-    }
-
-    /**
      * 加密游标数据
      *
      * @param marker 游标数据
@@ -738,7 +657,7 @@ public class FileManagerImpl implements FileManager {
      */
     @Override
     public String encryptMarker(List<Object> marker) {
-        return this.encrypt(FileAuthModel.builder()
+        return diskDictionaryService.encrypt(FileAuthModel.builder()
                 .timestamp(System.currentTimeMillis())
                 .sortValues(marker)
                 .build());
@@ -753,7 +672,7 @@ public class FileManagerImpl implements FileManager {
     @Override
     public List<Object> decryptMarker(String marker) {
         if (StringUtils.isNotBlank(marker)) {
-            FileAuthModel content = this.decrypt(marker, FileAuthModel.class);
+            FileAuthModel content = diskDictionaryService.decrypt(marker, FileAuthModel.class);
             if (content == null || CollectionUtil.isEmpty(content.getSortValues())) {
                 BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.INVALID_MARKER);
             }
@@ -804,7 +723,7 @@ public class FileManagerImpl implements FileManager {
         authModel.setFileId(fileModel.getBusinessId());
         // 生成鉴权签名前执行回调函数
         Optional.ofNullable(consumer).ifPresent(accessUrlConsumer -> accessUrlConsumer.accept(authModel));
-        String sign = this.encrypt(authModel);
+        String sign = diskDictionaryService.encrypt(authModel);
 
         // 获取文件预览、下载地址
         fileModel.setPreview(this.previewUrl(config, reviewConfig, sign, fileModel.getFileMimeType(), fileModel.getFileEtag()));
@@ -894,24 +813,6 @@ public class FileManagerImpl implements FileManager {
     }
 
     /**
-     * 签名解密
-     *
-     * @param sign 签名
-     * @return 解密后的字符串
-     */
-    private String decrypt(String sign) {
-        // 获取对称加密SymmetricCrypto对象
-        SymmetricCrypto symmetricCrypto = this.getSymmetricCrypto();
-        try {
-            // 获取解密后的内容
-            return symmetricCrypto.decryptStr(sign, CharsetUtil.CHARSET_UTF_8);
-        } catch (Exception e) {
-            // 出现异常响应null值
-            return null;
-        }
-    }
-
-    /**
      * 在es中保存用户文件信息，保存失败时会写入MQ消息队列
      *
      * @param diskFile 用户文件模块实体类
@@ -921,23 +822,20 @@ public class FileManagerImpl implements FileManager {
             // 文件数据类型转换
             List<SaveElasticsearchDiskFileRequestDTO> fileInfo = diskFileConvert.diskFileConvertSaveElasticsearchDiskFileRequest(fileList);
             try {
-                Result<String> saveElasticsearchResult = diskFileSearchFeignClient.saveElasticsearchDiskFile(SaveBatchElasticsearchDiskFileRequestDTO.builder()
+                Result<String> saveElasticsearchResult = diskFileSearchFeignClient.saveElasticsearchDiskFile(BatchSaveElasticsearchDiskFileRequestDTO.builder()
                         .fileInfo(fileInfo)
                         .build());
                 if (Result.isNotSuccess(saveElasticsearchResult)) {
                     BusinessExceptionUtil.throwBusinessException(saveElasticsearchResult);
                 }
             } catch (Exception e) {
-                // 出现异常时，使用sync模式发送MQ消息，保证数据会被添加到MQ消息队列中
-                String destination = ConstantConfig.Topic.FILE_SEARCH_SERVICE + ConstantConfig.SpecialSymbols.ENGLISH_COLON + ConstantConfig.Tag.SAVE_FILE_ES;
-                SendResult sendResult = rocketmqTemplate.syncSend(destination, MessageBuilder.build(SaveFileConsumerRequestDTO.builder()
+                // 构建保存文件信息的消费者消息
+                SaveFileConsumerRequestDTO saveFileConsumerRequest = SaveFileConsumerRequestDTO.builder()
                         .fileInfo(fileInfo)
-                        .build()));
-                // 判断消息是否发送成功
-                if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
-                    // 消息发送失败，抛出异常
-                    BusinessExceptionUtil.throwBusinessException(StatusCodeEnum.ROCKETMQ_SEND_MESSAGE_FAILED);
-                }
+                        .build();
+                // 使用RocketMQ同步模式发送消息
+                MessageBuilder.syncSend(ConstantConfig.Topic.FILE_SEARCH_SERVICE, ConstantConfig.Tag.SAVE_FILE_ES, saveFileConsumerRequest,
+                        rocketmqTemplate, consumerRecord -> rocketmqConsumerRecordService.insert(consumerRecord));
             }
         });
     }

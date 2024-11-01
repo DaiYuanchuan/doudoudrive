@@ -4,6 +4,8 @@ import com.doudoudrive.common.util.http.Result;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
+
 /**
  * <p>业务自定义异常</p>
  * <p>2022-03-21 17:29</p>
@@ -13,6 +15,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class BusinessException extends RuntimeException {
+
+    @Serial
+    private static final long serialVersionUID = 401050577231711465L;
 
     /**
      * 业务异常错误码

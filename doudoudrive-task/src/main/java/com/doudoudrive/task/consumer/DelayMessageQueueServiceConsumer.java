@@ -11,6 +11,7 @@ import com.doudoudrive.common.model.convert.MqConsumerRecordConvert;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.pojo.CallbackRecord;
 import com.doudoudrive.common.model.pojo.RocketmqConsumerRecord;
+import com.doudoudrive.common.rocketmq.InterceptorHook;
 import com.doudoudrive.commonservice.service.CallbackRecordService;
 import com.doudoudrive.commonservice.service.GlobalThreadPoolService;
 import com.doudoudrive.commonservice.service.RocketmqConsumerRecordService;
@@ -34,7 +35,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RocketmqListener(topic = ConstantConfig.Topic.DELAY_MESSAGE_QUEUE_SERVICE, consumerGroup = ConstantConfig.ConsumerGroup.DELAY_MESSAGE_QUEUE)
-public class DelayMessageQueueServiceConsumer {
+public class DelayMessageQueueServiceConsumer implements InterceptorHook {
 
     /**
      * 请求id，16位随机字符串，包含大小写
@@ -87,77 +88,100 @@ public class DelayMessageQueueServiceConsumer {
      */
     @RocketmqTagDistribution(messageClass = CallbackRecord.class, tag = ConstantConfig.Tag.EXTERNAL_CALLBACK_TASK)
     public void createFileConsumer(CallbackRecord record, MessageContext messageContext) {
-        // 构建消息消费记录
-        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext,
-                ConstantConfig.Topic.DELAY_MESSAGE_QUEUE_SERVICE, ConstantConfig.Tag.EXTERNAL_CALLBACK_TASK);
-
-        try {
-            // 保存消息消费记录
-            rocketmqConsumerRecordService.insertException(consumerRecord);
-
-            // 更新回调记录状态为执行中
-            Boolean result = callbackRecordService.updateStatusToExecute(record.getBusinessId());
-            if (!result) {
-                return;
-            }
-
-            // 通过业务id获取回调记录
-            CallbackRecord callbackRecord = callbackRecordService.getCallbackRecord(record.getBusinessId());
-
-            // 构建回调地址初始化请求头配置Map
-            Map<String, String> header = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_THREE);
-            header.put(REQUEST_ID, record.getBusinessId());
-            header.put(ConstantConfig.HttpRequest.USER_AGENT, USER_AGENT_CALLBACK);
-            header.put(ConstantConfig.HttpRequest.HOST, URI.create(callbackRecord.getHttpUrl()).getHost());
-
-            // 多线程异步发送回调请求
-            globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.THIRD_PARTY_CALLBACK, () -> {
-                record.setSendTime(LocalDateTime.now());
-
-                // 构建回调请求
-                long start = System.currentTimeMillis();
-                try (cn.hutool.http.HttpResponse execute = HttpRequest.post(callbackRecord.getHttpUrl())
-                        .headerMap(header, Boolean.TRUE)
-                        .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
-                        .charset(StandardCharsets.UTF_8)
-                        .body(callbackRecord.getRequestBody().getBytes(StandardCharsets.UTF_8))
-                        .timeout(TIMEOUT)
-                        .execute()) {
-                    record.setHttpStatus(String.valueOf(execute.getStatus()));
-                    record.setResponseBody(execute.body());
-                    record.setSendStatus(execute.isOk() ? ConstantConfig.CallbackStatusEnum.SUCCESS.getStatus() : ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    // 异常时，设置回调状态为失败，记录异常信息
-                    record.setResponseBody(e.getMessage());
-                    record.setSendStatus(ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
-                } finally {
-                    record.setCostTime(System.currentTimeMillis() - start);
-                    // 出现失败时，重试次数+1，扔到延迟队列中
-                    if (ConstantConfig.CallbackStatusEnum.FAIL.getStatus().equals(record.getSendStatus())) {
-                        // 设置重试次数
-                        Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO) + NumberConstant.INTEGER_ONE;
-                        if (retry <= NumberConstant.INTEGER_THREE) {
-                            record.setRetry(retry);
-                            record.setSendStatus(ConstantConfig.CallbackStatusEnum.WAIT.getStatus());
-
-                            // 获取消息重试级别
-                            Optional.ofNullable(ConstantConfig.RetryLevelEnum.getLevel(record.getRetry())).ifPresent(level -> {
-                                // 构建延迟消息体
-                                CallbackRecord delayedMessage = CallbackRecord.builder()
-                                        .businessId(callbackRecord.getBusinessId())
-                                        .build();
-                                // 扔到延迟队列中
-                                redisDelayedQueue.offer(RedisDelayedQueueEnum.EXTERNAL_CALLBACK_TASK, level.getDelay(), level.getTimeUnit(), delayedMessage);
-                            });
-                        }
-                    }
-                    // 更新回调记录
-                    callbackRecordService.update(record);
-                }
-            });
-        } catch (Exception e) {
-            log.error("errorMsg:{}，消费记录：{}", e.getMessage(), consumerRecord, e);
+        // 更新回调记录状态为执行中
+        Boolean result = callbackRecordService.updateStatusToExecute(record.getBusinessId());
+        if (!result) {
+            return;
         }
+
+        // 通过业务id获取回调记录
+        CallbackRecord callbackRecord = callbackRecordService.getCallbackRecord(record.getBusinessId());
+
+        // 构建回调地址初始化请求头配置Map
+        Map<String, String> header = Maps.newHashMapWithExpectedSize(NumberConstant.INTEGER_THREE);
+        header.put(REQUEST_ID, record.getBusinessId());
+        header.put(ConstantConfig.HttpRequest.USER_AGENT, USER_AGENT_CALLBACK);
+        header.put(ConstantConfig.HttpRequest.HOST, URI.create(callbackRecord.getHttpUrl()).getHost());
+
+        // 多线程异步发送回调请求
+        globalThreadPoolService.submit(ConstantConfig.ThreadPoolEnum.THIRD_PARTY_CALLBACK, () -> {
+            record.setSendTime(LocalDateTime.now());
+
+            // 构建回调请求
+            long start = System.currentTimeMillis();
+            try (cn.hutool.http.HttpResponse execute = HttpRequest.post(callbackRecord.getHttpUrl())
+                    .headerMap(header, Boolean.TRUE)
+                    .contentType(ConstantConfig.HttpRequest.CONTENT_TYPE_JSON)
+                    .charset(StandardCharsets.UTF_8)
+                    .body(callbackRecord.getRequestBody().getBytes(StandardCharsets.UTF_8))
+                    .timeout(TIMEOUT)
+                    .execute()) {
+                record.setHttpStatus(String.valueOf(execute.getStatus()));
+                record.setResponseBody(execute.body());
+                record.setSendStatus(execute.isOk() ? ConstantConfig.CallbackStatusEnum.SUCCESS.getStatus() : ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                // 异常时，设置回调状态为失败，记录异常信息
+                record.setResponseBody(e.getMessage());
+                record.setSendStatus(ConstantConfig.CallbackStatusEnum.FAIL.getStatus());
+            } finally {
+                record.setCostTime(System.currentTimeMillis() - start);
+                // 出现失败时，重试次数+1，扔到延迟队列中
+                if (ConstantConfig.CallbackStatusEnum.FAIL.getStatus().equals(record.getSendStatus())) {
+                    // 设置重试次数
+                    Integer retry = Optional.ofNullable(callbackRecord.getRetry()).orElse(NumberConstant.INTEGER_ZERO) + NumberConstant.INTEGER_ONE;
+                    if (retry <= NumberConstant.INTEGER_THREE) {
+                        record.setRetry(retry);
+                        record.setSendStatus(ConstantConfig.CallbackStatusEnum.WAIT.getStatus());
+
+                        // 获取消息重试级别
+                        Optional.ofNullable(ConstantConfig.RetryLevelEnum.getLevel(record.getRetry())).ifPresent(level -> {
+                            // 构建延迟消息体
+                            CallbackRecord delayedMessage = CallbackRecord.builder()
+                                    .businessId(callbackRecord.getBusinessId())
+                                    .build();
+                            // 扔到延迟队列中
+                            redisDelayedQueue.offer(RedisDelayedQueueEnum.EXTERNAL_CALLBACK_TASK, level.getDelay(), level.getTimeUnit(), delayedMessage);
+                        });
+                    }
+                }
+                // 更新回调记录
+                callbackRecordService.update(record);
+            }
+        });
+    }
+
+    /**
+     * 方法执行前的拦截
+     *
+     * @param body           消息体
+     * @param messageContext 方法执行的参数
+     */
+    @Override
+    public void preHandle(byte[] body, MessageContext messageContext) {
+        // 构建消息消费记录
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, body);
+        consumerRecord.setStatus(ConstantConfig.RocketmqConsumerStatusEnum.CONSUMING.getStatus());
+        // 保存消息消费记录，保存失败时阻止消费方法的执行
+        rocketmqConsumerRecordService.insertException(consumerRecord);
+    }
+
+    /**
+     * 方法执行后的拦截
+     *
+     * @param methodSuccess  方法是否回调成功
+     * @param body           消息体
+     * @param messageContext 方法执行的参数
+     */
+    @Override
+    public void nextHandle(boolean methodSuccess, byte[] body, MessageContext messageContext) {
+        // 构建消息消费记录
+        RocketmqConsumerRecord consumerRecord = consumerRecordConvert.messageContextConvertConsumerRecord(messageContext, null);
+        // 根据方法执行结果设置消费记录的状态信息
+        ConstantConfig.RocketmqConsumerStatusEnum status = methodSuccess
+                ? ConstantConfig.RocketmqConsumerStatusEnum.COMPLETED
+                : ConstantConfig.RocketmqConsumerStatusEnum.WAIT;
+        // 更新消费记录状态信息
+        rocketmqConsumerRecordService.updateConsumerStatus(consumerRecord.getBusinessId(), consumerRecord.getSendTime(), status);
     }
 }

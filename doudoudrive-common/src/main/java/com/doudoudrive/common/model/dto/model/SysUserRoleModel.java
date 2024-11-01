@@ -1,5 +1,6 @@
 package com.doudoudrive.common.model.dto.model;
 
+import com.doudoudrive.common.model.dto.model.auth.SysUserAuthModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

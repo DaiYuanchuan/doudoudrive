@@ -2,7 +2,7 @@ package com.doudoudrive.search.model.convert;
 
 import com.doudoudrive.common.model.dto.request.SaveElasticsearchUserInfoRequestDTO;
 import com.doudoudrive.common.model.dto.request.UpdateElasticsearchUserInfoRequestDTO;
-import com.doudoudrive.common.model.dto.response.UsernameSearchResponseDTO;
+import com.doudoudrive.common.model.dto.response.UserinfoSearchResponseDTO;
 import com.doudoudrive.search.model.elasticsearch.UserInfoDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueCheckStrategy;
@@ -38,11 +38,11 @@ public interface UserInfoModelConvert {
     UserInfoDTO updateElasticsearchUserInfoRequestConvert(UpdateElasticsearchUserInfoRequestDTO requestDTO);
 
     /**
-     * 将 UserInfoDTO(用户实体信息ES数据模型) 类型转换为 UsernameSearchResponseDTO(通过用户名查询用户信息请求的响应数据模型)
+     * 将 UserInfoDTO(用户实体信息ES数据模型) 类型转换为 UserinfoSearchResponseDTO(用户信息查询时请求的响应数据模型)
      *
      * @param userInfoDTO 用户实体信息ES数据模型
-     * @return 通过用户名查询用户信息请求的响应数据模型
+     * @return 用户信息查询时请求的响应数据模型
      */
-    UsernameSearchResponseDTO usernameSearchResponseConvert(UserInfoDTO userInfoDTO);
+    UserinfoSearchResponseDTO usernameSearchResponseConvert(UserInfoDTO userInfoDTO);
 
 }

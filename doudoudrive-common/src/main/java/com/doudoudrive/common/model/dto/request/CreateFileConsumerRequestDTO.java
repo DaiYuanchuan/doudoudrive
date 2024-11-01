@@ -1,6 +1,6 @@
 package com.doudoudrive.common.model.dto.request;
 
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

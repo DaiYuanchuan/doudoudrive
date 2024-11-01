@@ -5,7 +5,9 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Setter;
 
+import javax.validation.constraints.Max;
 import java.util.Optional;
 
 /**
@@ -21,11 +23,14 @@ public class PageBean {
     /**
      * 页码, 第几页
      */
+    @Setter
+    @Max(value = 500, message = "超出最大支持分页数500")
     private Integer page;
 
     /**
      * 每页大小、记录数
      */
+    @Setter
     private Integer pageSize;
 
     /**
@@ -65,28 +70,12 @@ public class PageBean {
     }
 
     /**
-     * 第几页
-     */
-    public void setPage(Integer page) {
-        this.page = page;
-    }
-
-    /**
      * 每页记录数
      *
      * @return 返回每页的大小，默认为10，最小为1，最大100
      */
     public Integer getPageSize() {
         return Math.min(Math.max(Optional.ofNullable(pageSize).orElse(NumberConstant.INTEGER_TEN), NumberConstant.INTEGER_ONE), NumberConstant.INTEGER_HUNDRED);
-    }
-
-    /**
-     * 每页记录数
-     *
-     * @param pageSize 每页的大小
-     */
-    public void setPageSize(Integer pageSize) {
-        this.pageSize = pageSize;
     }
 
     /**

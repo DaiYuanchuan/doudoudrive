@@ -48,4 +48,9 @@ public interface DictionaryConstant {
      */
     String THREAD_POOL_CONFIG = "threadPoolConfig";
 
+    /**
+     * MinIO 对象存储相关配置
+     */
+    String MINIO_CONFIG = "minioConfig";
+
 }

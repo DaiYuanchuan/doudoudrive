@@ -26,7 +26,7 @@ public interface DiskFileSearchFeignClient {
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<String> saveElasticsearchDiskFile(@RequestBody SaveBatchElasticsearchDiskFileRequestDTO requestDTO);
+    Result<String> saveElasticsearchDiskFile(@RequestBody BatchSaveElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 删除es中保存的用户文件信息
@@ -35,7 +35,7 @@ public interface DiskFileSearchFeignClient {
      * @return 通用状态返回类
      */
     @PostMapping(value = "/search/file/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<DeleteElasticsearchDiskFileResponseDTO> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
+    Result<DeleteElasticsearchResponseDTO> deleteElasticsearchDiskFile(@RequestBody DeleteElasticsearchDiskFileRequestDTO requestDTO);
 
     /**
      * 批量更新es中保存的用户文件信息
@@ -91,7 +91,7 @@ public interface DiskFileSearchFeignClient {
      * @return 返回删除结果
      */
     @PostMapping(value = "/search/file-share/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
-    Result<DeleteElasticsearchFileShareResponseDTO> cancelShare(@RequestBody DeleteElasticsearchFileShareRequestDTO cancelShareRequest);
+    Result<DeleteElasticsearchResponseDTO> cancelShare(@RequestBody DeleteElasticsearchFileShareRequestDTO cancelShareRequest);
 
     /**
      * 根据用户标识搜索es文件分享记录信息
@@ -111,5 +111,34 @@ public interface DiskFileSearchFeignClient {
      */
     @PostMapping(value = "/search/file-share/id", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
     Result<QueryElasticsearchFileShareIdResponseDTO> shareIdResponse(@RequestBody QueryElasticsearchFileShareIdRequestDTO shareIdRequest);
+
+    // ============================================= 以下为文件操作记录搜索 ==============================================
+
+    /**
+     * 保存文件操作记录
+     *
+     * @param saveFileRecordRequest 批量保存es文件临时操作记录信息时的请求数据模型
+     * @return 通用状态返回类
+     */
+    @PostMapping(value = "/search/file-record/save", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<String> saveFileRecord(@RequestBody BatchSaveElasticsearchFileRecordRequestDTO saveFileRecordRequest);
+
+    /**
+     * 删除文件操作记录
+     *
+     * @param deleteFileRecordRequest 删除es文件临时操作记录信息时的请求数据模型
+     * @return 删除es信息时的通用响应数据模型
+     */
+    @PostMapping(value = "/search/file-record/delete", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<DeleteElasticsearchResponseDTO> deleteFileRecord(DeleteElasticsearchFileRecordRequestDTO deleteFileRecordRequest);
+
+    /**
+     * 指定动作标识查询文件操作记录信息
+     *
+     * @param deleteFileRecordRequest 搜索es文件临时操作记录信息时的请求数据模型
+     * @return 搜索es文件临时操作记录信息时的响应数据模型
+     */
+    @PostMapping(value = "/search/file-record", produces = ConstantConfig.HttpRequest.CONTENT_TYPE_JSON_UTF8)
+    Result<List<QueryElasticsearchFileRecordResponseDTO>> fileRecordSearch(QueryElasticsearchFileRecordRequestDTO deleteFileRecordRequest);
 
 }

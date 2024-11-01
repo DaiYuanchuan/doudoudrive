@@ -216,6 +216,22 @@ public class RedisTemplateClient {
     }
 
     /**
+     * SCARD 命令用于获取集合(Set)中成员的数量，这个命令的语法如下：
+     * <pre>
+     *     sCard key
+     *     其中，key 是指定集合的键名。
+     *     例如：sCard mySet
+     *     若 key 不存在时，则返回 0，否则返回集合 mySet 中元素的数量
+     * </pre>
+     *
+     * @param key 键
+     * @return 返回集合中元素的数量，如果集合不存在，则返回 0
+     */
+    public Long getSetSize(String key) {
+        return redisTemplate.opsForSet().size(key);
+    }
+
+    /**
      * sisMember命令用于判断一个值是否在集合(Set)中，这个命令的语法如下：
      * <pre>
      *     sisMember key member
@@ -531,6 +547,23 @@ public class RedisTemplateClient {
         }
         // 当增量不为null时，使用incrBy命令
         return redisTemplate.opsForValue().increment(key, delta);
+    }
+
+    /**
+     * hIncrBy key field increment 命令，原子性操作将 Hash 结构中的 key 储存的数字值增加 increment
+     *
+     * @param hashKey 缓存键
+     * @param field   哈希键
+     * @param delta   增量，incrBy命令允许此值为负数
+     * @return 增加后的值
+     */
+    public Long increment(String hashKey, String field, Long delta) {
+        if (delta == null) {
+            // 当增量为null时，使用incr命令，增量默认为1
+            delta = NumberConstant.LONG_ONE;
+        }
+        // 当增量不为null时，使用incrBy命令
+        return redisTemplate.opsForHash().increment(hashKey, field, delta);
     }
 
     /**

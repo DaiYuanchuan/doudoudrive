@@ -34,7 +34,9 @@ public class MessageHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("开始消费，msgId={}，msg={}", msg.getMsgId(), msg);
                 }
-                listener.onMessage(MessageBuilder.convert(msg.getBody()), msg.getBody(), messageContext);
+                // 消费者接受的消息类型
+                Class<?> type = listener.getConsumerConfig().getTags().get(msg.getTags());
+                listener.onMessage(msg.getBody(), type, messageContext);
                 if (log.isDebugEnabled()) {
                     log.debug("消费完成");
                 }

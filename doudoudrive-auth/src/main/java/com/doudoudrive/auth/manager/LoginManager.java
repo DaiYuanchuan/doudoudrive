@@ -57,11 +57,11 @@ public interface LoginManager {
     UserLoginResponseDTO getUserInfoToTokenSession(String token);
 
     /**
-     * 尝试去更新指定用户的会话缓存信息
+     * 尝试去更新指定用户的会话缓存信息，忽略出现的异常
      *
-     * @param token    需要更新的用户token
-     * @param userInfo 当前需要更新缓存的用户数据
+     * @param token  需要更新的用户token
+     * @param userId 当前需要更新缓存信息的用户标识
      */
-    void attemptUpdateUserSession(String token, DiskUserModel userInfo);
+    void attemptUpdateUserSession(String token, String userId);
 
 }

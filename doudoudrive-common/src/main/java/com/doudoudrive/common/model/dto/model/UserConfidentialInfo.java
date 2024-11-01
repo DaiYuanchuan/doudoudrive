@@ -27,6 +27,11 @@ public class UserConfidentialInfo implements Serializable {
     private String businessId;
 
     /**
+     * 用户名
+     */
+    private String userName;
+
+    /**
      * 用户邮箱
      */
     private String userEmail;
@@ -46,5 +51,9 @@ public class UserConfidentialInfo implements Serializable {
      */
     private String userSalt;
 
+    /**
+     * 原始用户名密码的MD5值，取值为:MD5({username}#{pwd})，用于回调、鉴权时的加密用
+     */
+    private String secretKey;
 
 }

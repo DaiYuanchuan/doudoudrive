@@ -70,4 +70,10 @@ public class CreateFileCallbackRequestDTO implements Serializable {
      */
     private Long timestamp;
 
+    /**
+     * 鉴权字段，用于验证请求的合法性
+     * MD5(用户密码)
+     */
+    private String authorization;
+
 }

@@ -8,6 +8,7 @@ import com.doudoudrive.common.global.ConsumeException;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.dto.model.SubscriptionGroup;
 import com.google.common.collect.Maps;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -26,6 +27,7 @@ public class RocketmqListenerMethodAdapter implements RocketmqConsumerListener {
 
     private ConsumerConfig consumerConfig;
 
+    @Setter
     private MethodInvoker invoker;
 
     public RocketmqListenerMethodAdapter(SubscriptionGroup subscriptionGroup) {
@@ -36,28 +38,25 @@ public class RocketmqListenerMethodAdapter implements RocketmqConsumerListener {
     /**
      * 讯息处理
      *
-     * @param message        接收到的消息
      * @param body           消息体
+     * @param type           消费者接受的消息类型
      * @param messageContext 消息的上下文信息
      * @throws ConsumeException 抛出自定义消费者异常
      */
     @Override
-    public void onMessage(Object message, byte[] body, MessageContext messageContext) throws ConsumeException {
-        if (log.isDebugEnabled()) {
-            log.debug("received message:{}", message.toString());
-        }
+    public void onMessage(byte[] body, Class<?> type, MessageContext messageContext) throws ConsumeException {
         String tag = messageContext.getMessageExt().getTags();
         Method method = this.subscriptionGroup.getMethod(tag);
         Object delegate = this.subscriptionGroup.getTarget();
         if (method != null) {
             try {
-                invoker.invoke(delegate, method, message, body, messageContext);
+                invoker.invoke(delegate, method, body, type, messageContext);
             } catch (Exception e) {
                 throw new ConsumeException(e);
             }
         } else {
             if (ConstantConfig.SpecialSymbols.ASTERISK.equals(tag.trim())) {
-                invoker.invoke(delegate, this.subscriptionGroup.getAllMethods(), message, body, messageContext);
+                invoker.invoke(delegate, this.subscriptionGroup.getAllMethods(), body, type, messageContext);
             } else {
                 throw new ConsumeException(String.format("未找到相应的tag(%s)方法", tag));
             }
@@ -72,10 +71,6 @@ public class RocketmqListenerMethodAdapter implements RocketmqConsumerListener {
     @Override
     public ConsumerConfig getConsumerConfig() {
         return this.consumerConfig;
-    }
-
-    public void setInvoker(MethodInvoker invoker) {
-        this.invoker = invoker;
     }
 
     private void initConfig(SubscriptionGroup subscriptionGroup) {

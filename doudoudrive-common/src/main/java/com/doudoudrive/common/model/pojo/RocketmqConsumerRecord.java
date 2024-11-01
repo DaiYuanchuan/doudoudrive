@@ -82,6 +82,23 @@ public class RocketmqConsumerRecord implements Serializable {
     private Date sendTime;
 
     /**
+     * 消息发送状态
+     * 参见：{@link com.doudoudrive.common.constant.ConstantConfig.MqMessageSendStatus}
+     */
+    private String sendStatus;
+
+    /**
+     * 消息的消费状态
+     * 参见：{@link com.doudoudrive.common.constant.ConstantConfig.RocketmqConsumerStatusEnum}
+     */
+    private String status;
+
+    /**
+     * 消息体内容
+     */
+    private String body;
+
+    /**
      * 创建时间
      */
     private Date createTime;

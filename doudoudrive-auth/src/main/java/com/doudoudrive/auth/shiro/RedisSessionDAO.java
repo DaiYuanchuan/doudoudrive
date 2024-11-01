@@ -3,7 +3,8 @@ package com.doudoudrive.auth.shiro;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.doudoudrive.common.cache.CacheManagerConfig;
 import com.doudoudrive.common.constant.ConstantConfig;
-import com.doudoudrive.common.model.dto.model.ShiroAuthenticationModel;
+import com.doudoudrive.common.model.dto.model.DiskUserModel;
+import com.doudoudrive.common.model.dto.model.auth.ShiroAuthenticationModel;
 import com.doudoudrive.common.util.lang.CollectionUtil;
 import com.doudoudrive.common.util.lang.RedisSerializerUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -215,11 +216,13 @@ public class RedisSessionDAO extends AbstractSessionDAO {
      * @param shiroSession 需要往缓存中存入的session对象数据
      */
     private void putSessionFromCache(String sessionId, ShiroSession shiroSession) {
+        // 从当前session中获取到当前登录的用户信息
+        DiskUserModel userModel = (DiskUserModel) shiroSession.getAttribute(ConstantConfig.Cache.USERINFO_CACHE);
         // 构建shiro鉴权对象
         ShiroAuthenticationModel shiroAuthenticationModel = ShiroAuthenticationModel.builder()
                 .sessionId(sessionId)
-                // 从当前session中获取到当前登录的用户名
-                .username(this.getUsername(shiroSession))
+                .userId(userModel == null ? null : userModel.getBusinessId())
+                .username(userModel == null ? this.getUsername(shiroSession) : userModel.getUserName())
                 // 序列化当前session对象
                 .session(SERIALIZER.serialize(shiroSession))
                 .build();

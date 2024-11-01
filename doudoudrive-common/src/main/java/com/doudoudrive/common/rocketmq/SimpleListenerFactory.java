@@ -6,6 +6,7 @@ import com.doudoudrive.common.constant.NumberConstant;
 import com.doudoudrive.common.model.dto.model.MessageContext;
 import com.doudoudrive.common.model.dto.model.SubscriptionGroup;
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -30,6 +31,7 @@ import java.util.Map;
 @Slf4j
 public class SimpleListenerFactory implements InitializingBean, ApplicationContextAware {
 
+    @Getter
     private Map<String, RocketmqConsumerListener> allListeners;
 
     private final MethodResolver resolver;
@@ -38,10 +40,6 @@ public class SimpleListenerFactory implements InitializingBean, ApplicationConte
 
     public SimpleListenerFactory() {
         this.resolver = new MethodResolver();
-    }
-
-    public Map<String, RocketmqConsumerListener> getAllListeners() {
-        return allListeners;
     }
 
     @Override

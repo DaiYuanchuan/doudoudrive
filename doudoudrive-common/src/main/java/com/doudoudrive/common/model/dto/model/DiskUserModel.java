@@ -76,6 +76,11 @@ public class DiskUserModel implements Serializable {
     private Date userUnlockTime;
 
     /**
+     * 文件访问密钥，拼接在文件链接后面，用于文件访问鉴权
+     */
+    private String fileAccessKey;
+
+    /**
      * 当前用户所属的所有角色信息
      */
     private List<SysUserRoleModel> roleInfo;

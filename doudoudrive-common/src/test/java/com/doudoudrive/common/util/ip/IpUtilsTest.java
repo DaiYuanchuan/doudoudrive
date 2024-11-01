@@ -59,27 +59,11 @@ public class IpUtilsTest {
     }
 
     /**
-     * 内存搜索 memorySearch 算法查找ip地址
+     * 获取指定IP地址的实际地理位置
      */
     @Test
-    public void getIpLocationByMemoryTest() {
-        resultComparison(IpUtils.getIpLocationByMemory(IP));
-    }
-
-    /**
-     * 使用 b-tree 算法查找IP地址
-     */
-    @Test
-    public void getIpLocationByBtreeTest() {
-        resultComparison(IpUtils.getIpLocationByBtree(IP));
-    }
-
-    /**
-     * 使用 二进制搜索算法 算法查找IP地址
-     */
-    @Test
-    public void getIpLocationByBinaryTest() {
-        resultComparison(IpUtils.getIpLocationByBinary(IP));
+    public void getIpLocation() {
+        resultComparison(IpUtils.getIpLocation(IP));
     }
 
     /**

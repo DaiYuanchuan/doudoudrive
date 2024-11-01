@@ -1,6 +1,6 @@
 package com.doudoudrive.common.util.http;
 
-import com.doudoudrive.common.model.dto.model.CreateFileAuthModel;
+import com.doudoudrive.common.model.dto.model.auth.CreateFileAuthModel;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
